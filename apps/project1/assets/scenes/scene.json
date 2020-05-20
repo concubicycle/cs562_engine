@@ -1,0 +1,12 @@
+{
+  "entities": [
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, -10 ]          
+        }
+      ]
+    }
+  ]
+}
