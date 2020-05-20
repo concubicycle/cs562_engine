@@ -10,10 +10,8 @@ namespace renderer
 {
 	struct model_instance : public ecs::component<model_instance>
 	{
-		opengl_model model;
-		opengl_material material;
+		opengl_model model;		
 		size_t model_file_hash{ 0 };
-		size_t material_file_hash{ 0 };
 	};
 }
 

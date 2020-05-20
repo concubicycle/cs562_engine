@@ -14,4 +14,5 @@ target_link_libraries(core
     nlohmann_json
     eigen
     platform
-    glfw)
+    glfw
+    spdlog)

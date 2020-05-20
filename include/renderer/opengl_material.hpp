@@ -10,11 +10,11 @@ namespace renderer
 {
 	struct opengl_material
 	{
-		static constexpr std::uint8_t MaxAdditionalFloats = 16;
-		static constexpr std::uint8_t MaxAdditionalVec3s = 8;
+		static constexpr std::uint8_t MaxAdditionalFloats = 8;
+		static constexpr std::uint8_t MaxAdditionalVec3s = 4;
 		static constexpr std::uint8_t MaxAdditionalMat4s = 4;
-		static constexpr std::uint8_t MaxAdditionalInts = 16;
-		static constexpr std::uint8_t MaxAdditionalBools = 16;
+		static constexpr std::uint8_t MaxAdditionalInts = 8;
+		static constexpr std::uint8_t MaxAdditionalBools = 8;
 
 		material_texture diffuse_texture{gl::GL_TEXTURE0};
 		material_texture metalness_texture{ gl::GL_TEXTURE0 + 1 };
@@ -36,7 +36,6 @@ namespace renderer
 
 		additional_material_property_bool additional_bools[MaxAdditionalBools];
 		std::uint8_t additional_bool_count{ 0 };
-
 	};
 }
 

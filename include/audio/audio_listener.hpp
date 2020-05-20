@@ -2,12 +2,11 @@
 // Created by sava on 1/27/20.
 //
 
-#ifndef WIZARDENGINE_AUDIO_LISTENER_HPP
-#define WIZARDENGINE_AUDIO_LISTENER_HPP
+#ifndef _AUDIO_LISTENER_HPP
+#define _AUDIO_LISTENER_HPP
 
 #include <ecs/component.hpp>
-
-#include <glm/vec3.hpp>
+#include <Eigen/Core>
 
 #include <atomic>
 
@@ -17,10 +16,10 @@ namespace audio
     {        
         int listener_id {0};
 
-        glm::vec3 listener_position;
-        glm::vec3 listener_velocity;
-        glm::vec3 listener_forward;
-        glm::vec3 listener_up;
+        Eigen::Vector3f listener_position;
+        Eigen::Vector3f listener_velocity;
+        Eigen::Vector3f listener_forward;
+        Eigen::Vector3f listener_up;
     };
 }
 

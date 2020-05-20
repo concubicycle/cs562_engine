@@ -9,7 +9,12 @@ set (ASSET_SOURCE_LIST
         ${PROJECT_SOURCE_DIR}/src/asset/scene_tracker.cpp 
         asset_loader.cpp)
 
-add_library(asset STATIC ${ASSET_SOURCE_LIST})
+add_library(asset ${ASSET_SOURCE_LIST})
 target_include_directories(asset PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(asset PUBLIC cxx_std_17)
-target_link_libraries(asset PUBLIC core ecs assimp fmod stb_image)
+target_link_libraries(asset PUBLIC 
+    core 
+    ecs 
+    assimp 
+    fmod 
+    stb_image)

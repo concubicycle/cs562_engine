@@ -5,13 +5,13 @@
 
 
 
-asset::rigged_mesh::rigged_mesh(const aiScene* assimp_scene, aiMesh* assimp_mesh)
+asset::rigged_mesh::rigged_mesh(const aiScene* assimp_scene_asset, aiMesh* assimp_mesh)
 {
     size_t num_nodes = 0;
-    bone_flattener<std::string>::count_nodes(assimp_scene->mRootNode, num_nodes);
+    bone_flattener<std::string>::count_nodes(assimp_scene_asset->mRootNode, num_nodes);
     _bones_buffer.resize(num_nodes);
     asset::bone_flattener<std::string> flattener(
-            assimp_scene,
+            assimp_scene_asset,
             _bones_buffer.data(),
             num_nodes,
             [&] (

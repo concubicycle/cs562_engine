@@ -15,7 +15,7 @@ namespace asset
 	class rigged_mesh
 	{
 	public:
-		explicit rigged_mesh(const aiScene* assimp_scene, aiMesh* assimp_mesh);
+		explicit rigged_mesh(const aiScene* assimp_scene_asset, aiMesh* assimp_mesh);
 
         std::vector<rigged_vertex>& vertices();
         std::vector<std::uint32_t>& indices();
