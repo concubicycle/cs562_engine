@@ -7,9 +7,9 @@
 
 namespace renderer
 {
-	struct material_texture
+	struct opengl_texture
 	{
-		material_texture(const gl::GLenum index)
+		opengl_texture(const gl::GLenum index)
 			: texture_index(index)
 		{}
 

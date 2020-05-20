@@ -7,7 +7,9 @@ set (ASSET_SOURCE_LIST
         ${PROJECT_SOURCE_DIR}/src/asset/model_loader.cpp
         ${PROJECT_SOURCE_DIR}/src/asset/rigged_mesh.cpp
         ${PROJECT_SOURCE_DIR}/src/asset/scene_tracker.cpp 
-        asset_loader.cpp)
+        asset_loader.cpp 
+        assimp_mesh.cpp 
+        assimp_model.cpp)
 
 add_library(asset ${ASSET_SOURCE_LIST})
 target_include_directories(asset PRIVATE ${PROJECT_SOURCE_DIR}/include)
@@ -15,6 +17,6 @@ target_compile_features(asset PUBLIC cxx_std_17)
 target_link_libraries(asset PUBLIC 
     core 
     ecs 
+    stb_image
     assimp 
-    fmod 
-    stb_image)
+    fmod)

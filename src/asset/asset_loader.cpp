@@ -8,6 +8,9 @@
 #include <filesystem>
 #include <fstream>
 
+
+
+
 asset::asset_loader::asset_loader()
 {
 }
@@ -42,9 +45,9 @@ const asset::assimp_scene_asset& asset::asset_loader::get_assimp_scene(const std
 
 	validate_path(filepath);
 
-	auto& ret = _assimp_cache[filepath];
+	auto& scene_asset = _assimp_cache[filepath];
 
-	const aiScene* scene = ret.importer.ReadFile(filepath,
+	const aiScene* scene = scene_asset.importer.ReadFile(filepath,
 		aiProcess_ValidateDataStructure |
 		aiProcess_Triangulate |
 		aiProcess_FlipUVs |
@@ -57,12 +60,34 @@ const asset::assimp_scene_asset& asset::asset_loader::get_assimp_scene(const std
 	{
 		std::string err = "Error: Assimp failed to load mesh from file. \n";
 		err += filepath + "\n";
-		err += ret.importer.GetErrorString();
+		err += scene_asset.importer.GetErrorString();
 		throw std::runtime_error(err);
 	}
 
-	ret.aiscene = scene;
-	return ret;
+	scene_asset.aiscene = scene;
+	return scene_asset;
+}
+
+const asset::texture_asset& asset::asset_loader::get_texture(const std::string& filepath)
+{
+	auto cached = _texture_cache.find(filepath);
+	if (cached != _texture_cache.end())
+		return cached->second;
+
+	validate_path(filepath);	
+	
+	int width, height, channels;
+	auto bytes = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
+	if (!bytes)
+	{
+		throw std::runtime_error("Failed to load texture " + filepath);
+	}
+
+	_texture_cache.try_emplace(
+		filepath, 
+		width, height, channels, bytes);
+
+	return _texture_cache.find(filepath)->second;
 }
 
 void asset::asset_loader::validate_path(const std::string& path)

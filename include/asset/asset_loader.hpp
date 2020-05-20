@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include <asset/assimp_scene_asset.hpp>
+#include <asset/texture_asset.hpp>
 
 namespace asset
 {
@@ -17,10 +18,13 @@ namespace asset
 
 		nlohmann::json& get_json(const std::string& file);
 		const assimp_scene_asset& get_assimp_scene(const std::string& file);
+		const texture_asset& get_texture(const std::string& file);
 
 	private:
 		std::unordered_map<std::string, nlohmann::json> _json_cache;
 		std::unordered_map<std::string, assimp_scene_asset> _assimp_cache;
+		std::unordered_map<std::string, texture_asset> _texture_cache;
+
 		
 		void validate_path(const std::string& path);
 	};

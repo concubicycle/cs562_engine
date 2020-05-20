@@ -3,9 +3,8 @@
 
 #include <cstddef>
 #include <cstdint>
-#include "glbinding/gl/gl.h"
-#include "glbinding/glbinding.h"
-
+#include <optional>
+#include <glbinding/gl/gl.h>
 #include <renderer/opengl_material.hpp>
 
 namespace renderer
@@ -18,7 +17,7 @@ namespace renderer
 		std::uint32_t index_count{ 0 };
 
 		opengl_material material;
-		size_t material_file_hash{ 0 };
+		std::optional<size_t> material_file_hash{ 0 };
 	};
 }
 
