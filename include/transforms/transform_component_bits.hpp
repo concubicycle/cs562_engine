@@ -7,7 +7,7 @@ namespace transforms
 {
 	enum class transform_component_bits
 	{
-		transform = 1
+		transform = 0
 	};
 }
 

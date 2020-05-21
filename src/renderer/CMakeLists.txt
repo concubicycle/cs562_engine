@@ -10,7 +10,13 @@ set (RENDERER_SOURCE_FILES
 add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(renderer 
-    PRIVATE ecs transforms core asset
+    PRIVATE ecs transforms core asset glfw
     PUBLIC glbinding) # not sure why glbinding needs to be public. headers can't see it otherwise. 
 
 target_compile_features(renderer PUBLIC cxx_std_17)
+
+add_custom_target(copy_render_assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/src/renderer/shaders ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/shaders
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/src/renderer/fonts ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/fonts)
+
+add_dependencies (renderer copy_render_assets)

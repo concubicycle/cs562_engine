@@ -19,6 +19,9 @@
 #include <transforms/transform_system.hpp>
 
 #include <renderer/render_system.hpp>
+#include <renderer/model_instance.hpp>
+#include <renderer/model_loader.hpp>
+#include <renderer/assimp_vram_loader.hpp>
 
 #include "app_event.hpp"
 
@@ -27,38 +30,44 @@
 int main(int argc, char** argv) 
 {
 	app_events events;
-	util::string_table strings;		
-	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
-	asset::asset_loader loader;
+	os::sleeper sleeper;
+	util::string_table strings;	
+	
 	core::startup_config config;
 	core::glfw_context glfw(config);
 	core::input_manager input(glfw.window());
-	core::frame_timer timer;
-	os::sleeper sleeper;
+	core::frame_timer timer;	
 	core::frame_limiter limiter(timer, 60, sleeper);
-	core::cursor_state cursor(glfw.window());
+	core::cursor_state cursor(glfw.window());	
 
 	ecs::archetype_pools memory;
 	ecs::state state(memory);
-
 	ecs::register_component<transforms::transform>("transform");
 	ecs::register_component<renderer::model_instance>("model_instance");
 
+	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
+	asset::asset_loader loader;
+	asset::scene_hydrater hydrater(state);
+
+	renderer::assimp_vram_loader vram_loader(loader);
+
+	// register systems
 	transforms::transform_system transform_system;
 	renderer::render_system render_system;
-
+	
 	ecs::systems systems({
 		&transform_system,
 		&render_system
 	});
 	ecs::world world(systems, state);
 
-	asset::scene_hydrater hydrater(state);
+	// register loaders
+	transforms::transform_loader transform_loader;	
+	renderer::model_loader model_loader(strings, loader, vram_loader);
 
-	
-	transforms::transform_loader transform_loader;
-
-	hydrater.register_loaders(&transform_loader);
+	hydrater.register_loaders(
+		&transform_loader,
+		&model_loader);
 
 	while (scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window()))
 	{

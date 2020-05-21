@@ -11,7 +11,9 @@ namespace renderer
 	struct model_instance : public ecs::component<model_instance>
 	{
 		opengl_model model;		
-		size_t model_file_hash{ 0 };
+
+		// hash of model path, so we can keep track of what model this originally was
+		size_t model_file_hash{ 0 }; 
 	};
 }
 

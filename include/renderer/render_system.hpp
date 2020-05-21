@@ -9,10 +9,13 @@ namespace renderer
 	class render_system : public ecs::system_base
 	{
 	public:
+		render_system();
+
 		virtual void update(ecs::state& state) override;
 
 	private:
 
+		void initialize_opengl();
 	};
 }
 

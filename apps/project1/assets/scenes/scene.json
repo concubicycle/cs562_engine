@@ -4,7 +4,19 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 0, -10 ]          
+          "position": [ 0, 0, -10 ]
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, -5, 0 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/terrain/terrain.gltf"
         }
       ]
     }
