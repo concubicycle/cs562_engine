@@ -12,6 +12,7 @@ void run_app()
 	core::frame_timer timer;
 	core::frame_limiter limiter(timer, 60, sleeper);
 	core::cursor_state cursor(glfw.window());
+	cursor.enable();
 
 	ecs::archetype_pools memory;
 	ecs::state state(memory);
@@ -19,6 +20,7 @@ void run_app()
 	ecs::register_component<renderer::model_instance>("model_instance");
 	ecs::register_component<renderer::punctual_light>("punctual_light");
 	ecs::register_component<renderer::camera>("camera");
+	ecs::register_component<renderer::ambient_light>("ambient_light");
 
 	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
 	asset::asset_loader loader;
@@ -28,12 +30,14 @@ void run_app()
 
 	// register systems
 	transforms::transform_system transform_system;
-	renderer::render_system render_system;
+	renderer::render_system render_system(strings, loader, glfw, config);
+	renderer::camera_update_system camera_updater(glfw);
 
 	ecs::systems systems({
 		&transform_system,
-		&render_system
-		});
+		&render_system,
+		&camera_updater });
+
 	ecs::world world(systems, state);
 
 	// register loaders
@@ -41,12 +45,14 @@ void run_app()
 	renderer::model_loader model_loader(strings, loader, vram_loader);
 	renderer::punctual_light_loader punctual_light_loader;
 	renderer::camera_loader camera_loader;
+	renderer::ambient_light_loader ambient_light_loader;
 
 	hydrater.register_loaders(
 		&transform_loader,
 		&model_loader,
 		&punctual_light_loader,
-		&camera_loader);
+		&camera_loader, 
+		&ambient_light_loader);
 
 	while (scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window()))
 	{

@@ -1,38 +1,46 @@
-#version 330 core
+#version 430 core
 out vec4 FragColor;
 
 #define EPSILON 0.0000001
 #define PI 3.1415926535897932384626433832795
 #define DOT_CLAMP 0.00001
-#define NR_POINT_LIGHTS 8
+#define MAX_POINT_LIGHTS 8
 
-struct PointLight {
-    vec3 color;
-    vec3 position;
-    float intensity;
-};
 
 in VS_OUT {
     vec3 normal;
     vec2 texcoords_2d;
     vec3 world_pos;
-    float fog_factor;
 } fs_in;
 
-// light uniforms
-uniform vec3 ambient_light;// Ia
 
-// surface uniforms
-uniform sampler2D diffuse_texture;
+// standard surface textures
+layout(binding = 0) uniform sampler2D diffuse_texture;
+layout(binding = 1) uniform sampler2D metalness_texture;
+layout(binding = 2) uniform sampler2D normal_texture;
+layout(binding = 3) uniform sampler2D roughness_texture;
+layout(binding = 4) uniform sampler2D ambient_occlusion_texture;
+
+// CS541 surface uniforms
 uniform vec3 specular;// Ks
 uniform float shininess;// alpha exponent
 
-// cam position
-uniform vec3 view_pos;
-
 // punctual lights
-uniform PointLight pointLights[NR_POINT_LIGHTS];
-uniform int pointLightCount;
+struct PointLight {
+    vec3 color;
+    vec3 position;
+    float intensity;
+    float radius;
+};
+
+uniform PointLight point_lights[MAX_POINT_LIGHTS];
+uniform int point_light_count;
+
+// ambient light(s)
+uniform vec3 ambient_light;// Ia
+
+// cam position
+uniform vec3 camera_position;
 
 
 
@@ -85,20 +93,20 @@ void main()
     vec3 IaKd = ambient_light * Kd;
     vec3 I = IaKd;
 
-    for (int i = 0; i < pointLightCount; i++)
+    for (int i = 0; i < point_light_count; i++)
     {
-        if (dot(pointLights[i].color, pointLights[i].color) < 0.0001)
+        if (dot(point_lights[i].color, point_lights[i].color) < 0.0001)
         {
             continue;
         }
 
-        vec3 light_pos = pointLights[i].position;
+        vec3 light_pos = point_lights[i].position;
         vec3 light_vec = light_pos - fs_in.world_pos;
-        vec3 view_vec = view_pos - fs_in.world_pos;
+        vec3 view_vec = camera_position - fs_in.world_pos;
         vec3 V = normalize(view_vec);
         vec3 L = normalize(light_vec);
 
-        float distance_falloff = pointLights[i].intensity / length(light_vec);
+        float distance_falloff = point_lights[i].intensity / length(light_vec);
 
         I += BRDF(
             L,
@@ -106,7 +114,7 @@ void main()
             Kd,
             specular,
             shininess,
-            pointLights[i]) * distance_falloff;
+            point_lights[i]) * distance_falloff;
     }    
 
     if (tex_color.w == 0) discard;    

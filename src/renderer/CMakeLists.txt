@@ -13,7 +13,10 @@ set (RENDERER_SOURCE_FILES
     punctual_light.cpp
     camera_update_system.cpp
     punctual_light_loader.cpp
-    camera_loader.cpp)
+    camera_loader.cpp 
+    opengl_context.cpp
+    ambient_light.cpp
+    ambient_light_loader.cpp)
 
 add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)

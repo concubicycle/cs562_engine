@@ -7,7 +7,8 @@ namespace renderer
 	{
 		model_instance = 1,
 		punctual_light = 2,
-		camera = 3
+		camera = 3,
+		ambient_light = 4
 	};
 }
 

@@ -1,9 +1,13 @@
 #include <renderer/shader_program.hpp>
 
+#include <Eigen/Core>
+
 renderer::shader_program::shader_program(const std::string& vertex_source, const std::string& fragment_source)
 	: _vertex_shader(gl::GLenum::GL_VERTEX_SHADER, vertex_source)
 	, _fragment_shader(gl::GLenum::GL_FRAGMENT_SHADER, fragment_source)
 {
+    _id = gl::glCreateProgram();
+    link();
 }
 
 void renderer::shader_program::link()
@@ -47,4 +51,60 @@ void renderer::shader_program::validate_program()
         glGetProgramInfoLog(_id, GPU_INFO_BUFFER_SIZE, &length, buffer);
         spdlog::info("Shader program {0} built successfully. Info log: {1}", _id, buffer);
     }
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, gl::GLfloat val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform1f(loc, val);
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, const Eigen::Matrix4f& mat) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniformMatrix4fv(loc, 1, gl::GL_FALSE, mat.data());
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, const Eigen::Vector2f& val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform2fv(loc, 1, val.data());
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, gl::GLint val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform1i(loc, val);
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, const Eigen::Translation3f& val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform3fv(loc, 1, val.vector().data());
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, const Eigen::Array3f& val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform3fv(loc, 1, val.data());
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, const Eigen::Vector3f& val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform3fv(loc, 1, val.data());
+}
+
+void renderer::shader_program::set_uniform(const std::string& name, const Eigen::Array4f& val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform4fv(loc, 1, val.data());
 }

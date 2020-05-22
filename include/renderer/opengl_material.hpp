@@ -1,6 +1,7 @@
 #ifndef __MATERIAL_HPP_
 #define __MATERIAL_HPP_
 
+#include <optional>
 #include <cstdint>
 #include <renderer/opengl_texture.hpp>
 #include <renderer/additional_material_property.hpp>
@@ -19,6 +20,9 @@ namespace renderer
 		opengl_texture normal_texture{ gl::GL_TEXTURE0 + 2 };
 		opengl_texture roughness_texture{ gl::GL_TEXTURE0 + 3 };
 		opengl_texture ambient_occlusion_texture{ gl::GL_TEXTURE0 + 4 };
+
+		float shininess{ 0.5f };
+		float specular{0.5f };
 
 		bool has_additional {false};
 

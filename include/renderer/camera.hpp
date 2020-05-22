@@ -7,11 +7,21 @@
 
 namespace renderer
 {
+	enum class background_type
+	{
+		none = 0, 
+		color = 1, 
+		cubemap = 2
+	};
+
 	struct camera : public ecs::component<camera>
 	{
 		Eigen::Matrix4f projection;
 		Eigen::Affine3f inverse_view;
-		Eigen::Affine3f view;		
+		Eigen::Affine3f view;
+		background_type background;
+
+		Eigen::Array4f clear_color;
 
 		float fov;
 		float near_distance;

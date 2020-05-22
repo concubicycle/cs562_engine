@@ -3,7 +3,7 @@
 
 #include <glbinding/gl/gl.h>
 #include <glbinding/glbinding.h>
-
+#include <optional>
 
 namespace renderer
 {
@@ -14,7 +14,7 @@ namespace renderer
 		{}
 
 		gl::GLenum texture_index;
-		gl::GLuint texture_id;
+		std::optional<gl::GLuint> texture_id;
 	};
 }
 

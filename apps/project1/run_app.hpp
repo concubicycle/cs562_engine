@@ -18,6 +18,8 @@
 #include <transforms/transform_loader.hpp>
 #include <transforms/transform_system.hpp>
 
+#include <renderer/ambient_light.hpp>
+#include <renderer/ambient_light_loader.hpp>
 #include <renderer/render_system.hpp>
 #include <renderer/model_instance.hpp>
 #include <renderer/model_loader.hpp>
@@ -26,6 +28,7 @@
 #include <renderer/camera.hpp>
 #include <renderer/camera_loader.hpp>
 #include <renderer/punctual_light_loader.hpp>
+#include <renderer/camera_update_system.hpp>
 
 #include "app_event.hpp"
 

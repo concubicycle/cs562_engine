@@ -4,13 +4,19 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 0, -10 ]
+          "position": [ 0, 2, -10 ]
         },
         {
           "type": "camera",
           "fov": 1.5708,
           "near_distance": 0.1,
-          "far_distance": 10000
+          "far_distance": 10000,
+          "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
+          "background": 1
+        },
+        {
+          "type": "ambient_light", 
+          "color": [0.9, 0.8, 1]
         }
       ]
     },
@@ -23,6 +29,20 @@
         {
           "type": "model_instance",
           "model": "assets/models/terrain/terrain.gltf"
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 5, 0 ]
+        },
+        {
+          "type": "punctual_light",
+          "color": [ 0.8, 1, 1 ],
+          "intensity": 100,
+          "radius": 100
         }
       ]
     }
