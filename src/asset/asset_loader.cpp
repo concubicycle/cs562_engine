@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include <util/read_file.hpp>
 
 
 
@@ -74,7 +75,7 @@ const asset::texture_asset& asset::asset_loader::get_texture(const std::string& 
 	if (cached != _texture_cache.end())
 		return cached->second;
 
-	validate_path(filepath);	
+	validate_path(filepath);
 	
 	int width, height, channels;
 	auto bytes = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
@@ -88,6 +89,18 @@ const asset::texture_asset& asset::asset_loader::get_texture(const std::string& 
 		width, height, channels, bytes);
 
 	return _texture_cache.find(filepath)->second;
+}
+
+const std::string& asset::asset_loader::get_text(const std::string& filepath)
+{
+	auto cached = _text_cache.find(filepath);
+	if (cached != _text_cache.end())
+		return cached->second;
+
+	validate_path(filepath);
+
+	_text_cache.try_emplace(filepath, util::read_file(filepath));
+	return _text_cache.at(filepath);
 }
 
 void asset::asset_loader::validate_path(const std::string& path)

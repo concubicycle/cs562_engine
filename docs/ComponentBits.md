@@ -3,7 +3,7 @@
 
 ## Transform 
 
-Bit shift range: **0-0**
+Bit shift range: **0-4**
 
 ```c++
 	enum class component_bits : component_shift
@@ -13,7 +13,7 @@ Bit shift range: **0-0**
 ```
 
 ## Rendering
-Bit shift range: **1-16**
+Bit shift range: **5-16**
 
 ```c++
 	enum class component_bits : component_shift

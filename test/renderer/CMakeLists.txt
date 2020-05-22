@@ -1,0 +1,4 @@
+add_executable(renderer_tests renderer_tests.cpp)
+target_link_libraries(renderer_tests core renderer)
+target_include_directories(renderer_tests PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(events_tests PUBLIC cxx_std_17)

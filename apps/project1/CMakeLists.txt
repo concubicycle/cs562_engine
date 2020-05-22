@@ -1,4 +1,4 @@
-add_executable(project1 main.cpp)
+add_executable(project1 main.cpp "run_app.cpp")
 target_link_libraries(project1 
 	core
 	ecs

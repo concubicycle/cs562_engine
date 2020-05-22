@@ -5,12 +5,20 @@ set (RENDERER_SOURCE_FILES
     program_uniforms.cpp
     additional_material_property.cpp
     model_loader.cpp 
-    assimp_vram_loader.cpp)
+    assimp_vram_loader.cpp 
+    shader.cpp
+    shader_program.cpp
+    program_info.cpp
+    camera.cpp
+    punctual_light.cpp
+    camera_update_system.cpp
+    punctual_light_loader.cpp
+    camera_loader.cpp)
 
 add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(renderer 
-    PRIVATE ecs transforms core asset glfw
+    PRIVATE ecs transforms core asset glfw eigen
     PUBLIC glbinding) # not sure why glbinding needs to be public. headers can't see it otherwise. 
 
 target_compile_features(renderer PUBLIC cxx_std_17)

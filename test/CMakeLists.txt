@@ -21,3 +21,6 @@ add_executable(events_tests events/events_tests.cpp)
 target_link_libraries(events_tests core)
 target_include_directories(events_tests PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(events_tests PUBLIC cxx_std_17)
+
+# renderer
+add_subdirectory(renderer)

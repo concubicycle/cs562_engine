@@ -5,6 +5,12 @@
         {
           "type": "transform",
           "position": [ 0, 0, -10 ]
+        },
+        {
+          "type": "camera",
+          "fov": 1.5708,
+          "near_distance": 0.1,
+          "far_distance": 10000
         }
       ]
     },
