@@ -1,7 +1,7 @@
 set (TRANSFORMS_SOURCE_FILES 
     transform.cpp
     transform_loader.cpp
-    transform_system.cpp)
+    transform_system.cpp "freely_system.cpp" "freefly_component.cpp")
 
 add_library(transforms ${TRANSFORMS_SOURCE_FILES})
 target_include_directories(transforms PRIVATE ${PROJECT_SOURCE_DIR}/include)

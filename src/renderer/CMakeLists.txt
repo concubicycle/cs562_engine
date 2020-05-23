@@ -22,7 +22,7 @@ add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(renderer 
     PRIVATE ecs transforms core asset glfw eigen
-    PUBLIC glbinding) # not sure why glbinding needs to be public. headers can't see it otherwise. 
+    PUBLIC glbinding glbinding-aux) # not sure why glbinding needs to be public. headers can't see it otherwise. 
 
 target_compile_features(renderer PUBLIC cxx_std_17)
 

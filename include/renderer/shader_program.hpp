@@ -19,6 +19,9 @@ namespace renderer
 	public:
 		shader_program(const std::string& vertex_source, const std::string& fragment_source);
 
+		void bind();
+		void unbind();
+
 		void set_uniform(const std::string& name, const gl::GLfloat val) const;
 		void set_uniform(const std::string& name, const Eigen::Matrix4f& mat) const;
 		void set_uniform(const std::string& name, const Eigen::Vector3f& val) const;
@@ -27,6 +30,8 @@ namespace renderer
 		void set_uniform(const std::string& name, const Eigen::Translation3f& val) const;
 		void set_uniform(const std::string& name, const Eigen::Array3f& val) const;
 		void set_uniform(const std::string& name, const Eigen::Array4f& val) const;
+
+		
 
 	private:
 		shader _vertex_shader;

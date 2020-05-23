@@ -12,14 +12,17 @@ out VS_OUT {
     vec3 normal;
     vec2 texcoords_2d;
     vec3 world_pos;
-    float fog_factor;
 } vs_out;
 
-uniform mat4 
-    model, 
-    model_inverse, 
+// camera uniforms
+uniform mat4     
     projection, 
     view;
+
+// model uniforms
+uniform mat4 
+    model,
+    model_inverse;
 
 void main()
 {

@@ -39,7 +39,7 @@ uniform int point_light_count;
 // ambient light(s)
 uniform vec3 ambient_light;// Ia
 
-// cam position
+// camera uniforms
 uniform vec3 camera_position;
 
 
@@ -88,6 +88,10 @@ vec3 BRDF(vec3 L, vec3 V, vec3 Kd, vec3 Ks, float alpha, PointLight light)
 
 void main()
 {
+//    FragColor = vec4(0, 1, 0, 1);
+//    return;
+
+
     vec4 tex_color = texture(diffuse_texture, fs_in.texcoords_2d);
     vec3 Kd = tex_color.rgb;
     vec3 IaKd = ambient_light * Kd;
@@ -100,9 +104,9 @@ void main()
             continue;
         }
 
-        vec3 light_pos = point_lights[i].position;
+        vec3 light_pos = point_lights[i].position.xyz;
         vec3 light_vec = light_pos - fs_in.world_pos;
-        vec3 view_vec = camera_position - fs_in.world_pos;
+        vec3 view_vec = camera_position.xyz - fs_in.world_pos;
         vec3 V = normalize(view_vec);
         vec3 L = normalize(light_vec);
 

@@ -17,6 +17,8 @@
 #include <transforms/transform.hpp>
 #include <transforms/transform_loader.hpp>
 #include <transforms/transform_system.hpp>
+#include <transforms/freefly_system.hpp>
+#include <transforms/freefly_component.hpp>
 
 #include <renderer/ambient_light.hpp>
 #include <renderer/ambient_light_loader.hpp>

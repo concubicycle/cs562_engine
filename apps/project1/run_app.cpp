@@ -12,15 +12,17 @@ void run_app()
 	core::frame_timer timer;
 	core::frame_limiter limiter(timer, 60, sleeper);
 	core::cursor_state cursor(glfw.window());
-	cursor.enable();
+	//cursor.enable();
 
 	ecs::archetype_pools memory;
 	ecs::state state(memory);
 	ecs::register_component<transforms::transform>("transform");
+	ecs::register_component<transforms::freefly_component>("freefly_component");
 	ecs::register_component<renderer::model_instance>("model_instance");
 	ecs::register_component<renderer::punctual_light>("punctual_light");
 	ecs::register_component<renderer::camera>("camera");
 	ecs::register_component<renderer::ambient_light>("ambient_light");
+	
 
 	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
 	asset::asset_loader loader;
@@ -30,13 +32,17 @@ void run_app()
 
 	// register systems
 	transforms::transform_system transform_system;
+	transforms::freefly_system freefly(input, timer);
 	renderer::render_system render_system(strings, loader, glfw, config);
 	renderer::camera_update_system camera_updater(glfw);
 
 	ecs::systems systems({
-		&transform_system,
-		&render_system,
-		&camera_updater });
+		&freefly,
+
+		&transform_system,		
+		&camera_updater,
+		&render_system 
+	});
 
 	ecs::world world(systems, state);
 

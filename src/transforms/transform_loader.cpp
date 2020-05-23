@@ -30,11 +30,13 @@ component_bitset transforms::transform_loader::components_to_load()
 }
 
 void transforms::transform_loader::load_rotation(const json& json, Eigen::Quaternionf& rotation)
-{
+{    
+    if (json.find("rotation") == json.end())
+        return;
+    
     Eigen::Vector3f euler_rotation;
-    if (json.find("rotation") != json.end())
-        for (size_t i = 0; i < 3; ++i)
-            euler_rotation[i] = json["rotation"][i].get<float>();
+    for (size_t i = 0; i < 3; ++i)
+        euler_rotation[i] = json["rotation"][i].get<float>();
 
     rotation = euler_to_quaternion(euler_rotation);
 }

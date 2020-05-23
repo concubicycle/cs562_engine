@@ -52,6 +52,7 @@ renderer::opengl_material renderer::assimp_vram_loader::load_material(const asse
 			tex.texture_id = load_texture(*get(tt));
 	};
 	
+	do_textype(result.diffuse_texture, aiTextureType::aiTextureType_DIFFUSE);
 	do_textype(result.metalness_texture, aiTextureType::aiTextureType_METALNESS);
 	do_textype(result.normal_texture, aiTextureType::aiTextureType_NORMALS);
 	do_textype(result.roughness_texture, aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS);
@@ -65,6 +66,7 @@ renderer::opengl_mesh renderer::assimp_vram_loader::load_mesh(const asset::assim
     using namespace gl;
 
     renderer::opengl_mesh result;
+	result.index_count = mesh.index_count();
 
     // Create OpenGL representation
     glGenVertexArrays(1, &result.vao);

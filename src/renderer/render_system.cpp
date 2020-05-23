@@ -36,11 +36,18 @@ void renderer::render_system::update(ecs::state& state)
 {
     using namespace transforms;
 
+    _default.bind();
+
     state.each<transform, camera>([&](transform& t, camera& c) {        
+                
         handle_cam_background(_default, c);
+        bind_camera_uniforms(_default, t, c);
         set_light_uniforms(state, _default, c);
 
+        draw_scene(state);
     });
+
+    _default.unbind();
 }
 
 
@@ -67,17 +74,18 @@ void renderer::render_system::set_light_uniforms(ecs::state& state, const render
         });
 }
 
-void renderer::render_system::render_models(ecs::state& state)
+void renderer::render_system::draw_scene(ecs::state& state)
 {
     using namespace gl;
     using namespace transforms;
+       
 
     state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
         for (size_t i = 0; i < mi.model.mesh_count; ++i)
-        {
-            draw_mesh(mi.model.meshes[i]);
+        {            
+            draw_mesh(t, mi.model.meshes[i]);
         }
-    });
+    });    
 }
 
 void renderer::render_system::handle_cam_background(
@@ -98,11 +106,27 @@ void renderer::render_system::handle_cam_background(
 }
 
 
-void renderer::render_system::draw_mesh(const opengl_mesh& mesh)
+void renderer::render_system::draw_mesh(const transforms::transform& transform, const opengl_mesh& mesh)
 {
+    using namespace gl;
+
     bind_material(mesh.material, _default);
-    bind_mesh(mesh);
-    gl::glDrawElements(gl::GL_TRIANGLES, mesh.index_count, gl:: GL_UNSIGNED_INT, nullptr);
+
+    _default.set_uniform("model", transform.local_to_world().matrix());
+    _default.set_uniform("model_inverse", transform.local_to_world().inverse().matrix());
+    
+    glBindVertexArray(mesh.vao);
+    if (mesh.ebo)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+        glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+    else
+    {
+        glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
+    }
+    glBindVertexArray(0);
 }
 
 void renderer::render_system::bind_material(const opengl_material& material, const shader_program& program)
@@ -117,10 +141,7 @@ void renderer::render_system::bind_material(const opengl_material& material, con
     program.set_uniform("shininess", material.shininess);
 }
 
-void renderer::render_system::bind_mesh(const opengl_mesh& mesh)
-{
 
-}
 
 void renderer::render_system::bind_texture(const opengl_texture& texture)
 {
@@ -132,8 +153,11 @@ void renderer::render_system::bind_texture(const opengl_texture& texture)
 }
 
 void renderer::render_system::bind_camera_uniforms(
-    const shader_program& shader, 
+    const shader_program& shader,
+    const transforms::transform& transform,
     const camera& cam)
 {
-
+    shader.set_uniform("projection", cam.projection);
+    shader.set_uniform("view", cam.view.matrix());
+    shader.set_uniform("camera_position", transform.world_position());
 }

@@ -7,7 +7,8 @@ namespace transforms
 {
 	enum class transform_component_bits
 	{
-		transform = 0
+		transform = 0,
+		freefly_component = 1
 	};
 }
 

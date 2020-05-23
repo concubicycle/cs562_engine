@@ -4,19 +4,23 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 2, -10 ]
+          "position": [ 0, 3, 0 ],
+          "rotation": [ -0.2, 0, 0 ]
         },
         {
           "type": "camera",
-          "fov": 1.5708,
+          "fov": 1.25,
           "near_distance": 0.1,
           "far_distance": 10000,
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
           "background": 1
         },
         {
-          "type": "ambient_light", 
-          "color": [0.9, 0.8, 1]
+          "type": "ambient_light",
+          "color": [ 0.9, 0.8, 1 ]
+        },
+        {
+          "type": "freefly_component"
         }
       ]
     },
@@ -24,7 +28,9 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, -5, 0 ]
+          "position": [ 0, 0, 0 ],
+          "rotation": [ 0, 0, 0 ],
+          "scale": [2, 1, 2]
         },
         {
           "type": "model_instance",
@@ -41,8 +47,8 @@
         {
           "type": "punctual_light",
           "color": [ 0.8, 1, 1 ],
-          "intensity": 100,
-          "radius": 100
+          "intensity": 10,
+          "radius": 10
         }
       ]
     }

@@ -34,6 +34,8 @@ namespace asset
 			return _indices.data();
 		}
 
+		std::uint32_t index_count() const { return _num_indices; };
+
 	private:
 		std::vector<assimp_vertex> _vertices;
 		std::vector<std::uint32_t> _indices;

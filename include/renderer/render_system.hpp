@@ -8,9 +8,10 @@
 #include <renderer/camera.hpp>
 #include <renderer/model_instance.hpp>
 #include <renderer/opengl_context.hpp>
+#include <renderer/opengl_material.hpp>
 #include <renderer/opengl_mesh.hpp>
 #include <renderer/shader_program.hpp>
-#include <renderer/opengl_material.hpp>
+#include <transforms/transform.hpp>
 #include <util/string_table.hpp>
 
 namespace renderer
@@ -47,13 +48,16 @@ namespace renderer
 			renderer::camera& cam);
 
 		void handle_cam_background(const shader_program& shader, const camera& cam);
-		void render_models(ecs::state& state);
-		void draw_mesh(const opengl_mesh& mesh);
 
-		void bind_material(const opengl_material& material, const shader_program& program);
-		void bind_mesh(const opengl_mesh& mesh);
+		void draw_scene(ecs::state& state);
+		void draw_mesh(const transforms::transform& transform, const opengl_mesh& mesh);
+
+		void bind_material(const opengl_material& material, const shader_program& program);		
 		void bind_texture(const opengl_texture& texture);
-		void bind_camera_uniforms(const shader_program& shader, const camera& cam);
+		void bind_camera_uniforms(
+			const shader_program& shader, 
+			const transforms::transform& transform,
+			const camera& cam);
 	};
 }
 

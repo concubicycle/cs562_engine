@@ -22,7 +22,7 @@ namespace renderer
 		opengl_texture ambient_occlusion_texture{ gl::GL_TEXTURE0 + 4 };
 
 		float shininess{ 0.5f };
-		float specular{0.5f };
+		Eigen::Array3f specular{ 0.5f, 0.7f, 0.4f };
 
 		bool has_additional {false};
 

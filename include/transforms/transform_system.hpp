@@ -10,7 +10,6 @@ namespace transforms
 	class transform_system : public ecs::system_base
 	{
 	public:
-
 		virtual void update(ecs::state& state) override;
 
 	private:

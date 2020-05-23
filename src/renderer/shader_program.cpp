@@ -53,6 +53,16 @@ void renderer::shader_program::validate_program()
     }
 }
 
+void renderer::shader_program::bind()
+{
+    gl::glUseProgram(_id);
+}
+
+void renderer::shader_program::unbind()
+{
+    gl::glUseProgram(0);
+}
+
 void renderer::shader_program::set_uniform(const std::string& name, gl::GLfloat val) const
 {
     auto loc = _info.getUniformLocation(name);
