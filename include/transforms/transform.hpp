@@ -18,9 +18,11 @@ namespace transforms
 	{
 		void calculate_local()
 		{			
-			_rotation.normalize();
-			_local_to_parent = _translation * _rotation * Eigen::Scaling(_scale);  //Eigen::Scaling(_scale) * _rotation * _translation;
-			_rotation_euler = _rotation.toRotationMatrix().eulerAngles(0, 1, 2);
+			_rotation = Eigen::AngleAxis(_rotation_euler[2], Eigen::Vector3f::UnitZ())
+				* Eigen::AngleAxis(_rotation_euler[1], Eigen::Vector3f::UnitY())
+				*Eigen::AngleAxis(_rotation_euler[0], Eigen::Vector3f::UnitX());
+
+			_local_to_parent = _translation * _rotation * Eigen::Scaling(_scale);  
 		}
 
 		affine_transform& local_to_world()
@@ -41,10 +43,10 @@ namespace transforms
 			return _translation;
 		}
 
-		Eigen::Quaternionf& rotation()
+		Eigen::Vector3f& rotation_euler()
 		{
 			_is_dirty = true;
-			return _rotation;
+			return _rotation_euler;
 		}
 
 		Eigen::Vector3f& scale()
@@ -85,8 +87,7 @@ namespace transforms
 		affine_transform _local_to_parent{ affine_transform::Identity() };
 		Eigen::Translation3f _translation{ Eigen::Translation3f::Identity() };
 		Eigen::Quaternionf _rotation { Eigen::Quaternionf::Identity() };
-		Eigen::Vector3f _scale{ 1.f, 1.f, 1.f };
-		
+		Eigen::Vector3f _scale{ 1.f, 1.f, 1.f };		
 		Eigen::Vector3f _rotation_euler{ 0.f, 0.f, 0.f };
 
 		bool _is_dirty;

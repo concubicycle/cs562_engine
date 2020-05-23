@@ -9,7 +9,7 @@
         },
         {
           "type": "camera",
-          "fov": 1.25,
+          "fov": 0.6,
           "near_distance": 0.1,
           "far_distance": 10000,
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
@@ -28,9 +28,7 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 0, 0 ],
-          "rotation": [ 0, 0, 0 ],
-          "scale": [2, 1, 2]
+          "scale": [ 3, 2, 3 ]
         },
         {
           "type": "model_instance",
@@ -38,6 +36,59 @@
         }
       ]
     },
+
+
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -25, 1, -10 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/tree/tree.gltf"
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 5, 1, 18 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/tree/tree.gltf"
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 20, 1, -10 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/tree/tree.gltf"
+        }
+      ]
+    },
+
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -4, 1, -8 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/tree/tree.gltf"
+        }
+      ]
+    },
+
+
     {
       "components": [
         {

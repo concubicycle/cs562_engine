@@ -18,9 +18,9 @@ void transforms::freefly_system::update(ecs::state& state)
         auto mouse_delta = _input.mouse_delta();
 
         auto& t_translation = t.position();
-        auto& t_rotation = t.rotation();
+        auto& t_rotation = t.rotation_euler();
 
-        Eigen::Matrix3f rot_mat = t_rotation.matrix();
+        Eigen::Matrix3f rot_mat = t.rotation().matrix();
         Eigen::Vector3f right = rot_mat.col(0);
         Eigen::Vector3f up = rot_mat.col(1);
         Eigen::Vector3f fwd = -rot_mat.col(2);
@@ -29,13 +29,13 @@ void transforms::freefly_system::update(ecs::state& state)
         rotation[1] -= mouse_delta[0] * frame_time * 0.1f;
         rotation[0] -= mouse_delta[1] * frame_time * 0.1f;
 
-        t_rotation = Eigen::AngleAxisf(rotation[0], right) * t_rotation;
-        t_rotation = Eigen::AngleAxisf(rotation[1], Eigen::Vector3f::UnitY()) * t_rotation;
-        
+        t_rotation[0] += rotation[0];
+        t_rotation[1] += rotation[1];
 
-        auto euler = t.rotation_euler();
-        auto abs_res = euler[0] + std::abs(rotation[0]);
-
+        if (t_rotation[0] > util::HalfPi)
+            t_rotation[0] = util::HalfPi;
+        if (t_rotation[0] < -util::HalfPi)
+            t_rotation[0] = -util::HalfPi;
 
         if (_input.is_key_down(GLFW_KEY_W))
         {

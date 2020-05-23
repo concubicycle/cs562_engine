@@ -36,13 +36,6 @@ void gl_debug_callback(
 {
 	using namespace gl;
 
-
-	static std::unordered_map<GLenum, std::string> types
-	{
-
-	};
-
-
 	static auto print_msg = [](GLenum type, GLenum severity, const GLchar* message) {
 
 		switch (severity)
@@ -75,6 +68,6 @@ void gl_debug_callback(
 	static debounce<GLenum, GLenum, const GLchar*> print_debounce(float_second(1.f), print_msg);
 	print_debounce(type, severity, message);
 
-	if (severity > GL_DEBUG_SEVERITY_NOTIFICATION)
+	if (severity > GL_DEBUG_SEVERITY_NOTIFICATION || type == GL_DEBUG_TYPE_ERROR) 
 		print_msg(type, severity, message);
 }

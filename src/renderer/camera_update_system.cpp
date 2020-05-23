@@ -14,7 +14,8 @@ void renderer::camera_update_system::initialize(ecs::state& state)
 	using namespace transforms;
 
 	state.each<transform, camera>([&](transform& t, camera& c) {
-		c.projection = perspective(c.fov, _glfw.width() / _glfw.height(), c.near_distance, c.far_distance);
+		auto aspect = (float)_glfw.width() / (float)_glfw.height();
+		c.projection = perspective(c.fov, aspect, c.near_distance, c.far_distance);
 	});
 }
 
