@@ -3,7 +3,7 @@
 
 #include <initializer_list>
 
-#include <core/game_input_manager.hpp>
+#include <core/input_manager.hpp>
 #include <engine-ui/view.hpp>
 
 #include <core/cursor_state.hpp>
@@ -17,11 +17,11 @@ namespace engineui
 
 	class imgui_overlay
 	{
-		const char* glsl_version = "#version 420";
+		const char* glsl_version = "#version 430";
 
 
 	public:
-		imgui_overlay(GLFWwindow* window, core::game_input_manager& input, core::cursor_state& cursor);
+		imgui_overlay(GLFWwindow* window, core::input_manager& input, core::cursor_state& cursor);
 
 		void update();
 
@@ -35,18 +35,11 @@ namespace engineui
 
 	private:
 		bool _visible{ false };		
-		core::game_input_manager& _input;
+		core::input_manager& _input;
 		core::cursor_state& _cursor;
 		std::vector<view*> _views;
-		
 
 		void render_views();
-
-
-
-		//
-		float some_float{ 1.f };
-		char some_string[1024]{ "foo" };
 	};
 
 }

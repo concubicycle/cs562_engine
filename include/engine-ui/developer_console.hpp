@@ -5,21 +5,8 @@
 #include <functional>
 #include <string>
 #include <engine-ui/view.hpp>
-#include <event/event_manager.hpp>
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
-class noclip : public event::Event
-{
-public:
-	noclip() : Event(event::EVENT_TYPE::TOGGLE_NOCLIP) {}
-};
-class cheat : public event::Event
-{
-public:
-	cheat(std::string data) : Event(event::EVENT_TYPE::CHEAT, data) {}
-};
+#include <core/glfw_context.hpp>
 
 namespace engineui
 {
@@ -30,7 +17,7 @@ namespace engineui
 		static const std::uint32_t Height = 256;
 
 	public:
-		developer_console(core::viewport& viewport, event::EventManager& events, GLFWwindow* window);
+		developer_console(core::glfw_context& glfw);
 		void draw();
 		void on_show() override;
 
@@ -38,9 +25,6 @@ namespace engineui
 		// keep these static
 		static char _outbuf[BUFSIZ];
 		static char _errbuf[BUFSIZ];
-
-		event::EventManager& _events;
-		GLFWwindow* _window;
 
 		char _command[BufSize]{ "" };
 		char _output[BufSize]{ "" };

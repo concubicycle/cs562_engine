@@ -13,6 +13,7 @@
 #include <renderer/opengl_model.hpp>
 #include <renderer/opengl_mesh.hpp>
 #include <renderer/opengl_material.hpp>
+#include <renderer/opengl_cubemap.hpp>
 
 
 namespace renderer
@@ -32,15 +33,44 @@ namespace renderer
 			Load model with custom materials
 		*/
 		opengl_model load_model(const asset::assimp_scene_asset& scene, const nlohmann::json& mesh_material_array);
-
 		opengl_material load_material(const nlohmann::json& json, size_t index);
 		opengl_material load_material(const asset::assimp_material& material);
 		opengl_mesh load_mesh(const asset::assimp_mesh& mesh);
 		gl::GLuint load_texture(const asset::texture_asset& texture_asset);
 
+		opengl_cubemap load_cubemap(
+			const asset::texture_asset& left,
+			const asset::texture_asset& top,
+			const asset::texture_asset& front,
+			const asset::texture_asset& bottom,
+			const asset::texture_asset& right,
+			const asset::texture_asset& back);
+
 	private:
 		asset::asset_loader& _loader;
 
+
+		gl::GLuint load_cubemap(std::vector<const asset::texture_asset*> faces);
+
+		gl::GLenum num_channels_to_gltype(int num_channels)
+		{
+			using namespace gl;
+			GLenum texture_channels_gl;
+			switch (num_channels)
+			{
+			case 1:
+				return GL_RED;				
+			case 2:
+				return GL_RG;				
+			case 3:
+				return GL_RGB;				
+			case 4:
+				return GL_RGBA;				
+
+			default:
+				throw std::runtime_error("Error: Unexpected amount of channels while loading texture.");
+			}
+		}
 	};
 }
 

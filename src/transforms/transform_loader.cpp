@@ -24,6 +24,15 @@ void transforms::transform_loader::load(asset::asset_loader_node& node)
     if (json.find("rotation") != json.end())
         for (size_t i = 0; i < 3; ++i)
             rotation[i] = json["rotation"][i].get<float>();
+
+    for (auto& child : node.children)
+    {
+        auto child_id = child.entity_resource.entity->id();
+        auto parent_id = entity->id();
+
+        auto& child_transform = child.entity_resource.entity->get_component<transform>();        
+        child_transform.parent_id() = entity->id();
+    }
 }
 
 component_bitset transforms::transform_loader::components_to_load()

@@ -50,7 +50,7 @@ void run_app()
 	transforms::transform_loader transform_loader;
 	renderer::model_loader model_loader(strings, loader, vram_loader);
 	renderer::punctual_light_loader punctual_light_loader;
-	renderer::camera_loader camera_loader;
+	renderer::camera_loader camera_loader(loader, vram_loader);
 	renderer::ambient_light_loader ambient_light_loader;
 
 	hydrater.register_loaders(
@@ -59,6 +59,16 @@ void run_app()
 		&punctual_light_loader,
 		&camera_loader, 
 		&ambient_light_loader);
+
+	
+	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
+	engineui::fps_display fps(glfw, timer);		
+	engineui::developer_console console(glfw);
+
+	overlay.register_views(		
+		&fps,
+		&console
+	);
 
 	while (scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window()))
 	{
@@ -74,6 +84,8 @@ void run_app()
 
 			input.update();
 			world.update();
+
+			overlay.update();
 
 			glfw.swap_buffers();
 			hydrater.flush_removed();

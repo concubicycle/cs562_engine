@@ -5,6 +5,9 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <optional>
+#include <renderer/opengl_cubemap.hpp>
+
 namespace renderer
 {
 	enum class background_type
@@ -21,6 +24,7 @@ namespace renderer
 		Eigen::Affine3f view;
 		background_type background;
 
+		std::optional<opengl_cubemap> skybox_cubemap;
 		Eigen::Array4f clear_color;
 
 		float fov;

@@ -13,7 +13,15 @@
           "near_distance": 0.1,
           "far_distance": 10000,
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
-          "background": 1
+          "background": 2,
+          "skybox": {
+            "left": "assets/skybox/negx.jpg",
+            "top": "assets/skybox/posy.jpg",
+            "front": "assets/skybox/negz.jpg",
+            "bottom": "assets/skybox/negy.jpg",
+            "right": "assets/skybox/posx.jpg",
+            "back": "assets/skybox/posz.jpg"
+          }
         },
         {
           "type": "ambient_light",
@@ -62,6 +70,21 @@
         }
       ]
     },
+
+
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 8, 1, -25 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/tree/tree.gltf"
+        }
+      ]
+    },
+
     {
       "components": [
         {
@@ -88,18 +111,39 @@
       ]
     },
 
-
     {
+      "prototype": "assets/prototypes/firefly.json",
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 5, 0 ]
-        },
+          "position": [ 0, 6, 0 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/firefly.json",
+      "components": [
         {
-          "type": "punctual_light",
-          "color": [ 0.8, 1, 1 ],
-          "intensity": 10,
-          "radius": 10
+          "type": "transform",
+          "position": [ -5, 6, 10 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/firefly.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 3, 5, 15 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/firefly.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 22, 5.5, -7 ]
         }
       ]
     }

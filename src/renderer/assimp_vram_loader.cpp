@@ -5,6 +5,12 @@
 
 #include <assimp/scene.h>
 
+#include <renderer/shapes.hpp>
+
+
+
+
+
 
 renderer::assimp_vram_loader::assimp_vram_loader(asset::asset_loader& loader)
 	: _loader(loader)
@@ -105,25 +111,7 @@ gl::GLuint renderer::assimp_vram_loader::load_texture(const asset::texture_asset
 
 	gl::GLuint result;	
 
-	GLenum texture_channels_gl;
-	switch (texture_asset.channels)
-	{
-	case 1:
-		texture_channels_gl = GL_RED;
-		break;
-	case 2:
-		texture_channels_gl = GL_RG;
-		break;
-	case 3:
-		texture_channels_gl = GL_RGB;
-		break;
-	case 4:
-		texture_channels_gl = GL_RGBA;
-		break;
-
-	default:
-		throw std::runtime_error("Error: Unexpected amount of channels while loading texture.");
-	}
+	auto texture_channels_gl = num_channels_to_gltype(texture_asset.channels);
 
 	// Create OpenGL representation
 	glGenTextures(1, &result);
@@ -150,3 +138,80 @@ gl::GLuint renderer::assimp_vram_loader::load_texture(const asset::texture_asset
 	
 	return result;
 }
+
+
+
+renderer::opengl_cubemap renderer::assimp_vram_loader::load_cubemap(
+	const asset::texture_asset& left, 
+	const asset::texture_asset& top, 
+	const asset::texture_asset& front, 
+	const asset::texture_asset& bottom, 
+	const asset::texture_asset& right, 
+	const asset::texture_asset& back)
+{
+	using namespace gl;
+
+	//  GL_TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515, // decimal value: 34069
+	//	GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516, // decimal value: 34070
+	//	GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517, // decimal value: 34071
+	//	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518, // decimal value: 34072
+	//	GL_TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519, // decimal value: 34073
+	//	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A, // decimal value: 34074
+	std::vector<const asset::texture_asset*> faces
+	{
+		&right,
+		&left,
+		&top,
+		&bottom,
+		&back,
+		&front		
+	};
+
+	renderer::opengl_cubemap result;
+	result.cubemap.texture_id = load_cubemap(faces);
+
+	glGenVertexArrays(1, &result.vao);
+	glGenBuffers(1, &result.vbo);
+	glBindVertexArray(result.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, result.vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(shapes::CubeVertices), &shapes::CubeVertices, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Eigen::Vector3f), nullptr);
+
+	return result;
+}
+
+
+
+gl::GLuint renderer::assimp_vram_loader::load_cubemap(std::vector<const asset::texture_asset*> faces)
+{
+	using namespace gl;
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+		
+	for (size_t i = 0; i < faces.size(); i++)
+	{
+		const asset::texture_asset& texture_asset = *faces[i];
+		auto format = num_channels_to_gltype(texture_asset.channels);
+		glTexImage2D(
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0,
+			format,
+			texture_asset.width,
+			texture_asset.height,
+			0,
+			format,
+			GL_UNSIGNED_BYTE,
+			texture_asset.data.get());
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
+

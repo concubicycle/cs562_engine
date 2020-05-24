@@ -4,7 +4,8 @@ target_link_libraries(project1
 	ecs
 	asset
 	transforms	
-	renderer)
+	renderer
+	engineui)
 
 target_compile_features(project1 PUBLIC cxx_std_17)
 

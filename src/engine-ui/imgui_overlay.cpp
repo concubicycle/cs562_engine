@@ -4,7 +4,10 @@
 #include <imgui_impl_opengl3.h>
 
 
-engineui::imgui_overlay::imgui_overlay(GLFWwindow* window, core::game_input_manager& input, core::cursor_state& cursor)	
+engineui::imgui_overlay::imgui_overlay
+(GLFWwindow* window, 
+	core::input_manager& input, 
+	core::cursor_state& cursor)	
 	:_input(input)
 	, _cursor(cursor)
 {
@@ -12,12 +15,9 @@ engineui::imgui_overlay::imgui_overlay(GLFWwindow* window, core::game_input_mana
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
 	
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();	
 
 	// Setup Platform/Renderer bindings
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -27,7 +27,7 @@ engineui::imgui_overlay::imgui_overlay(GLFWwindow* window, core::game_input_mana
 void engineui::imgui_overlay::update()
 {
 	bool visible_next = _visible;
-	if (_input.is_input_started(core::controls::DEVELOPER_CONSOLE))
+	if (_input.was_key_pressed(GLFW_KEY_GRAVE_ACCENT))
 	{
 		visible_next = !_visible;
 

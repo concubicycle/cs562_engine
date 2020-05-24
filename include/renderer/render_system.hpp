@@ -20,6 +20,8 @@ namespace renderer
 	{
 		const std::string default_vert = "assets/shaders/default.vert";
 		const std::string default_frag = "assets/shaders/default.frag";
+		const std::string skybox_vert = "assets/shaders/skybox.vert";
+		const std::string skybox_frag = "assets/shaders/skybox.frag";
 
 	public:
 		render_system(
@@ -39,6 +41,7 @@ namespace renderer
 		core::startup_config& _config;
 		
 		shader_program _default;
+		shader_program _skybox;
 
 		std::string shader_src(std::string path);
 
@@ -58,6 +61,8 @@ namespace renderer
 			const shader_program& shader, 
 			const transforms::transform& transform,
 			const camera& cam);
+
+		void draw_skybox(const camera& cam);
 	};
 }
 
