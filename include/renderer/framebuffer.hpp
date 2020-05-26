@@ -40,9 +40,13 @@ namespace renderer
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-		void bind() { gl::glBindFramebufferEXT(gl::GL_FRAMEBUFFER, _id); }
-		void unbind() { gl::glBindFramebufferEXT(gl::GL_FRAMEBUFFER, 0); }
+		void bind() { gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, _id); }
+		void unbind() { gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, 0); }
 
+		std::array<texture_description, NumTextures>& textures()
+		{
+			return _textures;
+		}
 
 	private:
 		gl::GLuint _id;

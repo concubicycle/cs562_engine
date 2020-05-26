@@ -26,6 +26,12 @@ namespace renderer
 		const std::string skybox_vert = "assets/shaders/skybox.vert";
 		const std::string skybox_frag = "assets/shaders/skybox.frag";
 
+		const std::string geometry_pass_vert = "assets/shaders/geometry_pass.vert";
+		const std::string geometry_pass_frag = "assets/shaders/geometry_pass.frag";
+		const std::string lighting_pass_vert = "assets/shaders/lighting_pass.vert";
+		const std::string lighting_pass_frag = "assets/shaders/lighting_pass.frag";
+
+
 	public:
 		render_system(
 			util::string_table& strings, 

@@ -15,12 +15,12 @@
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
           "background": 2,
           "skybox": {
-            "left": "assets/skybox/negx.jpg",
-            "top": "assets/skybox/posy.jpg",
-            "front": "assets/skybox/negz.jpg",
-            "bottom": "assets/skybox/negy.jpg",
-            "right": "assets/skybox/posx.jpg",
-            "back": "assets/skybox/posz.jpg"
+            "left": "assets/skybox/xneg.png",
+            "top": "assets/skybox/ypos.png",
+            "front": "assets/skybox/zneg.png",
+            "bottom": "assets/skybox/yneg.png",
+            "right": "assets/skybox/xpos.png",
+            "back": "assets/skybox/zpos.png"
           }
         },
         {
