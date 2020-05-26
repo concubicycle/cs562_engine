@@ -36,7 +36,6 @@
 
 // Overlays
 #include <engine-ui/imgui_overlay.hpp>
-#include <engine-ui/developer_console.hpp>
 #include <engine-ui/fps_display.hpp>
 
 

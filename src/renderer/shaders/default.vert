@@ -22,14 +22,14 @@ uniform mat4
 // model uniforms
 uniform mat4 
     model,
-    model_inverse;
+    adjoint_transpose;
 
 void main()
 {
     vec4 world_pos = model * vec4(position, 1);
 
     vs_out.world_pos = world_pos.xyz;
-    vs_out.normal = mat3(model_inverse) * normal;
+    vs_out.normal = mat3(adjoint_transpose) * normal;
     vs_out.texcoords_2d = texture_coords;
 
     gl_Position = projection * view * world_pos;

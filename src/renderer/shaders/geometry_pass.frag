@@ -1,9 +1,11 @@
 #version 430 core
+layout (location = 0) out vec4 gPosition;
+ 
 
 // gbuffer output
-layout (location = 0) out vec3 gPosition;
-layout (location = 1) out vec3 gNormal;
-layout (location = 2) out vec3 gBaseColor;
+//layout (location = 0) out vec3 gPosition;
+//layout (location = 1) out vec3 gNormal;
+//layout (location = 2) out vec3 gBaseColor;
 
 // standard surface textures
 layout(binding = 0) uniform sampler2D diffuse_texture;
@@ -20,14 +22,12 @@ in VS_OUT {
 } fs_in;
 
 
-in vec2 TexCoords;
-in vec3 FragPos;
-in vec3 Normal;
-
 
 void main()
 {
-    gPosition = fs_in.world_pos;    
-    gNormal =  normalize(fs_in.normal);
-    gBaseColor =  texture(diffuse_texture, fs_in.texcoords_2d).rgb;
+//    gPosition = vec3(0, 1, 0); //fs_in.world_pos;    
+//    gNormal = vec3(0, 0, 1); // normalize(fs_in.normal);
+//    gBaseColor = vec3(1, 0, 0); //texture(diffuse_texture, fs_in.texcoords_2d).rgb;
+
+    gPosition = vec4(fs_in.world_pos, 1);
 }  

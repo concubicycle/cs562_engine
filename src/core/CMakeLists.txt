@@ -4,7 +4,7 @@ set (CORE_SOURCE_FILES
         ${PROJECT_SOURCE_DIR}/src/core/frame_timer.cpp
         ${PROJECT_SOURCE_DIR}/src/core/input_manager.cpp        
         ${PROJECT_SOURCE_DIR}/src/core/startup_config.cpp
-        ${PROJECT_SOURCE_DIR}/src/core/system_info.cpp
+        
         ${PROJECT_SOURCE_DIR}/src/core/cursor_state.cpp
         ${PROJECT_SOURCE_DIR}/src/core/glfw_context.cpp)
 

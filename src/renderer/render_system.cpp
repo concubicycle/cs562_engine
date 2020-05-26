@@ -6,6 +6,41 @@
 #include <transforms/transform.hpp>
 
 
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    using namespace gl;
+
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+
+
 renderer::render_system::render_system(
     util::string_table& strings, 
     asset::asset_loader& assets,
@@ -17,31 +52,8 @@ renderer::render_system::render_system(
     , _config(config)
     , _default(assets.get_text(default_vert), assets.get_text(default_frag))
     , _skybox(assets.get_text(skybox_vert), assets.get_text(skybox_frag))
-    , _gbuffer(
-        glfw.width(), 
-        glfw.height(),
-        texture_description(
-            gl::GLenum::GL_COLOR_ATTACHMENT0, 
-            glfw.width(), 
-            glfw.height(), 
-            gl::GLenum::GL_RGB16F, 
-            gl::GLenum::GL_RGB, 
-            gl::GLenum::GL_FLOAT),
-        texture_description(
-            gl::GLenum::GL_COLOR_ATTACHMENT1, 
-            glfw.width(), 
-            glfw.height(), 
-            gl::GLenum::GL_RGB16F, 
-            gl::GLenum::GL_RGB,
-            gl::GLenum::GL_FLOAT),
-        texture_description(
-            gl::GLenum::GL_COLOR_ATTACHMENT2, 
-            glfw.width(), 
-            glfw.height(), 
-            gl::GLenum::GL_RGBA, 
-            gl::GLenum::GL_RGBA,
-            gl::GLenum::GL_UNSIGNED_BYTE)
-    )
+    , _geometry_pass(assets.get_text(geometry_pass_vert), assets.get_text(geometry_pass_frag))
+    , _lighting_pass(assets.get_text(lighting_pass_vert), assets.get_text(lighting_pass_frag))
 {
     using namespace gl;
 
@@ -56,21 +68,108 @@ renderer::render_system::render_system(
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+    // configure g-buffer framebuffer
+    // ------------------------------    
+    glGenFramebuffers(1, &gBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    
+    // position color buffer
+    glGenTextures(1, &gPosition);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _glfw.width(), _glfw.height(), 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+    
+    // normal color buffer
+    //glGenTextures(1, &gNormal);
+    //glBindTexture(GL_TEXTURE_2D, gNormal);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, _glfw.width(), _glfw.height(), 0, GL_RGB, GL_FLOAT, NULL);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+    //// color + specular color buffer
+    //glGenTextures(1, &gAlbedoSpec);
+    //glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _glfw.width(), _glfw.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
+
+    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+    gl::GLenum attachments[1] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, attachments);
+    // create and attach depth buffer (renderbuffer)
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, _glfw.width(), _glfw.height());
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    // finally check if framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        throw std::runtime_error("Frame buffer incomplete");
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void renderer::render_system::update(ecs::state& state)
 {
     using namespace transforms;
+    using namespace gl;    
 
-    state.each<transform, camera>([&](transform& t, camera& c) {        
-                
-        handle_cam_background(_default, c);
+    state.each<transform, camera>([&](transform& t, camera& c) {       
 
+        // 1. geometry pass: render scene's geometry/color data into gbuffer
+       // -----------------------------------------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        _geometry_pass.bind();
+        bind_camera_uniforms(_geometry_pass, t, c);
+        
+        state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
+            for (size_t i = 0; i < mi.model.mesh_count; ++i)
+            {
+                draw_mesh(t, mi.model.meshes[i]);
+            }
+        });
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
+        // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
+        // -----------------------------------------------------------------------------------------------------------------------
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        _lighting_pass.bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gPosition);
+        /*
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+        //_lighting_pass.set_uniform("camera_position", t.world_position());
+        */
+
+        renderQuad();
+
+
+        // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
+       // ----------------------------------------------------------------------------------
+        //glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+        //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // write to default framebuffer
+        // blit to default framebuffer. Note that this may or may not work as the internal formats of both the FBO and default framebuffer have to match.
+        // the internal formats are implementation defined. This works on all of my systems, but if it doesn't on yours you'll likely have to write to the 		
+        // depth buffer in another shader stage (or somehow see to match the default framebuffer's internal format with the FBO's internal format).
+        //glBlitFramebuffer(0, 0, _glfw.width(), _glfw.height(), 0, 0, _glfw.width(), _glfw.height(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+       /* handle_cam_background(c);
         _default.bind();
         bind_camera_uniforms(_default, t, c);
         set_light_uniforms(state, _default, c);
         draw_scene(state);
-        _default.unbind();
+        _default.unbind();*/
     });
 }
 
@@ -110,9 +209,7 @@ void renderer::render_system::draw_scene(ecs::state& state)
     });    
 }
 
-void renderer::render_system::handle_cam_background(
-    const renderer::shader_program& shader,
-    const renderer::camera& cam)
+void renderer::render_system::handle_cam_background(const renderer::camera& cam)
 {
     using namespace gl;
 
@@ -136,10 +233,12 @@ void renderer::render_system::draw_mesh(const transforms::transform& transform, 
 {
     using namespace gl;
 
-    bind_material(mesh.material, _default);
+    Eigen::Matrix4f adjoint_transpose = transform.local_to_world().matrix().adjoint().transpose();
 
-    _default.set_uniform("model", transform.local_to_world().matrix());
-    _default.set_uniform("model_inverse", transform.local_to_world().inverse().matrix());
+    bind_material(mesh.material, _geometry_pass);
+
+    _geometry_pass.set_uniform("model", transform.local_to_world().matrix());
+    _geometry_pass.set_uniform("adjoint_transpose", adjoint_transpose);
     
     glBindVertexArray(mesh.vao);
     if (mesh.ebo)

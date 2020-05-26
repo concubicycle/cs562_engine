@@ -1,7 +1,7 @@
 set(ENGINEUI_SOURCE_LIST
     fps_display.cpp
     imgui_overlay.cpp
-    developer_console.cpp)
+    )
 
 add_library(engineui ${ENGINEUI_SOURCE_LIST})
 target_include_directories(engineui PRIVATE ${PROJECT_SOURCE_DIR}/include)

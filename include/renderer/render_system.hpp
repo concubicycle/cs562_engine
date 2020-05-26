@@ -51,8 +51,11 @@ namespace renderer
 		
 		shader_program _default;
 		shader_program _skybox;
+		shader_program _geometry_pass;
+		shader_program _lighting_pass;
 
-		framebuffer<3> _gbuffer;
+		unsigned int gBuffer;
+		unsigned int gPosition, gNormal, gAlbedoSpec;
 
 		std::string shader_src(std::string path);
 
@@ -61,7 +64,7 @@ namespace renderer
 			const renderer::shader_program& shader, 
 			renderer::camera& cam);
 
-		void handle_cam_background(const shader_program& shader, const camera& cam);
+		void handle_cam_background(const camera& cam);
 
 		void draw_scene(ecs::state& state);
 		void draw_mesh(const transforms::transform& transform, const opengl_mesh& mesh);

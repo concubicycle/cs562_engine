@@ -27,8 +27,7 @@ public:
     bool backface_culling() const;
     bool free_mouse() const;
     std::string window_title() const;
-    bool god_mode() const;
-    bool auto_play() const;
+    
 
     float music_volume() const;
     float sfx_volume() const;

@@ -62,12 +62,10 @@ void run_app()
 
 	
 	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
-	engineui::fps_display fps(glfw, timer);		
-	engineui::developer_console console(glfw);
+	engineui::fps_display fps(glfw, timer);
 
 	overlay.register_views(		
-		&fps,
-		&console
+		&fps
 	);
 
 	while (scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window()))

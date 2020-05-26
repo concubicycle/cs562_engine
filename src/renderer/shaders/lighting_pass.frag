@@ -11,5 +11,6 @@ in vec2 TexCoords;
 void main()
 {
     //FragColor = vec4(0, 0, 1, 1);
-    FragColor = vec4(texture(gNormal, TexCoords).rgb, 1);
+    //FragColor = vec4(TexCoords, 0, 1);
+    FragColor = vec4(texture(gPosition, TexCoords).rgb, 1);
 }
