@@ -17,6 +17,31 @@ renderer::render_system::render_system(
     , _config(config)
     , _default(assets.get_text(default_vert), assets.get_text(default_frag))
     , _skybox(assets.get_text(skybox_vert), assets.get_text(skybox_frag))
+    , _gbuffer(
+        glfw.width(), 
+        glfw.height(),
+        texture_description(
+            gl::GLenum::GL_COLOR_ATTACHMENT0, 
+            glfw.width(), 
+            glfw.height(), 
+            gl::GLenum::GL_RGB16F, 
+            gl::GLenum::GL_RGB, 
+            gl::GLenum::GL_FLOAT),
+        texture_description(
+            gl::GLenum::GL_COLOR_ATTACHMENT1, 
+            glfw.width(), 
+            glfw.height(), 
+            gl::GLenum::GL_RGB16F, 
+            gl::GLenum::GL_RGB,
+            gl::GLenum::GL_FLOAT),
+        texture_description(
+            gl::GLenum::GL_COLOR_ATTACHMENT2, 
+            glfw.width(), 
+            glfw.height(), 
+            gl::GLenum::GL_RGBA, 
+            gl::GLenum::GL_RGBA,
+            gl::GLenum::GL_UNSIGNED_BYTE)
+    )
 {
     using namespace gl;
 
@@ -56,13 +81,11 @@ void renderer::render_system::set_light_uniforms(ecs::state& state, const render
     using namespace gl;
 
     unsigned int light_count = 0;
-    state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {        
-
+    state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].color", pl.color);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].position", t.world_position());
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].intensity", pl.intensity);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].radius", pl.intensity);
-
         light_count++;        
     });    
     
@@ -170,18 +193,16 @@ void renderer::render_system::draw_skybox(const camera& cam)
     using namespace gl;
 
     auto texture_id = *cam.skybox_cubemap->cubemap.texture_id;
-
-    glDepthMask(GL_FALSE);
-      
-    
     Eigen::Matrix3f mat3 = cam.view.rotation().matrix();
     Eigen::Matrix4f mat4 = Eigen::Matrix4f::Identity();
     mat4.block(0, 0, 3, 3) = mat3;
 
     _skybox.bind();
+    glDepthMask(GL_FALSE);
+
     _skybox.set_uniform("view", mat4);
     _skybox.set_uniform("projection", cam.projection);
-
+    
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
 
@@ -191,4 +212,5 @@ void renderer::render_system::draw_skybox(const camera& cam)
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
     glDepthMask(GL_TRUE);
+    _skybox.unbind();
 }

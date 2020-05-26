@@ -11,6 +11,9 @@
 #include <renderer/opengl_material.hpp>
 #include <renderer/opengl_mesh.hpp>
 #include <renderer/shader_program.hpp>
+#include <renderer/render_pass.hpp>
+#include <renderer/framebuffer.hpp>
+
 #include <transforms/transform.hpp>
 #include <util/string_table.hpp>
 
@@ -42,6 +45,8 @@ namespace renderer
 		
 		shader_program _default;
 		shader_program _skybox;
+
+		framebuffer<3> _gbuffer;
 
 		std::string shader_src(std::string path);
 
