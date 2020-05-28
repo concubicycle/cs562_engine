@@ -13,7 +13,7 @@
 #include <renderer/shader_program.hpp>
 #include <renderer/render_pass.hpp>
 #include <renderer/framebuffer.hpp>
-
+#include <renderer/full_screen_quad.hpp>
 #include <transforms/transform.hpp>
 #include <util/string_table.hpp>
 
@@ -54,8 +54,9 @@ namespace renderer
 		shader_program _geometry_pass;
 		shader_program _lighting_pass;
 
-		unsigned int gBuffer;
-		unsigned int gPosition, gNormal, gAlbedoSpec;
+		framebuffer<3> _gbuffer;
+		full_screen_quad _fsq;
+
 
 		std::string shader_src(std::string path);
 
@@ -66,11 +67,22 @@ namespace renderer
 
 		void handle_cam_background(const camera& cam);
 
-		void draw_scene(ecs::state& state);
-		void draw_mesh(const transforms::transform& transform, const opengl_mesh& mesh);
+		void draw_scene(
+			ecs::state& state, 
+			const shader_program& program);
 
-		void bind_material(const opengl_material& material, const shader_program& program);		
-		void bind_texture(const opengl_texture& texture);
+		void draw_mesh(
+			const transforms::transform& transform, 
+			const opengl_mesh& mesh,
+			const shader_program& program);
+
+		void bind_material(
+			const opengl_material& material, 
+			const shader_program& program);		
+		
+		void bind_texture(
+			const opengl_texture& texture);
+
 		void bind_camera_uniforms(
 			const shader_program& shader, 
 			const transforms::transform& transform,

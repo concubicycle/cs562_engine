@@ -19,8 +19,12 @@ renderer::assimp_vram_loader::assimp_vram_loader(asset::asset_loader& loader)
 
 renderer::opengl_model renderer::assimp_vram_loader::load_model(const asset::assimp_scene_asset& scene)
 {
+	auto cached = _model_cache.find(scene.aiscene);
+	if (cached != _model_cache.end())
+		return cached->second;	
+
 	asset::assimp_model model_asset(scene.aiscene, _loader);
-	opengl_model result;
+	opengl_model& result = _model_cache[scene.aiscene];
 
 	for (size_t mesh_index = 0; mesh_index < model_asset.mesh_count(); ++mesh_index)
 	{

@@ -15,6 +15,7 @@
 #include <renderer/opengl_material.hpp>
 #include <renderer/opengl_cubemap.hpp>
 
+#include <unordered_map>
 
 namespace renderer
 {
@@ -49,6 +50,7 @@ namespace renderer
 	private:
 		asset::asset_loader& _loader;
 
+		std::unordered_map<const aiScene*, opengl_model> _model_cache;
 
 		gl::GLuint load_cubemap(std::vector<const asset::texture_asset*> faces);
 

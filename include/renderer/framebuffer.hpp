@@ -22,8 +22,8 @@ namespace renderer
 			glGenFramebuffers(1, &_id);
 			glBindFramebuffer(GL_FRAMEBUFFER, _id);
 
-			size_t i = 0; // starting index, can be an argument
-			(( init_attachment(vals, i++) ), ...);
+			size_t attachment_index = 0;
+			(( init_attachment(vals, attachment_index++) ), ...);
 
 			glDrawBuffers(NumTextures, _attachments.data());
 
@@ -48,6 +48,17 @@ namespace renderer
 			return _textures;
 		}
 
+		const gl::GLuint &texture(size_t i) const
+		{
+			return _textures[i].id;
+		}
+
+		void bind_textures()
+		{
+
+		}
+
+
 	private:
 		gl::GLuint _id;
 		gl::GLuint _rbo_depth;
@@ -57,9 +68,21 @@ namespace renderer
 
 		void init_attachment(texture_description& desc, size_t i)
 		{
-			_attachments[i] = desc.attachment();
+			_attachments[i] = desc.attachment;
 			_textures[i] = desc;
-			_textures[i].create_attachment();			
+			create_attachment(_textures[i]);
+		}
+
+		void create_attachment(texture_description& desc)
+		{
+			using namespace gl;
+						
+			glGenTextures(1, &desc.id);
+			glBindTexture(GL_TEXTURE_2D, desc.id);
+			glTexImage2D(GL_TEXTURE_2D, 0, desc.internal_format, desc.width, desc.height, 0, desc.format, desc.type, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, desc.attachment, GL_TEXTURE_2D, desc.id, 0);
 		}
 	};
 }

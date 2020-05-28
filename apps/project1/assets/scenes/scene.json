@@ -13,7 +13,7 @@
           "near_distance": 0.1,
           "far_distance": 10000,
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
-          "background": 1,
+          "background": 2,
           "skybox": {
             "left": "assets/skybox/xneg.png",
             "top": "assets/skybox/ypos.png",
@@ -144,6 +144,72 @@
         {
           "type": "transform",
           "position": [ 22, 5.5, -7 ]
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0.75, -10 ],
+          "scale": [ 0.3, 0.3, 0.3 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/bunny.obj"
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 5, 0.425, -12 ],
+          "scale": [ 0.3, 0.3, 0.3 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/bunny.obj"
+        }
+      ]
+    },
+
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 10, 0.4, -10 ],
+          "scale": [ 0.3, 0.3, 0.3 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/bunny.obj"
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 5, 2.07, -7 ],
+          "scale": [ 0.1, 0.1, 0.1 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/teapot.obj"
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 5, 0.7, -7 ],
+          "scale": [ 0.3, 0.3, 0.3 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/pedestal/pedestal.gltf"
         }
       ]
     }

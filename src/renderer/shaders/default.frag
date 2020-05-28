@@ -54,8 +54,6 @@ vec3 BRDF(vec3 L, vec3 V, vec3 Kd, vec3 Ks, float alpha, PointLight light)
     vec3 IiKs = light.color * Ks;
 
     float NdotL = dot(N, L);
-    if (NdotL < DOT_CLAMP)
-        return vec3(0);
     
     NdotL = max(DOT_CLAMP, NdotL);
     float NdotH = max(DOT_CLAMP, dot(N, H));

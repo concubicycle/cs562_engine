@@ -9,9 +9,9 @@ layout (location = 4) in vec3 bitangent;
 layout (location = 5) in vec3 color;
 
 out VS_OUT {
+    vec4 world_pos;
     vec3 normal;
     vec2 texcoords_2d;
-    vec3 world_pos;
 } vs_out;
 
 // camera uniforms
@@ -28,7 +28,7 @@ void main()
 {
     vec4 world_pos = model * vec4(position, 1);
 
-    vs_out.world_pos = world_pos.xyz;
+    vs_out.world_pos = world_pos;
     vs_out.normal = mat3(adjoint_transpose) * normal;
     vs_out.texcoords_2d = texture_coords;
 

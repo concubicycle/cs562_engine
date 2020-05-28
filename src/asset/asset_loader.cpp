@@ -53,6 +53,7 @@ const asset::assimp_scene_asset& asset::asset_loader::get_assimp_scene(const std
 		aiProcess_Triangulate |
 		aiProcess_FlipUVs |
 		aiProcess_GenSmoothNormals |
+		aiProcess_FixInfacingNormals |
 		aiProcess_OptimizeMeshes |
 		aiProcess_OptimizeGraph |
 		aiProcess_CalcTangentSpace);
