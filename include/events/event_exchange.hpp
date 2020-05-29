@@ -24,19 +24,13 @@ namespace events
         template <typename... TArgs, typename TFunc>
         listener_id subscribe(TEventEnum type, TFunc f)
         {
-            auto& e = _event_maps.find_event<TArgs...>(type);
+            auto& e = _event_maps.template find_event<TArgs...>(type);
             return e.add_listener(f);
         }
         
         void unsubscribe(TEventEnum type, listener_id id)
         {
             _event_maps.unsubscribe_all(type, id);
-        }
-
-        template <typename TEventEnum>
-        void unsubscribe(TEventEnum type, listener_id id)
-        {
-            _event_maps.unsubscribe_all(_event_maps, static_cast<TEventEnum>(type), id);
         }
 
         void update(float_seconds dt)
@@ -47,21 +41,14 @@ namespace events
         template <class... TArgs>
         void invoke(TEventEnum type, TArgs... args)
         {
-            auto& e = _event_maps.find_event<TArgs...>(type);
+            auto& e = _event_maps.template find_event<TArgs...>(type);
             e.invoke(args...);
         }
-
-        template <typename TEventEnum, class... TArgs>
-        void invoke(TEventEnum type, TArgs... args)
-        {
-            auto& e = _event_maps.find_event<TArgs...>(static_cast<TEventEnum>(type));
-            e.invoke(args...);
-        }
-
+        
         template <class... TArgs>
         void invoke_delayed(TEventEnum type, float_seconds delay, TArgs... args)
         {
-            auto& e = _event_maps.find_event<TArgs...>(type);
+            auto& e = _event_maps.template find_event<TArgs...>(type);
             e.invoke_delayed(delay, args...);
         }
 

@@ -2,7 +2,7 @@
 
 #include <renderer/camera.hpp>
 #include <renderer/camera_loader.hpp>
-#include <eigen/Core>
+#include <Eigen/Core>
 
 renderer::camera_loader::camera_loader(
     asset::asset_loader& loader, 

@@ -1,5 +1,5 @@
 add_executable(project1 main.cpp "run_app.cpp")
-target_link_libraries(project1 
+target_link_libraries(project1 PRIVATE
 	core
 	ecs
 	asset

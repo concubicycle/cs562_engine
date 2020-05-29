@@ -32,6 +32,7 @@ target_compile_features(renderer PUBLIC cxx_std_17)
 
 add_custom_target(copy_render_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/src/renderer/shaders ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/shaders
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/src/renderer/fonts ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/fonts)
+    #COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/src/renderer/fonts ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/fonts
+    )
 
 add_dependencies (renderer copy_render_assets)

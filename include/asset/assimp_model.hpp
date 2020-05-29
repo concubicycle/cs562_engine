@@ -53,7 +53,7 @@ namespace asset
         void process_node(aiNode* node);
 		asset::assimp_material load_assimp_material(aiMesh* mesh);
 
-		void asset::assimp_model::load_material_texture(
+		void load_material_texture(
 			aiMaterial* mat,
 			aiTextureType type,
 			std::unordered_map<aiTextureType, const texture_asset*>& material_textures);

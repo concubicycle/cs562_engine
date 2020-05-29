@@ -2,7 +2,7 @@
 
 #include <renderer/ambient_light.hpp>
 #include <renderer/ambient_light_loader.hpp>
-#include <eigen/Core>
+#include <Eigen/Core>
 
 
 void renderer::ambient_light_loader::load(asset::asset_loader_node& node)

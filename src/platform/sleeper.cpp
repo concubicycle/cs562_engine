@@ -26,9 +26,8 @@ os::sleeper::~sleeper()
 }
 
 
-void os::sleeper::sleep(std::chrono::nanoseconds milliseconds)
-{    
-    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds> (milliseconds);
+void os::sleeper::sleep(std::chrono::nanoseconds ns)
+{
     auto timeout_ms = std::chrono::duration_cast<std::chrono::milliseconds> (_timeout);
 
     HANDLE timer;
@@ -58,15 +57,15 @@ void os::sleeper::sleep(std::chrono::nanoseconds milliseconds)
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 os::sleeper::sleeper(std::chrono::seconds timeout) : _timeout(timeout) {}
 os::sleeper::~sleeper() {}
 
 // https://www.informit.com/articles/article.aspx?p=23618&seqNum=11
-void os::sleeper::sleep(std::chrono::nanoseconds milliseconds)
+void os::sleeper::sleep(std::chrono::nanoseconds nanoseconds)
 {
-    auto ms = milliseconds.count();
-
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds> (nanoseconds).count();
     struct timespec ts;
     ts.tv_sec = ms / 1000;
     ts.tv_nsec = ms % 1000 * 1000000;

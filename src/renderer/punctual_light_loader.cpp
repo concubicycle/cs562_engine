@@ -3,7 +3,7 @@
 #include <renderer/punctual_light_loader.hpp>
 #include <renderer/punctual_light.hpp>
 
-#include <eigen/Core>
+#include <Eigen/Core>
 
 
 void renderer::punctual_light_loader::load(asset::asset_loader_node& node)

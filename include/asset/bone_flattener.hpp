@@ -92,7 +92,8 @@ namespace asset
                 return Eigen::Matrix4f(1.f);
 
             auto& source = _name_to_bone.find(name)->second->mOffsetMatrix;
-            return glm::transpose(glm::make_mat4(&source.a1)); 
+            Eigen::Map<Eigen::Matrix4f> mat(&source.a1);
+            return mat.matrix(); //glm::transpose(glm::make_mat4(&source.a1)); 
         }
 
 

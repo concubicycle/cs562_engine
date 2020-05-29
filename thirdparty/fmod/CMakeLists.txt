@@ -30,19 +30,18 @@ endif (WIN32)
 
 
 if (UNIX)
-
-    set (FMOD_SO_FILE ${CMAKE_CURRENT_SOURCE_DIR}/linux/api/core/lib/x86_64/libfmod.so PARENT_SCOPE)
+    set (FMOD_SO_FILE ${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libfmod.so PARENT_SCOPE)
 
     add_library(fmod SHARED IMPORTED GLOBAL)
     set_target_properties(fmod PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/linux/api/core/lib/x86_64/libfmod.so
+        IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libfmod.so
     )
 
     add_library(fmodL SHARED IMPORTED GLOBAL)
     set_target_properties(fmodL PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/linux/api/core/lib/x86_64/libfmodL.so
+        IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libfmodL.so
     )
 
-    target_include_directories(fmod INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/linux/api/core/inc)
-    target_include_directories(fmodL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/linux/api/core/inc)
+    target_include_directories(fmod INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FMOD)
+    target_include_directories(fmodL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FMOD)
 endif (UNIX)
