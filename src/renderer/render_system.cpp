@@ -69,18 +69,17 @@ void renderer::render_system::update(ecs::state& state)
     using namespace gl;    
 
     state.each<transform, camera>([&](transform& t, camera& c) {
+                
         _gbuffer.bind();
         handle_cam_background(c);
-
         _geometry_pass.bind();
         bind_camera_uniforms(_geometry_pass, t, c);        
-        draw_scene(state, _geometry_pass);
-        
+        draw_scene(state, _geometry_pass);        
         _gbuffer.unbind();
                 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _lighting_pass.bind();
 
+        _lighting_pass.bind();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _gbuffer.texture(0));        
         glActiveTexture(GL_TEXTURE1);
@@ -90,8 +89,7 @@ void renderer::render_system::update(ecs::state& state)
         
         _lighting_pass.set_uniform("camera_position", t.world_position());
         _lighting_pass.set_uniform("specular", Eigen::Vector3f(0.5f, 0.5f, 0.5f));
-        _lighting_pass.set_uniform("shininess", 0.5f);
-        
+        _lighting_pass.set_uniform("shininess", 0.5f);        
         set_light_uniforms(state, _lighting_pass, c);
 
         _fsq.draw();

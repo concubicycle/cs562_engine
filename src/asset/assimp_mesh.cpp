@@ -6,8 +6,7 @@ asset::assimp_mesh::assimp_mesh(aiMesh* mesh)
 }
 
 void asset::assimp_mesh::build_vertices(aiMesh* mesh)
-{
-    // Reorganize data into array of struct instead of separate arrays
+{    
     assimp_vertex swap_vertex;
     for (size_t i = 0; i < mesh->mNumVertices; i++)
     {
