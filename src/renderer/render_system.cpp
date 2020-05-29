@@ -77,8 +77,8 @@ void renderer::render_system::update(ecs::state& state)
         draw_scene(state, _geometry_pass);
         
         _gbuffer.unbind();
-        
-        handle_cam_background(c);
+                
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _lighting_pass.bind();
 
         glActiveTexture(GL_TEXTURE0);

@@ -6,7 +6,6 @@ out vec4 FragColor;
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
 
-
 layout(binding = 0) uniform sampler2D gPosition;
 layout(binding = 1) uniform sampler2D gNormal;
 layout(binding = 2) uniform sampler2D gBaseColor;
@@ -85,6 +84,14 @@ void main()
 {
     vec3 world_position = texture(gPosition, TexCoords).rgb;
     vec3 Kd = texture(gBaseColor, TexCoords).rgb;
+    vec3 N = texture(gNormal, TexCoords).xyz;
+
+    if (N.x == 0 && N.y == 0 && N.z == 0)
+    {
+        FragColor = vec4(Kd, 1);
+        return;
+    }
+
     vec3 IaKd = ambient_light * Kd;
     vec3 I = IaKd;
 
