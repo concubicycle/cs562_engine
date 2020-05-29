@@ -7,12 +7,11 @@ out VS_OUT {
 } vs_out;
 
 // camera uniforms
-uniform mat4     
-    projection, 
-    view;
+layout (location = 0) uniform mat4 projection;
+layout (location = 1) uniform mat4 view;
 
 // model uniforms
-uniform mat4 model;
+layout (location = 2) uniform mat4 model;
 
 void main()
 {

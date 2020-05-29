@@ -138,15 +138,7 @@
         }
       ]
     },
-    {
-      "prototype": "assets/prototypes/firefly.json",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ 22, 5.5, -7 ]
-        }
-      ]
-    },
+
     {
       "components": [
         {
@@ -210,6 +202,16 @@
         {
           "type": "model_instance",
           "model": "assets/models/pedestal/pedestal.gltf"
+        }
+      ]
+    },
+
+    {
+      "prototype": "assets/prototypes/firefly.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 6, 3.7, -7 ]
         }
       ]
     }

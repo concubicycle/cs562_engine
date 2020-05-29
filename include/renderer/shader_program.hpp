@@ -31,6 +31,16 @@ namespace renderer
 		void set_uniform(const std::string& name, const Eigen::Array3f& val) const;
 		void set_uniform(const std::string& name, const Eigen::Array4f& val) const;
 
+
+		void set_uniform(gl::GLuint loc, const gl::GLfloat val) const;
+		void set_uniform(gl::GLuint loc, const Eigen::Matrix4f& mat) const;
+		void set_uniform(gl::GLuint loc, const Eigen::Vector3f& val) const;
+		void set_uniform(gl::GLuint loc, const Eigen::Vector2f& val) const;
+		void set_uniform(gl::GLuint loc, const gl::GLint val) const;
+		void set_uniform(gl::GLuint loc, const Eigen::Translation3f& val) const;
+		void set_uniform(gl::GLuint loc, const Eigen::Array3f& val) const;
+		void set_uniform(gl::GLuint loc, const Eigen::Array4f& val) const;
+
 	private:
 		shader _vertex_shader;
 		shader _fragment_shader;

@@ -98,6 +98,7 @@ namespace renderer
 
 		void draw_local_lights(
 			ecs::state& state,
+			const transforms::transform& camera_transform,
 			const camera& cam);
 	};
 }

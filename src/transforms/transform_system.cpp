@@ -13,7 +13,7 @@ void transforms::transform_system::update_transform(ecs::state& state, transform
 {
 	t.calculate_local();
 	
-	auto parent_id = t.parent_id();
+	auto parent_id = std::as_const(t).parent_id();
 	if (parent_id)
 	{
 		auto& parent = state.find_entity(*parent_id);

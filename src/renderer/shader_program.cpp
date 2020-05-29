@@ -118,3 +118,43 @@ void renderer::shader_program::set_uniform(const std::string& name, const Eigen:
     if (loc == -1) return;
     gl::glUniform4fv(loc, 1, val.data());
 }
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, gl::GLfloat val) const
+{
+    gl::glUniform1f(loc, val);
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, const Eigen::Matrix4f& mat) const
+{
+    gl::glUniformMatrix4fv(loc, 1, gl::GL_FALSE, mat.data());
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, const Eigen::Vector2f& val) const
+{
+    gl::glUniform2fv(loc, 1, val.data());
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, gl::GLint val) const
+{
+    gl::glUniform1i(loc, val);
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, const Eigen::Translation3f& val) const
+{
+    gl::glUniform3fv(loc, 1, val.vector().data());
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, const Eigen::Array3f& val) const
+{
+    gl::glUniform3fv(loc, 1, val.data());
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, const Eigen::Vector3f& val) const
+{
+    gl::glUniform3fv(loc, 1, val.data());
+}
+
+void renderer::shader_program::set_uniform(gl::GLuint loc, const Eigen::Array4f& val) const
+{
+    gl::glUniform4fv(loc, 1, val.data());
+}

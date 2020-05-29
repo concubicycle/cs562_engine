@@ -29,12 +29,14 @@ namespace transforms
 		{
 			_local_to_world = parent * _local_to_parent;
 			_adjoint_transpose = _local_to_world.matrix().adjoint().transpose();
+			_local_to_world_matrix = _local_to_world.matrix();
 		}
 
 		void calculate_local_to_world()
 		{
 			_local_to_world = _local_to_parent;
 			_adjoint_transpose = _local_to_world.matrix().adjoint().transpose();
+			_local_to_world_matrix = _local_to_world.matrix();
 		}
 
 		affine_transform& local_to_world()
@@ -80,6 +82,7 @@ namespace transforms
 		const affine_transform& local_to_world() const { return _local_to_world; }
 		const affine_transform& local_to_parent() const { return _local_to_parent; }
 		const Eigen::Matrix4f& adjoint_transpose() const { return _adjoint_transpose; }
+		const Eigen::Matrix4f& model_matrix() const { return _local_to_world_matrix; }
 
 		// trs
 		const Eigen::Translation3f& position() const { return _translation; }
@@ -99,6 +102,7 @@ namespace transforms
 		affine_transform _local_to_world{ affine_transform::Identity() };
 		affine_transform _local_to_parent{ affine_transform::Identity() };
 		Eigen::Matrix4f _adjoint_transpose;
+		Eigen::Matrix4f _local_to_world_matrix;
 		Eigen::Translation3f _translation{ Eigen::Translation3f::Identity() };
 		Eigen::Quaternionf _rotation { Eigen::Quaternionf::Identity() };
 		Eigen::Vector3f _scale{ 1.f, 1.f, 1.f };		

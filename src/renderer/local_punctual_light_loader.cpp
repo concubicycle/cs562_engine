@@ -20,7 +20,7 @@ void renderer::local_punctual_light_loader::load(asset::asset_loader_node& node)
         component.color[2] = json["color"][2].get<float>();
     }
 
-    component.radius = json.value("radius", 10.f);    
+    component.set_radius(json.value("radius", 10.f));
 }
 
 component_bitset renderer::local_punctual_light_loader::components_to_load()

@@ -11,11 +11,11 @@ layout(binding = 0) uniform sampler2D gPosition;
 layout(binding = 1) uniform sampler2D gNormal;
 layout(binding = 2) uniform sampler2D gBaseColor;
 
-uniform vec3 position;
-uniform vec3 color;
-uniform float radius;
-uniform vec3 camera_position;
-uniform vec2 gbuffer_dimensions;
+layout(location = 3) uniform vec3 position;
+layout(location = 4) uniform vec3 color;
+layout(location = 5) uniform float radius;
+layout(location = 6) uniform vec3 camera_position;
+layout(location = 7) uniform vec2 gbuffer_dimensions;
 
 in VS_OUT {
     vec4 world_position;
@@ -69,18 +69,27 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 Kd, vec3 Ks, float alpha)
 void main()
 {
     vec2 gbuffer_coords = (gl_FragCoord.xy - vec2(0.5)) / gbuffer_dimensions;
-
     vec3 world_position = texture(gPosition, gbuffer_coords).rgb;
                 
-    vec3 light_vec = position - world_position.xyz;
+    vec3 light_vec = position - world_position.xyz;    
+
+    float radius_sq = radius*radius;
+    float light_dist_sq = dot(light_vec, light_vec);
+
+    if (light_dist_sq > radius_sq)
+    {
+        FragColor = vec4(0);
+        return;
+    }
+    
     vec3 view_vec = camera_position.xyz - world_position.xyz;
     vec3 V = normalize(view_vec);
     vec3 L = normalize(light_vec);
     vec3 N = normalize(texture(gNormal, gbuffer_coords).xyz);
-    float light_distance = length(light_vec);
+    
 
-    float one_over_rsq = 1.0/(radius*radius);
-    float one_over_dsq = 1.0/(light_distance*light_distance);
+    float one_over_rsq = 1.0/radius_sq;
+    float one_over_dsq = 1.0/light_dist_sq;
     float attenuation_factor = one_over_dsq - one_over_rsq;
 
     vec3 brdf = BRDF(

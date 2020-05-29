@@ -17,7 +17,7 @@ renderer::render_system::render_system(
     , _assets(assets)
     , _glfw(glfw)
     , _config(config)
-    , _sphere(16, 16)
+    , _sphere(4, 4)
     , _default(assets.get_text(default_vert), assets.get_text(default_frag))
     , _skybox(assets.get_text(skybox_vert), assets.get_text(skybox_frag))
     , _geometry_pass(assets.get_text(geometry_pass_vert), assets.get_text(geometry_pass_frag))
@@ -96,7 +96,7 @@ void renderer::render_system::update(ecs::state& state)
 
         _fsq.draw();
 
-        draw_local_lights(state, c);
+        draw_local_lights(state, t, c);
     });
 }
 
@@ -240,7 +240,11 @@ void renderer::render_system::draw_skybox(const camera& cam)
     _skybox.unbind();
 }
 
-void renderer::render_system::draw_local_lights(ecs::state& state, const camera& cam)
+// CAREFUL: This is a performance bottleneck. TODO: Instanced rendering for light spheres. 
+void renderer::render_system::draw_local_lights(
+    ecs::state& state, 
+    const transforms::transform& camera_transform,
+    const camera& cam)
 {
     using namespace transforms;
     using namespace gl;
@@ -256,18 +260,24 @@ void renderer::render_system::draw_local_lights(ecs::state& state, const camera&
 
     Eigen::Vector2f gbuffer_dimensions(_glfw.width(), _glfw.height());
 
+    _local_light_pass.set_uniform(0, cam.projection);
+    _local_light_pass.set_uniform(1, cam.view.matrix());
+    _local_light_pass.set_uniform(6, camera_transform.world_position());
+
     state.each<transform, local_punctual_light>([&](transform& t, local_punctual_light& lpl) {
-        bind_camera_uniforms(_local_light_pass, t, cam);
 
-        auto model = t.local_to_world() * Eigen::Scaling(lpl.radius, lpl.radius, lpl.radius);
+        if (lpl.radius_dirty())
+        {
+            t.scale() = Eigen::Vector3f(lpl.radius(), lpl.radius(), lpl.radius());
+            lpl.set_clean();
+        }
 
-        _local_light_pass.set_uniform("model", model.matrix());
-                
-        _local_light_pass.set_uniform("position", t.world_position());
-        _local_light_pass.set_uniform("color", lpl.color);
-        _local_light_pass.set_uniform("radius", lpl.radius);
-        _local_light_pass.set_uniform("gbuffer_dimensions", gbuffer_dimensions);
-
+        _local_light_pass.set_uniform(2, std::as_const(t).model_matrix());
+        _local_light_pass.set_uniform(3, std::as_const(t).world_position());
+        _local_light_pass.set_uniform(4, lpl.color);
+        _local_light_pass.set_uniform(5, lpl.radius());
+        _local_light_pass.set_uniform(7, gbuffer_dimensions);
+        
         glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
     });
     
