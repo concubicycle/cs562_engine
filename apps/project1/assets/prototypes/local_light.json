@@ -1,0 +1,16 @@
+{
+  "root": {
+    "components": [
+      {
+        "type": "transform",
+        "position": [ 7, 2.7, -7 ],
+        "scale": [ 1, 1, 1 ]
+      },
+      {
+        "type": "local_punctual_light",
+        "color": [ 1, 1, 1 ],
+        "radius": 8
+      }
+    ]
+  }
+}

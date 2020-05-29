@@ -8,9 +8,8 @@ namespace renderer
 {
 	struct punctual_light : public ecs::component<punctual_light>
 	{
-		Eigen::Array3f color;		
-		float intensity;
-		float radius;
+		Eigen::Array3f color;
+		float intensity;		
 	};
 }
 

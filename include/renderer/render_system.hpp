@@ -14,6 +14,7 @@
 #include <renderer/render_pass.hpp>
 #include <renderer/framebuffer.hpp>
 #include <renderer/full_screen_quad.hpp>
+#include <renderer/sphere.hpp>
 #include <transforms/transform.hpp>
 #include <util/string_table.hpp>
 
@@ -30,6 +31,8 @@ namespace renderer
 		const std::string geometry_pass_frag = "assets/shaders/geometry_pass.frag";
 		const std::string lighting_pass_vert = "assets/shaders/lighting_pass.vert";
 		const std::string lighting_pass_frag = "assets/shaders/lighting_pass.frag";
+		const std::string local_light_pass_vert = "assets/shaders/local_light_pass.vert";
+		const std::string local_light_pass_frag = "assets/shaders/local_light_pass.frag";
 
 
 	public:
@@ -48,14 +51,17 @@ namespace renderer
 		asset::asset_loader& _assets;
 		core::glfw_context& _glfw;
 		core::startup_config& _config;
-		
+				
+		full_screen_quad _fsq;
+		sphere _sphere;
+
 		shader_program _default;
 		shader_program _skybox;
 		shader_program _geometry_pass;
 		shader_program _lighting_pass;
+		shader_program _local_light_pass;
 
-		framebuffer<3> _gbuffer;
-		full_screen_quad _fsq;
+		framebuffer<3> _gbuffer;		
 
 
 		std::string shader_src(std::string path);
@@ -89,6 +95,10 @@ namespace renderer
 			const camera& cam);
 
 		void draw_skybox(const camera& cam);
+
+		void draw_local_lights(
+			ecs::state& state,
+			const camera& cam);
 	};
 }
 

@@ -29,10 +29,10 @@ namespace renderer
 			using namespace gl;			
 			
 			// setup plane VAO
-			glGenVertexArrays(1, &quadVAO);
-			glGenBuffers(1, &quadVBO);
-			glBindVertexArray(quadVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+			glGenVertexArrays(1, &vao);
+			glGenBuffers(1, &vbo);
+			glBindVertexArray(vao);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(textured_quad), &textured_quad, GL_STATIC_DRAW);
 
 			glEnableVertexAttribArray(0);
@@ -48,14 +48,14 @@ namespace renderer
 		{
 			using namespace gl;
 
-			glBindVertexArray(quadVAO);
+			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			glBindVertexArray(0);
 		}
 
 	private:
-		unsigned int quadVAO = 0;
-		unsigned int quadVBO;
+		unsigned int vao = 0;
+		unsigned int vbo;
 	};
 }
 

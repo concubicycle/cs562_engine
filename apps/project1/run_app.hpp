@@ -31,6 +31,8 @@
 #include <renderer/camera_loader.hpp>
 #include <renderer/punctual_light_loader.hpp>
 #include <renderer/camera_update_system.hpp>
+#include <renderer/local_punctual_light.hpp>
+#include <renderer/local_punctual_light_loader.hpp>
 
 #include "app_event.hpp"
 

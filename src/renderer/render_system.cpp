@@ -2,6 +2,7 @@
 #include <glbinding/gl/gl.h>
 #include <renderer/camera.hpp>
 #include <renderer/punctual_light.hpp>
+#include <renderer/local_punctual_light.hpp>
 #include <renderer/ambient_light.hpp>
 #include <transforms/transform.hpp>
 
@@ -16,10 +17,12 @@ renderer::render_system::render_system(
     , _assets(assets)
     , _glfw(glfw)
     , _config(config)
+    , _sphere(16, 16)
     , _default(assets.get_text(default_vert), assets.get_text(default_frag))
     , _skybox(assets.get_text(skybox_vert), assets.get_text(skybox_frag))
     , _geometry_pass(assets.get_text(geometry_pass_vert), assets.get_text(geometry_pass_frag))
     , _lighting_pass(assets.get_text(lighting_pass_vert), assets.get_text(lighting_pass_frag))
+    , _local_light_pass(assets.get_text(local_light_pass_vert), assets.get_text(local_light_pass_frag))
     , _gbuffer(
         glfw.width(),
         glfw.height(),
@@ -92,6 +95,8 @@ void renderer::render_system::update(ecs::state& state)
         set_light_uniforms(state, _lighting_pass, c);
 
         _fsq.draw();
+
+        draw_local_lights(state, c);
     });
 }
 
@@ -106,7 +111,6 @@ void renderer::render_system::set_light_uniforms(ecs::state& state, const render
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].color", pl.color);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].position", t.world_position());
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].intensity", pl.intensity);
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].radius", pl.intensity);
         light_count++;        
     });    
     
@@ -156,12 +160,11 @@ void renderer::render_system::draw_mesh(
     const shader_program& program)
 {
     using namespace gl;
-
-    Eigen::Matrix4f adjoint_transpose = transform.local_to_world().matrix().adjoint().transpose();
+        
     bind_material(mesh.material, program);
 
     program.set_uniform("model", transform.local_to_world().matrix());
-    program.set_uniform("adjoint_transpose", adjoint_transpose);
+    program.set_uniform("adjoint_transpose", transform.adjoint_transpose());
 
     glBindVertexArray(mesh.vao);
     if (mesh.ebo)
@@ -189,8 +192,6 @@ void renderer::render_system::bind_material(const opengl_material& material, con
     program.set_uniform("shininess", material.shininess);
 }
 
-
-
 void renderer::render_system::bind_texture(const opengl_texture& texture)
 {
     if (texture.texture_id)
@@ -215,6 +216,8 @@ void renderer::render_system::draw_skybox(const camera& cam)
     using namespace gl;
 
     auto texture_id = *cam.skybox_cubemap->cubemap.texture_id;
+    auto vao = cam.skybox_cubemap->vao;
+
     Eigen::Matrix3f mat3 = cam.view.rotation().matrix();
     Eigen::Matrix4f mat4 = Eigen::Matrix4f::Identity();
     mat4.block(0, 0, 3, 3) = mat3;
@@ -228,11 +231,51 @@ void renderer::render_system::draw_skybox(const camera& cam)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
 
-    glBindVertexArray(cam.skybox_cubemap->vao);        
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);    
     glBindVertexArray(0);    
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
     glDepthMask(GL_TRUE);
     _skybox.unbind();
+}
+
+void renderer::render_system::draw_local_lights(ecs::state& state, const camera& cam)
+{
+    using namespace transforms;
+    using namespace gl;
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    _local_light_pass.bind();
+   
+    glBindVertexArray(_sphere.get_vao());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
+
+    Eigen::Vector2f gbuffer_dimensions(_glfw.width(), _glfw.height());
+
+    state.each<transform, local_punctual_light>([&](transform& t, local_punctual_light& lpl) {
+        bind_camera_uniforms(_local_light_pass, t, cam);
+
+        auto model = t.local_to_world() * Eigen::Scaling(lpl.radius, lpl.radius, lpl.radius);
+
+        _local_light_pass.set_uniform("model", model.matrix());
+                
+        _local_light_pass.set_uniform("position", t.world_position());
+        _local_light_pass.set_uniform("color", lpl.color);
+        _local_light_pass.set_uniform("radius", lpl.radius);
+        _local_light_pass.set_uniform("gbuffer_dimensions", gbuffer_dimensions);
+
+        glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
+    });
+    
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    _local_light_pass.unbind();
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 }

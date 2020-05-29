@@ -17,7 +17,10 @@ set (RENDERER_SOURCE_FILES
     opengl_context.cpp
     ambient_light.cpp
     ambient_light_loader.cpp
-      "render_pass.cpp" "render_pass_opengl_state.cpp"  )
+    "render_pass.cpp" 
+    "render_pass_opengl_state.cpp"  
+    "local_punctual_light.cpp" 
+    "local_punctual_light_loader.cpp")
 
 add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)

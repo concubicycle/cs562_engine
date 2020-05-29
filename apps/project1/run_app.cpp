@@ -1,4 +1,5 @@
 #include "run_app.hpp"
+#include <random>
 
 void run_app()
 {
@@ -22,6 +23,7 @@ void run_app()
 	ecs::register_component<renderer::punctual_light>("punctual_light");
 	ecs::register_component<renderer::camera>("camera");
 	ecs::register_component<renderer::ambient_light>("ambient_light");
+	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
 	
 
 	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
@@ -38,7 +40,6 @@ void run_app()
 
 	ecs::systems systems({
 		&freefly,
-
 		&transform_system,		
 		&camera_updater,
 		&render_system 
@@ -50,6 +51,7 @@ void run_app()
 	transforms::transform_loader transform_loader;
 	renderer::model_loader model_loader(strings, loader, vram_loader);
 	renderer::punctual_light_loader punctual_light_loader;
+	renderer::local_punctual_light_loader local_punctual_light_loader;
 	renderer::camera_loader camera_loader(loader, vram_loader);
 	renderer::ambient_light_loader ambient_light_loader;
 
@@ -57,6 +59,7 @@ void run_app()
 		&transform_loader,
 		&model_loader,
 		&punctual_light_loader,
+		&local_punctual_light_loader,
 		&camera_loader, 
 		&ambient_light_loader);
 
@@ -74,6 +77,23 @@ void run_app()
 		hydrater.populate_entities(scene);
 		hydrater.load();
 		world.initialize();
+
+		std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		std::uniform_real_distribution<float> xz_range(-40, 40);
+		std::uniform_real_distribution<float> y_range(0, 15);
+		std::uniform_real_distribution<float> color(0, 1);
+		size_t num_lights = 1000;
+
+		while (num_lights-- > 0)
+		{
+			auto& e = hydrater.add_from_prototype("assets/prototypes/local_light.json");
+			auto& t = e.get_component<transforms::transform>();
+			auto& l = e.get_component<renderer::local_punctual_light>();
+			l.color = { color(gen), color(gen), color(gen) };
+			auto& tref = t.position();
+			tref = Eigen::Translation3f(xz_range(gen), y_range(gen), xz_range(gen));
+		}
 
 		//game loop
 		while (!scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window())) {

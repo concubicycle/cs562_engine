@@ -12,20 +12,18 @@ void transforms::transform_system::update(ecs::state& state)
 void transforms::transform_system::update_transform(ecs::state& state, transform& t)
 {
 	t.calculate_local();
-
-	auto& t_local_to_world = t.local_to_world();
-
+	
 	auto parent_id = t.parent_id();
 	if (parent_id)
 	{
 		auto& parent = state.find_entity(*parent_id);
 		auto& parent_t = parent.get_component<transform>();
-		update_transform(state, parent_t);		
-		t_local_to_world = std::as_const(parent_t).local_to_world() * std::as_const(t).local_to_parent();
+		update_transform(state, parent_t);
+		t.calculate_local_to_world(std::as_const(parent_t).local_to_world());		
 	}
 	else
 	{
-		t_local_to_world = t.local_to_parent();
+		t.calculate_local_to_world();
 	}
 
 	t.set_clean();

@@ -8,7 +8,8 @@ namespace renderer
 		model_instance = 4,
 		punctual_light = 5,
 		camera = 6,
-		ambient_light = 7
+		ambient_light = 7,
+		local_punctual_light = 8
 	};
 }
 
