@@ -78,22 +78,22 @@ void run_app()
 		hydrater.load();
 		world.initialize();
 
-		//std::random_device rd;  //Will be used to obtain a seed for the random number engine
-		//std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		//std::uniform_real_distribution<float> xz_range(-40, 40);
-		//std::uniform_real_distribution<float> y_range(0, 15);
-		//std::uniform_real_distribution<float> color(0, 1);
-		//size_t num_lights = 10000;
+		std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		std::uniform_real_distribution<float> xz_range(-40, 40);
+		std::uniform_real_distribution<float> y_range(0, 15);
+		std::uniform_real_distribution<float> color(0, 1);
+		size_t num_lights = 1000;
 
-		//while (num_lights-- > 0)
-		//{
-		//	auto& e = hydrater.add_from_prototype("assets/prototypes/local_light.json");
-		//	auto& t = e.get_component<transforms::transform>();
-		//	auto& l = e.get_component<renderer::local_punctual_light>();
-		//	l.color = { color(gen), color(gen), color(gen) };
-		//	auto& tref = t.position();
-		//	tref = Eigen::Translation3f(xz_range(gen), y_range(gen), xz_range(gen));
-		//}
+		while (num_lights-- > 0)
+		{
+			auto& e = hydrater.add_from_prototype("assets/prototypes/local_light.json");
+			auto& t = e.get_component<transforms::transform>();
+			auto& l = e.get_component<renderer::local_punctual_light>();
+			l.color = { color(gen), color(gen), color(gen) };
+			auto& tref = t.position();
+			tref = Eigen::Translation3f(xz_range(gen), y_range(gen), xz_range(gen));
+		}
 
 		//game loop
 		while (!scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window())) {
