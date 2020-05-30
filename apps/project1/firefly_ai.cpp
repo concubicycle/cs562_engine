@@ -48,7 +48,7 @@ void firefly_ai::update(ecs::state& state)
 			std::random_device rd;  //Will be used to obtain a seed for the random number engine
 			std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 			std::uniform_real_distribution<float> range(-f.radius, f.radius);
-			f.target = f.center + Eigen::Vector3f(range(gen), range(gen)/10, range(gen));
+			f.target = f.center + Eigen::Vector3f(range(gen), range(gen), range(gen));
 		}
 	});
 }
