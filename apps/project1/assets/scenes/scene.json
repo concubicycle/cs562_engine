@@ -25,7 +25,7 @@
         },
         {
           "type": "ambient_light",
-          "color": [ 0.2, 0.1, 0.2 ]
+          "color": [ 0.2, 0.2, 0.2 ]
         },
         {
           "type": "freefly_component"

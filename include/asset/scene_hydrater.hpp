@@ -10,6 +10,7 @@
 #include <asset/component_loader.hpp>
 #include <asset/scene.hpp>
 
+
 namespace asset
 {
 

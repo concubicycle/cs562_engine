@@ -3,6 +3,10 @@
 
 #include <ecs/ecs_types.hpp>
 #include <ecs/component.hpp>
+#include <ecs/entity.hpp>
+
+#include <vector>
+#include <algorithm>
 #include <Eigen/Core>
 #include <Eigen/Geometry> 
 #include <optional>
@@ -56,7 +60,7 @@ namespace transforms
 			_is_dirty = true;
 			return _translation;
 		}
-
+		
 		Eigen::Vector3f& rotation_euler()
 		{
 			_is_dirty = true;
@@ -69,14 +73,14 @@ namespace transforms
 			return _scale;
 		}
 
-		std::optional<entity_id>& parent_id() 
+		std::optional<ecs::entity*>& parent() 
 		{ 
 			_is_dirty = true;
-			return _parent_id; 
+			return _parent; 
 		}
 
 		// hierarchy
-		const std::optional<entity_id>& parent_id() const { return _parent_id; }
+		const std::optional<ecs::entity*>& parent() const { return _parent; }
 
 		// matrices
 		const affine_transform& local_to_world() const { return _local_to_world; }
@@ -96,7 +100,30 @@ namespace transforms
 		}
 
 		bool is_dirty() const { return _is_dirty; }
+		void set_dirty() { _is_dirty = true; }
 		void set_clean() { _is_dirty = false; }
+		
+		void add_child(ecs::entity* child)
+		{
+			_children.emplace_back(child->id(), child);
+		}
+
+		void remove_child(entity_id id)
+		{
+			_children.erase(
+				std::remove_if(
+					_children.begin(), 
+					_children.end(), 
+					[id](const std::pair<entity_id, ecs::entity*>& pair) {
+						return pair.first == id;
+					}),
+				_children.end());
+		}
+
+		const std::vector<std::pair<entity_id, ecs::entity*>>& children() const
+		{
+			return _children;
+		}
 
 	private:		
 		affine_transform _local_to_world{ affine_transform::Identity() };
@@ -107,10 +134,14 @@ namespace transforms
 		Eigen::Quaternionf _rotation { Eigen::Quaternionf::Identity() };
 		Eigen::Vector3f _scale{ 1.f, 1.f, 1.f };		
 		Eigen::Vector3f _rotation_euler{ 0.f, 0.f, 0.f };
+		std::optional<ecs::entity*> _parent;
+
+		// it may become unsafe to access a dangling ecs::entity*,
+		// but systems can check the id first
+		std::vector<std::pair<entity_id, ecs::entity*>> _children;
+
 
 		bool _is_dirty;
-
-		std::optional<entity_id> _parent_id;
 	};
 }
 

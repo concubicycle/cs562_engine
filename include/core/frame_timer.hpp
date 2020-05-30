@@ -38,10 +38,8 @@ public:
     [[nodiscard]] std::chrono::nanoseconds smoothed_delta() const;
     [[nodiscard]] float smoothed_delta_secs() const;
     [[nodiscard]] float delta_secs() const;
-	[[nodiscard]] std::chrono::nanoseconds current_frame_time() const;
-	[[nodiscard]] float current_time_s() const;
-	[[nodiscard]] std::string frame_info() const;
-	[[nodiscard]] float total_s() const;
+	[[nodiscard]] std::chrono::nanoseconds current_frame_time() const;	
+	[[nodiscard]] std::string frame_info() const;	
 };
 } // namespace core
 

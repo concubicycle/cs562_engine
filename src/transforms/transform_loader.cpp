@@ -27,11 +27,11 @@ void transforms::transform_loader::load(asset::asset_loader_node& node)
 
     for (auto& child : node.children)
     {
-        auto child_id = child.entity_resource.entity->id();
-        auto parent_id = entity->id();
+        auto child_id = child.entity_resource.entity->id();        
+        component.add_child(child.entity_resource.entity);
 
         auto& child_transform = child.entity_resource.entity->get_component<transform>();        
-        child_transform.parent_id() = entity->id();
+        child_transform.parent() = entity;
     }
 }
 

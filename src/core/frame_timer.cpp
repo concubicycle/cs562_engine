@@ -52,15 +52,3 @@ float core::frame_timer::delta_secs() const
     return std::chrono::duration_cast<float_seconds>(_delta).count();
 }
 
-float core::frame_timer::current_time_s() const
-{
-	return std::chrono::duration_cast<float_seconds>(current_frame_time()).count();
-}
-
-float core::frame_timer::total_s() const
-{
-    auto diff = _start - _begin_total;
-	return std::chrono::duration_cast<float_seconds>(diff).count();
-}
-
-

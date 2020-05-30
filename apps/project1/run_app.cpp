@@ -1,6 +1,9 @@
 #include "run_app.hpp"
 #include <random>
 
+void generate_lights(asset::scene_hydrater& hydrater);
+
+
 void run_app()
 {
 	app_events events;
@@ -13,8 +16,7 @@ void run_app()
 	core::frame_timer timer;
 	core::frame_limiter limiter(timer, 60, sleeper);
 	core::cursor_state cursor(glfw.window());
-	//cursor.enable();
-
+	
 	ecs::archetype_pools memory;
 	ecs::state state(memory);
 	ecs::register_component<transforms::transform>("transform");
@@ -24,7 +26,7 @@ void run_app()
 	ecs::register_component<renderer::camera>("camera");
 	ecs::register_component<renderer::ambient_light>("ambient_light");
 	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
-	
+	ecs::register_component<firefly>("firefly");
 
 	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
 	asset::asset_loader loader;
@@ -37,12 +39,14 @@ void run_app()
 	transforms::freefly_system freefly(input, timer);
 	renderer::render_system render_system(strings, loader, glfw, config);
 	renderer::camera_update_system camera_updater(glfw);
+	firefly_ai firefly_system(timer);
 
 	ecs::systems systems({
 		&freefly,
 		&transform_system,		
 		&camera_updater,
-		&render_system 
+		&render_system,
+		&firefly_system
 	});
 
 	ecs::world world(systems, state);
@@ -62,7 +66,6 @@ void run_app()
 		&local_punctual_light_loader,
 		&camera_loader, 
 		&ambient_light_loader);
-
 	
 	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
 	engineui::fps_display fps(glfw, timer);
@@ -78,22 +81,7 @@ void run_app()
 		hydrater.load();
 		world.initialize();
 
-		std::random_device rd;  //Will be used to obtain a seed for the random number engine
-		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<float> xz_range(-40, 40);
-		std::uniform_real_distribution<float> y_range(0, 15);
-		std::uniform_real_distribution<float> color(0, 1);
-		size_t num_lights = 1000;
-
-		while (num_lights-- > 0)
-		{
-			auto& e = hydrater.add_from_prototype("assets/prototypes/local_light.json");
-			auto& t = e.get_component<transforms::transform>();
-			auto& l = e.get_component<renderer::local_punctual_light>();
-			l.color = { color(gen), color(gen), color(gen) };
-			auto& tref = t.position();
-			tref = Eigen::Translation3f(xz_range(gen), y_range(gen), xz_range(gen));
-		}
+		generate_lights(hydrater);
 
 		//game loop
 		while (!scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window())) {
@@ -115,5 +103,25 @@ void run_app()
 		world.cleanup();
 		hydrater.clear();
 		state.free_all();
+	}
+}
+
+void generate_lights(asset::scene_hydrater& hydrater)
+{
+	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::uniform_real_distribution<float> xz_range(-40, 40);
+	std::uniform_real_distribution<float> y_range(0, 15);
+	std::uniform_real_distribution<float> color(0, 1);
+	size_t num_lights = 1000;
+
+	while (num_lights-- > 0)
+	{
+		auto& e = hydrater.add_from_prototype("assets/prototypes/local_light.json");
+		auto& t = e.get_component<transforms::transform>();
+		auto& l = e.get_component<renderer::local_punctual_light>();
+		l.color = { color(gen), color(gen), color(gen) };
+		auto& tref = t.position();
+		tref = Eigen::Translation3f(xz_range(gen), y_range(gen), xz_range(gen));
 	}
 }

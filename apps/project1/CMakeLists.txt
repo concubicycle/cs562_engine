@@ -1,4 +1,5 @@
-add_executable(project1 main.cpp "run_app.cpp")
+add_executable(project1 main.cpp run_app.cpp firefly_ai.cpp)
+
 target_link_libraries(project1 PRIVATE
 	core
 	ecs

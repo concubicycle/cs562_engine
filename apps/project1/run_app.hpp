@@ -41,4 +41,6 @@
 #include <engine-ui/fps_display.hpp>
 
 
+#include "firefly_ai.hpp"
+
 void run_app();
