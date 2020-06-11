@@ -23,6 +23,7 @@ renderer::render_system::render_system(
     , _geometry_pass(assets.get_text(geometry_pass_vert), assets.get_text(geometry_pass_frag))
     , _lighting_pass(assets.get_text(lighting_pass_vert), assets.get_text(lighting_pass_frag))
     , _local_light_pass(assets.get_text(local_light_pass_vert), assets.get_text(local_light_pass_frag))
+    , _dual_paraboloid_shadow(assets.get_text(dual_paraboloid_shadow_vert), assets.get_text(dual_paraboloid_shadow_frag))
     , _gbuffer(
         glfw.width(),
         glfw.height(),
@@ -63,13 +64,68 @@ renderer::render_system::render_system(
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void renderer::render_system::update(ecs::state& state)
+
+void renderer::render_system::initialize(ecs::state& state)
 {
     using namespace transforms;
     using namespace gl;    
+}
 
-    state.each<transform, camera>([&](transform& t, camera& c) {
-                
+
+void renderer::render_system::update(ecs::state& state)
+{
+    using namespace transforms;
+    using namespace gl;
+    
+    state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
+        pl.shadowmap_framebuffer.bind();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);
+
+        Eigen::Translation3f translate(t.world_position());
+        affine_transform view_transform = translate * affine_transform::Identity();
+        pl.light_view = view_transform.matrix().inverse();
+
+        _dual_paraboloid_shadow.bind();
+        _dual_paraboloid_shadow.set_uniform("view", pl.light_view);
+
+        state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
+            if (mi.is_closed_shape)
+                glCullFace(GL_FRONT);
+
+            for (size_t i = 0; i < mi.model.mesh_count; ++i)
+                draw_mesh(t, mi.model.meshes[i], _dual_paraboloid_shadow);
+
+            glCullFace(GL_BACK);
+        });
+
+        glViewport(pl.shadow_map_resolution, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);        
+
+        Eigen::Quaternionf rotate(Eigen::AngleAxis<float>(util::Pi, Eigen::Vector3f::UnitY()));
+        view_transform = translate * rotate * affine_transform::Identity();
+        pl.light_view_back = view_transform.matrix().inverse();
+
+        _dual_paraboloid_shadow.set_uniform("view", pl.light_view_back);
+
+        state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
+            if (mi.is_closed_shape)
+                glCullFace(GL_FRONT);
+
+            for (size_t i = 0; i < mi.model.mesh_count; ++i)
+                draw_mesh(t, mi.model.meshes[i], _dual_paraboloid_shadow);
+
+            glCullFace(GL_BACK);
+        });
+
+        _dual_paraboloid_shadow.unbind();
+        pl.shadowmap_framebuffer.unbind();
+    });
+
+    glViewport(0, 0, _glfw.width(), _glfw.height());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   state.each<transform, camera>([&](transform& t, camera& c) {
         _gbuffer.bind();
         handle_cam_background(c);
         _geometry_pass.bind();
@@ -99,16 +155,29 @@ void renderer::render_system::update(ecs::state& state)
 }
 
 
-void renderer::render_system::set_light_uniforms(ecs::state& state, const renderer::shader_program& shader, renderer::camera& cam)
+void renderer::render_system::set_light_uniforms(
+    ecs::state& state, 
+    const renderer::shader_program& shader, 
+    renderer::camera& cam)
 {
     using namespace transforms;
     using namespace gl;
 
     GLint light_count = 0;
+    GLint shadowmap_texture_unit = 3;
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].color", pl.color);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].position", t.world_position());
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].intensity", pl.intensity);
+        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].light_view", pl.light_view);
+        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].light_view_back", pl.light_view_back);
+
+        // bind shadow map
+        auto location = shader.uniform_location("shadow_maps[" + std::to_string(light_count) + "]");
+        glActiveTexture(GL_TEXTURE0 + shadowmap_texture_unit);
+        glBindTexture(GL_TEXTURE_2D, pl.shadowmap_framebuffer.texture(0));
+        glUniform1i(location, shadowmap_texture_unit);
+
         light_count++;        
     });    
     
@@ -119,7 +188,10 @@ void renderer::render_system::set_light_uniforms(ecs::state& state, const render
     });
 }
 
-void renderer::render_system::draw_scene(ecs::state& state, const shader_program& program)
+
+void renderer::render_system::draw_scene(
+    ecs::state& state, 
+    const shader_program& program)
 {
     using namespace gl;
     using namespace transforms;       
@@ -132,7 +204,8 @@ void renderer::render_system::draw_scene(ecs::state& state, const shader_program
     });    
 }
 
-void renderer::render_system::handle_cam_background(const renderer::camera& cam)
+void renderer::render_system::handle_cam_background(
+    const renderer::camera& cam)
 {
     using namespace gl;
 
@@ -178,7 +251,9 @@ void renderer::render_system::draw_mesh(
     glBindVertexArray(0);
 }
 
-void renderer::render_system::bind_material(const opengl_material& material, const shader_program& program)
+void renderer::render_system::bind_material(
+    const opengl_material& material, 
+    const shader_program& program)
 {
     bind_texture(material.diffuse_texture);
     bind_texture(material.metalness_texture);
@@ -190,7 +265,8 @@ void renderer::render_system::bind_material(const opengl_material& material, con
     program.set_uniform("shininess", material.shininess);
 }
 
-void renderer::render_system::bind_texture(const opengl_texture& texture)
+void renderer::render_system::bind_texture(
+    const opengl_texture& texture)
 {
     if (texture.texture_id)
     {
@@ -209,7 +285,8 @@ void renderer::render_system::bind_camera_uniforms(
     shader.set_uniform("camera_position", transform.world_position());
 }
 
-void renderer::render_system::draw_skybox(const camera& cam)
+void renderer::render_system::draw_skybox(
+    const camera& cam)
 {
     using namespace gl;
 

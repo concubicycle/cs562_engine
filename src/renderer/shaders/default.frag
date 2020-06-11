@@ -90,10 +90,6 @@ vec3 BRDF(vec3 L, vec3 V, vec3 Kd, vec3 Ks, float alpha, PointLight light)
 
 void main()
 {
-//    FragColor = vec4(0, 1, 0, 1);
-//    return;
-
-
     vec4 tex_color = texture(diffuse_texture, fs_in.texcoords_2d);
     vec3 Kd = tex_color.rgb;
     vec3 IaKd = ambient_light * Kd;

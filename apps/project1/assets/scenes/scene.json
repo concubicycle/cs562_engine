@@ -40,7 +40,8 @@
         },
         {
           "type": "model_instance",
-          "model": "assets/models/terrain/terrain.gltf"
+          "model": "assets/models/terrain/terrain.gltf",
+          "is_closed_shape": false
         }
       ]
     },
@@ -99,42 +100,23 @@
     },
 
     {
+      "prototype": "assets/prototypes/firefly.json",
       "components": [
         {
           "type": "transform",
-          "position": [ -4, 1, -8 ]
+          "position": [ 4, 3, -5 ]
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 4, 1, 0]
         },
         {
           "type": "model_instance",
           "model": "assets/models/tree/tree.gltf"
-        }
-      ]
-    },
-
-    {
-      "prototype": "assets/prototypes/firefly.json",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ 0, 6, 0 ]
-        }
-      ]
-    },
-    {
-      "prototype": "assets/prototypes/firefly.json",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ -5, 6, 10 ]
-        }
-      ]
-    },
-    {
-      "prototype": "assets/prototypes/firefly.json",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ 3, 5, 15 ]
         }
       ]
     },
@@ -202,16 +184,6 @@
         {
           "type": "model_instance",
           "model": "assets/models/pedestal/pedestal.gltf"
-        }
-      ]
-    },
-
-    {
-      "prototype": "assets/prototypes/firefly.json",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ 6, 3.7, -7 ]
         }
       ]
     }

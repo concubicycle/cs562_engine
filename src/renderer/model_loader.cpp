@@ -26,6 +26,7 @@ void renderer::model_loader::load(asset::asset_loader_node& node)
     auto& scene_asset = _asset_loader.get_assimp_scene(model_file);
     component.model = _vram_loader.load_model(scene_asset);
     component.model_file_hash = _strings.hash_and_store(model_file);
+    component.is_closed_shape = json.value("is_closed_shape", true);
 }
 
 component_bitset renderer::model_loader::components_to_load()

@@ -33,7 +33,8 @@ namespace renderer
 		const std::string lighting_pass_frag = "assets/shaders/lighting_pass.frag";
 		const std::string local_light_pass_vert = "assets/shaders/local_light_pass.vert";
 		const std::string local_light_pass_frag = "assets/shaders/local_light_pass.frag";
-
+		const std::string dual_paraboloid_shadow_vert = "assets/shaders/dual_paraboloid_shadow.vert";
+		const std::string dual_paraboloid_shadow_frag = "assets/shaders/dual_paraboloid_shadow.frag";
 
 	public:
 		render_system(
@@ -42,6 +43,7 @@ namespace renderer
 			core::glfw_context& glfw,
 			core::startup_config& config);
 
+		virtual void initialize(ecs::state& state) override;
 		virtual void update(ecs::state& state) override;
 
 	private:
@@ -60,6 +62,7 @@ namespace renderer
 		shader_program _geometry_pass;
 		shader_program _lighting_pass;
 		shader_program _local_light_pass;
+		shader_program _dual_paraboloid_shadow;
 
 		framebuffer<3> _gbuffer;		
 

@@ -21,11 +21,7 @@ namespace transforms
 	struct transform : ecs::component<transform>
 	{
 		void calculate_local()
-		{			
-			_rotation = Eigen::AngleAxis(_rotation_euler[2], Eigen::Vector3f::UnitZ())
-				* Eigen::AngleAxis(_rotation_euler[1], Eigen::Vector3f::UnitY())
-				*Eigen::AngleAxis(_rotation_euler[0], Eigen::Vector3f::UnitX());
-
+		{
 			_local_to_parent = _translation * _rotation * Eigen::Scaling(_scale);  
 		}
 
@@ -61,10 +57,16 @@ namespace transforms
 			return _translation;
 		}
 		
-		Eigen::Vector3f& rotation_euler()
+		/*Eigen::Vector3f& rotation_euler()
 		{
 			_is_dirty = true;
 			return _rotation_euler;
+		}*/
+
+		Eigen::Quaternionf& rotation()
+		{
+			_is_dirty = true;
+			return _rotation;
 		}
 
 		Eigen::Vector3f& scale()
@@ -91,7 +93,6 @@ namespace transforms
 		// trs
 		const Eigen::Translation3f& position() const { return _translation; }
 		const Eigen::Quaternionf& rotation() const { return _rotation; }
-		const Eigen::Vector3f& rotation_euler() const { return _rotation_euler; }
 		const Eigen::Vector3f& scale() const { return _scale; }
 
 		Eigen::Vector3f world_position() const 
@@ -110,8 +111,7 @@ namespace transforms
 
 		void remove_child(entity_id id)
 		{
-			_children.erase(
-				std::remove_if(
+			_children.erase(std::remove_if(
 					_children.begin(), 
 					_children.end(), 
 					[id](const std::pair<entity_id, ecs::entity*>& pair) {
@@ -132,8 +132,7 @@ namespace transforms
 		Eigen::Matrix4f _local_to_world_matrix;
 		Eigen::Translation3f _translation{ Eigen::Translation3f::Identity() };
 		Eigen::Quaternionf _rotation { Eigen::Quaternionf::Identity() };
-		Eigen::Vector3f _scale{ 1.f, 1.f, 1.f };		
-		Eigen::Vector3f _rotation_euler{ 0.f, 0.f, 0.f };
+		Eigen::Vector3f _scale{ 1.f, 1.f, 1.f };
 		std::optional<ecs::entity*> _parent;
 
 		// it may become unsafe to access a dangling ecs::entity*,

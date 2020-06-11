@@ -4,11 +4,7 @@
       {
         "type": "transform",
         "scale": [ 0.2, 0.2, 0.2 ]
-      },
-      {
-        "type": "model_instance",
-        "model": "assets/models/firefly/firefly.gltf"
-      },
+      },      
       {
         "type": "firefly"        
       }

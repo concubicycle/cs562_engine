@@ -25,7 +25,6 @@ os::sleeper::~sleeper()
     timeEndPeriod(wTimerRes);
 }
 
-
 void os::sleeper::sleep(std::chrono::nanoseconds ns)
 {
     auto timeout_ms = std::chrono::duration_cast<std::chrono::milliseconds> (_timeout);
@@ -43,14 +42,15 @@ void os::sleeper::sleep(std::chrono::nanoseconds ns)
     if (!SetWaitableTimer(timer, &time_definition, 0, NULL, NULL, FALSE)) {
         CloseHandle(timer);
         throw std::runtime_error("Failed to set waitable timer properties");
-    }    
+    }
     
     WaitForSingleObject(timer, timeout_ms.count());
-        
+    
     CloseHandle(timer);
 }
-
 #endif
+
+
 
 #ifdef __linux__
 #include <unistd.h>

@@ -63,6 +63,11 @@ void renderer::shader_program::unbind()
     gl::glUseProgram(0);
 }
 
+gl::GLuint renderer::shader_program::uniform_location(const std::string& name) const
+{
+    return _info.getUniformLocation(name);
+}
+
 void renderer::shader_program::set_uniform(const std::string& name, gl::GLfloat val) const
 {
     auto loc = _info.getUniformLocation(name);

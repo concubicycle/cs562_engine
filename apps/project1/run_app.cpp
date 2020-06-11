@@ -81,7 +81,7 @@ void run_app()
 		hydrater.load();
 		world.initialize();
 
-		generate_lights(hydrater);
+		//generate_lights(hydrater);
 
 		//game loop
 		while (!scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window())) {

@@ -11,13 +11,11 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/bin)
 set(BUILD_SHARED_LIBS OFF)
 
-
 # Hide the console window in visual studio projects
 if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /subsystem:windows /ENTRY:mainCRTStartup")
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /subsystem:windows /ENTRY:mainCRTStartup")
 endif()
-
 
 # Dependencies
 include(add_glbinding)

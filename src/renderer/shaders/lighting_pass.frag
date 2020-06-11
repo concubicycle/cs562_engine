@@ -22,10 +22,16 @@ struct PointLight {
     vec3 position;
     float intensity;
     float radius;
+    mat4 light_view;
+    mat4 light_view_back;
 };
 
+
 uniform PointLight point_lights[MAX_POINT_LIGHTS];
+uniform sampler2D shadow_maps[MAX_POINT_LIGHTS];
 uniform int point_light_count;
+
+
 
 // ambient light(s)
 uniform vec3 ambient_light;// Ia
@@ -82,6 +88,10 @@ vec3 BRDF(vec3 L, vec3 V, vec3 Kd, vec3 Ks, float alpha, PointLight light)
 
 void main()
 {
+//    vec3 shadow_map_color = texture(shadow_maps[0], TexCoords).rgb / 10;
+//    FragColor = vec4(shadow_map_color, 1);
+//    return;
+
     vec3 world_position = texture(gPosition, TexCoords).rgb;
     vec3 Kd = texture(gBaseColor, TexCoords).rgb;
     vec3 N = texture(gNormal, TexCoords).xyz;
@@ -100,7 +110,7 @@ void main()
         if (dot(point_lights[i].color, point_lights[i].color) < 0.0001)
         {
             continue;
-        }       
+        }
 
         vec3 light_pos = point_lights[i].position;
         vec3 light_vec = light_pos - world_position.xyz;
@@ -109,6 +119,28 @@ void main()
         vec3 L = normalize(light_vec);
 
         float distance_falloff = point_lights[i].intensity / length(light_vec);
+
+        vec4 light_space_pos = light_vec.z > 0
+            ? point_lights[i].light_view * vec4(world_position, 1)
+            : point_lights[i].light_view_back * vec4(world_position, 1);
+
+        float fragment_depth = -light_space_pos.z;
+
+        // Calculate and set the X and Y coordinates  
+        light_space_pos.xyz = normalize(light_space_pos.xyz);
+        light_space_pos.xy /= 1.0 - light_space_pos.z;
+
+        // convet to texture coordinates
+        light_space_pos.xy = (light_space_pos.xy + vec2(1, 1)) / 2;
+
+        light_space_pos.x = light_vec.z > 0
+            ? light_space_pos.x/2
+            : light_space_pos.x/2 + 0.5;
+
+        float light_depth = texture(shadow_maps[i], light_space_pos.xy).r;
+
+        if (light_depth + 0.025 < fragment_depth)
+            continue;
 
         I += BRDF(
             L,

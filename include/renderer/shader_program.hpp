@@ -22,6 +22,8 @@ namespace renderer
 		void bind();
 		void unbind();
 
+		gl::GLuint uniform_location(const std::string& name) const;
+
 		void set_uniform(const std::string& name, const gl::GLfloat val) const;
 		void set_uniform(const std::string& name, const Eigen::Matrix4f& mat) const;
 		void set_uniform(const std::string& name, const Eigen::Vector3f& val) const;
