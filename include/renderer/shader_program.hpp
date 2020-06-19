@@ -12,18 +12,9 @@
 
 namespace renderer
 {
-	class shader_program
-	{		
-        static constexpr unsigned int GPU_INFO_BUFFER_SIZE = 512;
-
+	class shader_program_base
+	{
 	public:
-		shader_program(const std::string& vertex_source, const std::string& fragment_source);
-
-		void bind();
-		void unbind();
-
-		gl::GLuint uniform_location(const std::string& name) const;
-
 		void set_uniform(const std::string& name, const gl::GLfloat val) const;
 		void set_uniform(const std::string& name, const Eigen::Matrix4f& mat) const;
 		void set_uniform(const std::string& name, const Eigen::Vector3f& val) const;
@@ -43,12 +34,27 @@ namespace renderer
 		void set_uniform(gl::GLuint loc, const Eigen::Array3f& val) const;
 		void set_uniform(gl::GLuint loc, const Eigen::Array4f& val) const;
 
+		void bind();
+		void unbind();
+
+		gl::GLuint uniform_location(const std::string& name) const;
+
+	protected:
+		gl::GLuint _id;
+		program_info _info;
+
+	};
+
+	class shader_program : public shader_program_base
+	{		
+        static constexpr unsigned int GPU_INFO_BUFFER_SIZE = 512;
+
+	public:
+		shader_program(const std::string& vertex_source, const std::string& fragment_source);
+
 	private:
 		shader _vertex_shader;
 		shader _fragment_shader;
-
-        gl::GLuint _id;
-		program_info _info;
 
 		void link();
 		void validate_program();

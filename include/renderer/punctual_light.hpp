@@ -6,6 +6,8 @@
 #include <glbinding/gl/gl.h>
 #include <ecs/component.hpp>
 #include <renderer/framebuffer.hpp>
+#include <renderer/opengl_texture.hpp>
+#include <transforms/transform.hpp>
 
 namespace renderer
 {
@@ -17,7 +19,7 @@ namespace renderer
 		Eigen::Matrix4f light_view;
 		Eigen::Matrix4f light_view_back;
 
-		framebuffer<2> shadowmap_framebuffer
+		framebuffer<1> shadowmap_framebuffer
 		{
 			shadow_map_resolution * 2,
 			shadow_map_resolution,
@@ -28,6 +30,12 @@ namespace renderer
 				gl::GLenum::GL_RGBA32F,
 				gl::GLenum::GL_RGBA,
 				gl::GLenum::GL_FLOAT)
+		};
+
+		opengl_texture filter_output_texture {
+			gl::GLenum::GL_TEXTURE1,
+			shadow_map_resolution * 2,
+			shadow_map_resolution
 		};
 	};
 }

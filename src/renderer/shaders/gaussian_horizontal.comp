@@ -1,0 +1,116 @@
+#version 430 core
+
+#define KERNEL_SIZE 15
+#define PADDING_SIZE 14
+#define HALF_KERNEL_FLOOR 7
+#define INVOCATION_COUNT 128
+
+// kernel size is the full blur width. 15 by default
+//
+// shared memory:
+//	a shared memory section as big as work group size, 
+//	plus half a kernel (rounded down), for texels outside the work 
+//	group texture section. 
+//
+// kernel of size 15 requires 7 texel padding. so:
+//	|| 7 |  ... 128 ... | 7 ||		=> 46 texels
+// this way, a texel on the edge of the work group can 
+// still look up texels in neighboring groups
+//
+
+// Variable					Type	Meaning
+// ------------------------------------------
+// gl_WorkGroupSize			uvec3	The number of invocations per work group in each dimension—the same
+//									as what is defined in the layout specifier.
+// gl_NumWorkGroups			uvec3	The total number of work groups in each dimension.
+// gl_WorkGroupID			uvec3	The index of the current work group for this shader invocation.
+// gl_LocalInvocationID		uvec3	The index of the current invocation within the current work group.
+// gl_GlobalInvocationID	uvec3	The index of the current invocation within the global compute space.
+
+// horizontal
+layout (local_size_x = INVOCATION_COUNT, local_size_y = 1) in;
+
+// images
+layout(binding=0, rgba32f) uniform image2D input_image;
+layout(binding=1, rgba32f) uniform image2D output_image;
+
+uniform float Weights[HALF_KERNEL_FLOOR+1] = float[] (
+	0.11769579668317869,
+	0.11298860523228081,
+	0.09996678645646614,
+	0.08151249837066141,
+	0.0612547916273883,
+	0.04242318964171051,
+	0.027077836350026748,
+	0.01592839397987677
+);
+
+// a "cache" for the work group, that it can quickly access,
+// at the price of having to fill it up before the blur.
+shared vec4 local_data[gl_WorkGroupSize.x + (2 * HALF_KERNEL_FLOOR)];
+
+
+void storeToLocalData()
+{
+	uvec2 gSize = gl_WorkGroupSize.xy * gl_NumWorkGroups.xy;
+
+	vec4 texel = imageLoad(input_image, ivec2(gl_GlobalInvocationID.xy));
+	local_data[gl_LocalInvocationID.x + HALF_KERNEL_FLOOR] = texel;
+
+	// is local blur area out of bounds (left)?
+	if (gl_LocalInvocationID.x < HALF_KERNEL_FLOOR)
+	{		
+		unsigned int local_data_index = gl_LocalInvocationID.x;
+
+		// is global blur area out of bounds?
+		if (gl_GlobalInvocationID.x < HALF_KERNEL_FLOOR)
+		{
+			// just mirror the texels on the edges
+			local_data[local_data_index] = texel;
+		}
+		else
+		{
+			// get a texel from another work group's area
+			ivec2 outer_texel_coords = ivec2(gl_GlobalInvocationID.xy) - ivec2(HALF_KERNEL_FLOOR, 0);
+			local_data[local_data_index] = imageLoad(input_image, ivec2(outer_texel_coords.xy));
+		}
+	}
+
+	// is local blur area out of bounds (right)?
+	if ((INVOCATION_COUNT - gl_LocalInvocationID.x) <= HALF_KERNEL_FLOOR)
+	{
+		unsigned int local_data_index = gl_LocalInvocationID.x + 2*HALF_KERNEL_FLOOR;
+		unsigned int overflow_index_global = gl_GlobalInvocationID.x + HALF_KERNEL_FLOOR;
+
+		if (overflow_index_global > gSize.x)
+		{
+			local_data[local_data_index] = texel;
+		}
+		else
+		{
+			ivec2 outer_texel_coords = ivec2(gl_GlobalInvocationID.xy) + ivec2(HALF_KERNEL_FLOOR, 0);
+			local_data[local_data_index] = imageLoad(input_image, outer_texel_coords);			
+		}
+	}
+}
+
+void applyFilterHorizontal()
+{
+	unsigned int target_texel_index = gl_LocalInvocationID.x + HALF_KERNEL_FLOOR;
+    vec4 target_texel_color = local_data[target_texel_index] * Weights[0];
+
+	for(int i = 1; i < HALF_KERNEL_FLOOR; ++i)
+    {
+        target_texel_color += local_data[target_texel_index + i] * Weights[i];
+        target_texel_color += local_data[target_texel_index - i] * Weights[i];
+    }
+
+	imageStore(output_image, ivec2(gl_GlobalInvocationID.xy), target_texel_color);
+}
+
+void main()
+{
+	storeToLocalData();
+	barrier();
+	applyFilterHorizontal();
+}

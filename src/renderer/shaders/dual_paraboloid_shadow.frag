@@ -8,5 +8,12 @@ in VS_OUT {
 
 void main()
 {
-	FragColor = vec4(fs_in.depth);
-}
+	float depth = fs_in.depth;
+
+	FragColor = vec4(
+		depth,
+		depth * depth,
+		depth * depth * depth,
+		depth * depth * depth * depth
+	);
+} 

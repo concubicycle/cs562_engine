@@ -35,8 +35,11 @@ void main()
 
     gl_Position = vec4(
         normal.xy,        
-        (vs_out.depth / 10000) * 2.0 - 1.0,
+        (vs_out.depth / 100) * 2.0 - 1.0,
         1.0);
+
+    vs_out.depth /= 100;
+
 
 // from http://cdn.imgtec.com/sdk-documentation/Dual+Paraboloid+Environment+Mapping.Whitepaper.pdf:
 // Transform position to the paraboloid's view space

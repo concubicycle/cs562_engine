@@ -20,7 +20,7 @@
         {
           "type": "punctual_light",
           "color": [ 0.9, 0.8, 0.3 ],
-          "intensity": 10,
+          "intensity": 20,
           "radius": 10
         }
       ]

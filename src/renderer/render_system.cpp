@@ -16,38 +16,7 @@ renderer::render_system::render_system(
     : _strings(strings)
     , _assets(assets)
     , _glfw(glfw)
-    , _config(config)
-    , _sphere(4, 4)
-    , _default(assets.get_text(default_vert), assets.get_text(default_frag))
-    , _skybox(assets.get_text(skybox_vert), assets.get_text(skybox_frag))
-    , _geometry_pass(assets.get_text(geometry_pass_vert), assets.get_text(geometry_pass_frag))
-    , _lighting_pass(assets.get_text(lighting_pass_vert), assets.get_text(lighting_pass_frag))
-    , _local_light_pass(assets.get_text(local_light_pass_vert), assets.get_text(local_light_pass_frag))
-    , _dual_paraboloid_shadow(assets.get_text(dual_paraboloid_shadow_vert), assets.get_text(dual_paraboloid_shadow_frag))
-    , _gbuffer(
-        glfw.width(),
-        glfw.height(),
-        texture_description(
-            gl::GLenum::GL_COLOR_ATTACHMENT0,
-            glfw.width(),
-            glfw.height(),
-            gl::GLenum::GL_RGBA32F,
-            gl::GLenum::GL_RGBA,
-            gl::GLenum::GL_FLOAT),
-        texture_description(
-            gl::GLenum::GL_COLOR_ATTACHMENT1,
-            glfw.width(),
-            glfw.height(),
-            gl::GLenum::GL_RGBA32F,
-            gl::GLenum::GL_RGBA,
-            gl::GLenum::GL_FLOAT),
-        texture_description(
-            gl::GLenum::GL_COLOR_ATTACHMENT2,
-            glfw.width(),
-            glfw.height(),
-            gl::GLenum::GL_RGBA,
-            gl::GLenum::GL_RGBA,
-            gl::GLenum::GL_FLOAT))
+    , _config(config)      
 {
     using namespace gl;
 
@@ -68,7 +37,7 @@ renderer::render_system::render_system(
 void renderer::render_system::initialize(ecs::state& state)
 {
     using namespace transforms;
-    using namespace gl;    
+    using namespace gl;
 }
 
 
@@ -78,48 +47,7 @@ void renderer::render_system::update(ecs::state& state)
     using namespace gl;
     
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
-        pl.shadowmap_framebuffer.bind();
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);
-
-        Eigen::Translation3f translate(t.world_position());
-        affine_transform view_transform = translate * affine_transform::Identity();
-        pl.light_view = view_transform.matrix().inverse();
-
-        _dual_paraboloid_shadow.bind();
-        _dual_paraboloid_shadow.set_uniform("view", pl.light_view);
-
-        state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
-            if (mi.is_closed_shape)
-                glCullFace(GL_FRONT);
-
-            for (size_t i = 0; i < mi.model.mesh_count; ++i)
-                draw_mesh(t, mi.model.meshes[i], _dual_paraboloid_shadow);
-
-            glCullFace(GL_BACK);
-        });
-
-        glViewport(pl.shadow_map_resolution, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);        
-
-        Eigen::Quaternionf rotate(Eigen::AngleAxis<float>(util::Pi, Eigen::Vector3f::UnitY()));
-        view_transform = translate * rotate * affine_transform::Identity();
-        pl.light_view_back = view_transform.matrix().inverse();
-
-        _dual_paraboloid_shadow.set_uniform("view", pl.light_view_back);
-
-        state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
-            if (mi.is_closed_shape)
-                glCullFace(GL_FRONT);
-
-            for (size_t i = 0; i < mi.model.mesh_count; ++i)
-                draw_mesh(t, mi.model.meshes[i], _dual_paraboloid_shadow);
-
-            glCullFace(GL_BACK);
-        });
-
-        _dual_paraboloid_shadow.unbind();
-        pl.shadowmap_framebuffer.unbind();
+        render_shadowmap(state, t, pl);
     });
 
     glViewport(0, 0, _glfw.width(), _glfw.height());
@@ -363,4 +291,90 @@ void renderer::render_system::draw_local_lights(
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
+}
+
+void renderer::render_system::render_shadowmap(
+    ecs::state& state, 
+    transforms::transform& t, 
+    punctual_light& pl)
+{
+    using namespace gl;
+    using namespace transforms;
+
+    pl.shadowmap_framebuffer.bind();
+    _dual_paraboloid_shadow.bind();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+
+    // front facing
+    glViewport(0, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);
+    Eigen::Translation3f translate(t.world_position());
+    affine_transform view_transform = translate * affine_transform::Identity();
+    pl.light_view = view_transform.matrix().inverse();    
+    _dual_paraboloid_shadow.set_uniform("view", pl.light_view);
+    draw_scene_shadowmap(state);
+
+    // back facing
+    glViewport(pl.shadow_map_resolution, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);
+    Eigen::Quaternionf rotate(Eigen::AngleAxis<float>(util::Pi, Eigen::Vector3f::UnitY()));
+    view_transform = translate * rotate * affine_transform::Identity();
+    pl.light_view_back = view_transform.matrix().inverse();
+    _dual_paraboloid_shadow.set_uniform("view", pl.light_view_back);
+    draw_scene_shadowmap(state);
+
+    _dual_paraboloid_shadow.unbind();
+    pl.shadowmap_framebuffer.unbind();
+    
+    // gaussian blur
+    auto width = pl.shadow_map_resolution * 2;
+    auto height = pl.shadow_map_resolution;
+
+    // horizontal
+    _gaussian_horizontal.bind();
+    auto src_img_loc = _gaussian_horizontal.uniform_location("input_image");
+    auto dst_img_loc = _gaussian_horizontal.uniform_location("output_image");
+    glBindImageTexture(0, pl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, *(pl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glUniform1i(src_img_loc, 0);
+    glUniform1i(dst_img_loc, 1);
+    glDispatchCompute(width / 128, height, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);    
+
+    // vertical
+    _gaussian_vertical.bind();
+    src_img_loc = _gaussian_vertical.uniform_location("input_image");
+    dst_img_loc = _gaussian_vertical.uniform_location("output_image");
+    glBindImageTexture(0, *(pl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, pl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glUniform1i(src_img_loc, 0);
+    glUniform1i(dst_img_loc, 1);
+    glDispatchCompute(width, height / 128, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    _gaussian_vertical.unbind();
+}
+
+void renderer::render_system::draw_scene_shadowmap(ecs::state& state)
+{
+    using namespace gl;
+    using namespace transforms;
+
+    bool is_front_face_culling = false;
+
+    state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
+        if (mi.is_closed_shape && !is_front_face_culling)
+        {
+            glCullFace(GL_FRONT);
+            is_front_face_culling = true;
+        }
+        else if (!mi.is_closed_shape)
+        {
+            glCullFace(GL_BACK);
+            is_front_face_culling = false;
+        }
+
+        for (size_t i = 0; i < mi.model.mesh_count; ++i)
+            draw_mesh(t, mi.model.meshes[i], _dual_paraboloid_shadow);
+        });
+
+    glCullFace(GL_BACK);
 }

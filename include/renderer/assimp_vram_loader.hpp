@@ -54,25 +54,7 @@ namespace renderer
 
 		gl::GLuint load_cubemap(std::vector<const asset::texture_asset*> faces);
 
-		gl::GLenum num_channels_to_gltype(int num_channels)
-		{
-			using namespace gl;
-			GLenum texture_channels_gl;
-			switch (num_channels)
-			{
-			case 1:
-				return GL_RED;				
-			case 2:
-				return GL_RG;				
-			case 3:
-				return GL_RGB;				
-			case 4:
-				return GL_RGBA;				
-
-			default:
-				throw std::runtime_error("Error: Unexpected amount of channels while loading texture.");
-			}
-		}
+		gl::GLenum num_channels_to_gltype(int num_channels);
 	};
 }
 
