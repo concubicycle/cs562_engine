@@ -304,6 +304,7 @@ void renderer::render_system::render_shadowmap(
     pl.shadowmap_framebuffer.bind();
     _dual_paraboloid_shadow.bind();
 
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
 
     // front facing
@@ -363,12 +364,12 @@ void renderer::render_system::draw_scene_shadowmap(ecs::state& state)
     state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
         if (mi.is_closed_shape && !is_front_face_culling)
         {
-            glCullFace(GL_FRONT);
+            //glCullFace(GL_FRONT);
             is_front_face_culling = true;
         }
         else if (!mi.is_closed_shape)
         {
-            glCullFace(GL_BACK);
+            //glCullFace(GL_BACK);
             is_front_face_culling = false;
         }
 

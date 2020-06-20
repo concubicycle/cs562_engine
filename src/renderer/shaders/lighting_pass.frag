@@ -1,8 +1,9 @@
 #version 430 core
 out vec4 FragColor;
 
-#define EPSILON 0.0000001
-#define SHADOW_BIAS 0.000000000001
+#define EPSILON 0.000000001
+#define EDGE_EPSILON 0.25
+#define SHADOW_BIAS 0.000000001
 #define PI 3.1415926535897932384626433832795
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
@@ -147,12 +148,16 @@ float hamburger4MSM(vec4 b, float fragment_depth)
     return 1 - numerator / denominator;
 }
 
+float edgeness(vec2 xy)
+{
+	float edge_proximity = 1 - xy.x*xy.x - xy.y*xy.y;
+	if (edge_proximity > EDGE_EPSILON) return 1;
+
+    return 0.1 * edge_proximity + 0.975;
+}
+
 void main()
 {
-//    vec3 shadow_map_color = texture(shadow_maps[0], TexCoords).rgb;
-//    FragColor = vec4(shadow_map_color, 1);
-//    return;
-
     vec3 world_position = texture(gPosition, TexCoords).rgb;
     vec3 Kd = texture(gBaseColor, TexCoords).rgb;
     vec3 N = texture(gNormal, TexCoords).xyz;
@@ -189,11 +194,12 @@ void main()
         fragment_depth /= 100;
 
         // Calculate and set the X and Y coordinates  
-        light_space_pos.xyz = normalize(light_space_pos.xyz);
+        light_space_pos.xyz = normalize(light_space_pos.xyz);        
         light_space_pos.xy /= 1.0 - light_space_pos.z;
 
         // convet to texture coordinates
-        light_space_pos.xy = (light_space_pos.xy + vec2(1)) / 2;
+        float underscale = edgeness(light_space_pos.xy) ;
+        light_space_pos.xy = (underscale * light_space_pos.xy + vec2(1)) / 2;
 
         light_space_pos.x = light_vec.z > 0
             ? light_space_pos.x/2
