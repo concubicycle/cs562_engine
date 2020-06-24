@@ -14,7 +14,7 @@ namespace renderer
 	struct punctual_light : public ecs::component<punctual_light>
 	{
 		Eigen::Array3f color;
-		float intensity;
+		float reference_distance;
 		std::uint32_t shadow_map_resolution{ 2048 };
 		Eigen::Matrix4f light_view;
 		Eigen::Matrix4f light_view_back;

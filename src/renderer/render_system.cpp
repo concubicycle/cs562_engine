@@ -64,16 +64,8 @@ void renderer::render_system::update(ecs::state& state)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         _lighting_pass.bind();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _gbuffer.texture(0));        
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _gbuffer.texture(1));
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, _gbuffer.texture(2));
-        
+        _gbuffer.bind_textures();
         _lighting_pass.set_uniform("camera_position", t.world_position());
-        _lighting_pass.set_uniform("specular", Eigen::Vector3f(0.5f, 0.5f, 0.5f));
-        _lighting_pass.set_uniform("shininess", 0.5f);        
         set_light_uniforms(state, _lighting_pass, c);
 
         _fsq.draw();
@@ -92,11 +84,11 @@ void renderer::render_system::set_light_uniforms(
     using namespace gl;
 
     GLint light_count = 0;
-    GLint shadowmap_texture_unit = 3;
+    GLint shadowmap_texture_unit = 4;
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].color", pl.color);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].position", t.world_position());
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].intensity", pl.intensity);
+        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].reference_distance", pl.reference_distance);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].light_view", pl.light_view);
         shader.set_uniform("point_lights[" + std::to_string(light_count) + "].light_view_back", pl.light_view_back);
 
@@ -189,8 +181,8 @@ void renderer::render_system::bind_material(
     bind_texture(material.roughness_texture);
     bind_texture(material.ambient_occlusion_texture);
 
-    program.set_uniform("specular", material.specular);
-    program.set_uniform("shininess", material.shininess);
+    program.set_uniform("fresnel_color", material.fresnel_color);    
+    program.set_uniform("roughness", material.roughness);
 }
 
 void renderer::render_system::bind_texture(

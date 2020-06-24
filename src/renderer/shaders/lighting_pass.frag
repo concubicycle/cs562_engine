@@ -2,28 +2,29 @@
 out vec4 FragColor;
 
 #define EPSILON 0.000000001
-#define EDGE_EPSILON 0.25
-#define SHADOW_BIAS 0.000000001
+#define EDGE_EPSILON 0.5
+#define SHADOW_BIAS 0.00000001
 #define PI 3.1415926535897932384626433832795
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
 
+#define POINT_LIGHT_RMIN_SQ 0.01
+
 layout(binding = 0) uniform sampler2D gPosition;
 layout(binding = 1) uniform sampler2D gNormal;
 layout(binding = 2) uniform sampler2D gBaseColor;
+layout(binding = 3) uniform sampler2D gFresnelColorRoughness;
 
 in vec2 TexCoords;
 
-// CS541 surface uniforms
-uniform vec3 specular;// Ks
-uniform float shininess;// alpha exponent
+//////////////////////////////////////
+////////////// UNIFORMS //////////////
 
 // punctual lights
 struct PointLight {
     vec3 color;
     vec3 position;
-    float intensity;
-    float radius;
+    float reference_distance;
     mat4 light_view;
     mat4 light_view_back;
 };
@@ -33,8 +34,6 @@ uniform PointLight point_lights[MAX_POINT_LIGHTS];
 uniform sampler2D shadow_maps[MAX_POINT_LIGHTS];
 uniform int point_light_count;
 
-
-
 // ambient light(s)
 uniform vec3 ambient_light;// Ia
 
@@ -42,51 +41,10 @@ uniform vec3 ambient_light;// Ia
 uniform vec3 camera_position;
 
 
-vec3 BRDF(vec3 L, vec3 V, vec3 Kd, vec3 Ks, float alpha, PointLight light)
-{
-    vec3 N = normalize(texture(gNormal, TexCoords).xyz);
-    vec3 H = normalize(L+V);    
 
-    vec3 IaKd = ambient_light * Kd;
-    vec3 IiKd = light.color * Kd;
-    vec3 IiKs = light.color * Ks;
-        
-    float NdotL = dot(N, L);
-    if (NdotL < 0)
-        return vec3(0);
 
-    NdotL = max(DOT_CLAMP, NdotL);
-    float NdotH = max(DOT_CLAMP, dot(N, H));
-
-    float VdotN = max(DOT_CLAMP, dot(V, N));
-    float LdotH = max(DOT_CLAMP, dot(L, H));
-
-    float NdotH_alpha = pow(NdotH, alpha);
-
-    // A diffuse light part of BRDF.
-    vec3 KdOverPi = Kd / PI;
-
-    // The Schlick approximation to the Fresnel term F
-    vec3 F = Ks + (vec3(1)-Ks) * pow(1-LdotH, 5);
-
-    // an approximation to G(L, V, H) / (dot(L,N)*dot(V,N)). G(L, V, H) Represents how
-    // much is self-occluded. That is, what percent of microfacet normals reflect light
-    // toward another microfacet. I think... might be wrong.
-    float Gcheat = 1 / pow(LdotH, 2);
-
-    // The micro-facet normal distribution term D (what part of microfacets
-    // reflects in V direction). There's a similarity to blinn phong.
-    float D = ((alpha + 2)/(2 * PI)) * NdotH_alpha;
-
-    // KdPi + F(L, H) * G(L, V, H) * D(H) / (4 * ldotn * VdotN)
-    vec3 brdf = KdOverPi + F * Gcheat * D / 4;
-
-    // Blinn Phong
-    //vec3 I = IaKd + IaKd * NdotL + IiKs * NdotH_alpha;
-
-    return light.color * NdotL * brdf;
-}
-
+//////////////////////////////////////
+/////////// MSM SHADOWS //////////////
 vec3 cholesky(vec3 m1, vec2 m2, float m33, vec3 z)
 {
     float a = sqrt(m1[0]);
@@ -153,42 +111,17 @@ float edgeness(vec2 xy)
 	float edge_proximity = 1 - xy.x*xy.x - xy.y*xy.y;
 	if (edge_proximity > EDGE_EPSILON) return 1;
 
-    return 0.1 * edge_proximity + 0.975;
+    return 0.2 * edge_proximity + 0.9;
 }
 
-void main()
+float shadowIntensityG(
+    int light_index,
+    const vec3 light_vec, 
+    const vec3 world_position)
 {
-    vec3 world_position = texture(gPosition, TexCoords).rgb;
-    vec3 Kd = texture(gBaseColor, TexCoords).rgb;
-    vec3 N = texture(gNormal, TexCoords).xyz;
-
-    if (N.x == 0 && N.y == 0 && N.z == 0)
-    {
-        FragColor = vec4(Kd, 1);
-        return;
-    }
-
-    vec3 IaKd = ambient_light * Kd;
-    vec3 I = IaKd;
-
-    for (int i = 0; i < point_light_count; i++)
-    {
-        if (dot(point_lights[i].color, point_lights[i].color) < 0.0001)
-        {
-            continue;
-        }
-
-        vec3 light_pos = point_lights[i].position;
-        vec3 light_vec = light_pos - world_position.xyz;
-        vec3 view_vec = camera_position.xyz - world_position.xyz;
-        vec3 V = normalize(view_vec);
-        vec3 L = normalize(light_vec);
-
-        float distance_falloff = point_lights[i].intensity / length(light_vec);
-
-        vec4 light_space_pos = light_vec.z > 0
-            ? point_lights[i].light_view * vec4(world_position, 1)
-            : point_lights[i].light_view_back * vec4(world_position, 1);
+    vec4 light_space_pos = light_vec.z > 0
+            ? point_lights[light_index].light_view * vec4(world_position, 1)
+            : point_lights[light_index].light_view_back * vec4(world_position, 1);
 
         float fragment_depth = -light_space_pos.z;
         fragment_depth /= 100;
@@ -205,16 +138,134 @@ void main()
             ? light_space_pos.x/2
             : light_space_pos.x/2 + 0.5;
 
-        vec4 b = texture(shadow_maps[i], light_space_pos.xy);
-        float shadow_intensity = hamburger4MSM(b, fragment_depth);
+        vec4 b = texture(shadow_maps[light_index], light_space_pos.xy);
+        return hamburger4MSM(b, fragment_depth);
+}
 
-        I += BRDF(
+
+
+
+//////////////////////////////////////
+/// Reflectance Equation Functions ///
+vec3 punctual_light_falloff(const PointLight light, float r_square)
+{
+    r_square = r_square < 0 ? 0 : r_square;
+    float r0_sq = light.reference_distance * light.reference_distance;
+    return light.color * r0_sq * 1 / max(POINT_LIGHT_RMIN_SQ, r_square);
+}
+
+vec3 schlick_approximation(const vec3 F0, const vec3 N, const vec3 L)
+{
+    float NdotL = max(DOT_CLAMP, dot(N, L));
+    return F0 + (vec3(1)-F0) * pow(1 - NdotL, 5);
+}
+
+
+float characteristic_factor(float d)
+{
+	return d > 0.0 ? 1.0 : 0.0;
+}
+
+// D term of the specular reflectance equation 
+float ggx_normal_distribution_function(
+	vec3 N, // macrosurface normal 
+    vec3 M, // microsurface normal (usually the halfway vector)
+	float roughness_square) // 0 - smooth, 1 - rough
+{
+    float n_dot_m = dot(N, M);    
+    float n_dot_m_sq = n_dot_m * n_dot_m;
+    float characteristic = characteristic_factor(n_dot_m_sq);
+    float numerator = characteristic * roughness_square;
+    float denominator = 1 + n_dot_m_sq * (roughness_square - 1);
+    denominator *= denominator;
+    denominator *= PI;
+    return numerator / denominator;
+}
+
+vec3 brdf_specular(
+    vec3 L, 
+    vec3 V, 
+    vec3 F, 
+    vec3 N, 
+    vec3 H,
+    float roughness_sq)
+{
+    float NdotL = max(DOT_CLAMP, dot(N, L)); // mu_i
+    float NdotV = max(DOT_CLAMP, dot(N, V)); // mu_o
+ 
+    float G_and_denominator = 0.5 / (
+        NdotL * sqrt(roughness_sq + NdotV * (NdotV - roughness_sq * NdotV)) +
+        NdotV * sqrt(roughness_sq + NdotL * (NdotL - roughness_sq * NdotL))
+    );
+    
+    float D = ggx_normal_distribution_function(H, N, roughness_sq);
+    
+    return F * G_and_denominator * D;
+}
+
+vec3 lambertian_diffuse(vec3 F)
+{
+    vec3 albedo = texture(gBaseColor, TexCoords).rgb;
+    return (vec3(1) - F) * albedo / PI;
+}
+
+vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color)
+{   
+    vec3 N = normalize(texture(gNormal, TexCoords).xyz);    
+    float NdotL = dot(N, L);
+
+    vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
+    vec3 H = normalize(L+V);
+    vec3 F0 = gFresnelColorRoughness_texel.rgb;
+   
+    float roughness = gFresnelColorRoughness_texel.a;
+
+    float roughness_sq = roughness * roughness;
+
+    vec3 F = schlick_approximation(F0, H, L);
+
+    vec3 specular = brdf_specular(L, V, F, N, H, roughness);
+    vec3 diffuse = lambertian_diffuse(F);
+
+    return (specular + diffuse) * light_color * NdotL;
+}
+
+
+
+void main()
+{
+    vec3 world_position = texture(gPosition, TexCoords).rgb;
+    vec3 Kd = texture(gBaseColor, TexCoords).rgb;
+    vec3 N = texture(gNormal, TexCoords).xyz;
+
+    if (N.x == 0 && N.y == 0 && N.z == 0)
+    {
+        FragColor = vec4(Kd, 1);
+        return;
+    }
+        
+    vec3 I = vec3(0); // ambient_light * Kd;
+
+    for (int i = 0; i < point_light_count; i++)
+    {
+        if (dot(point_lights[i].color, point_lights[i].color) < 0.0001)
+        {
+            continue;
+        }
+
+        vec3 light_pos = point_lights[i].position;
+        vec3 light_vec = light_pos - world_position.xyz;
+        vec3 view_vec = camera_position.xyz - world_position.xyz;
+        vec3 V = normalize(view_vec);
+        vec3 L = normalize(light_vec);
+
+        vec3 light_color = punctual_light_falloff(point_lights[i], dot(light_vec, light_vec));
+        float shadow_intensity = shadowIntensityG(i, light_vec, world_position);
+
+        I += ggx_brdf(
             L,
-            V,
-            Kd,
-            specular,
-            shininess,
-            point_lights[i]) * distance_falloff * (1-shadow_intensity);
+            V,            
+            light_color) * (1-shadow_intensity);
     }
 
     FragColor = vec4(I, 1);

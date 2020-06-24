@@ -20,9 +20,11 @@ namespace renderer
 		opengl_texture normal_texture{ gl::GL_TEXTURE0 + 2 };
 		opengl_texture roughness_texture{ gl::GL_TEXTURE0 + 3 };
 		opengl_texture ambient_occlusion_texture{ gl::GL_TEXTURE0 + 4 };
+				
+		float roughness{ 1 };
+		Eigen::Array3f fresnel_color{ 0.562, 0.565, 0.578 }; // iron
 
-		float shininess{ 0.5f };
-		Eigen::Array3f specular{ 0.5f, 0.7f, 0.4f };
+
 
 		bool has_additional {false};
 

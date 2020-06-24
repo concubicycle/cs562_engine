@@ -46,7 +46,7 @@ void run_app()
 		&transform_system,		
 		&camera_updater,
 		&render_system,
-		&firefly_system
+		//&firefly_system
 	});
 
 	ecs::world world(systems, state);

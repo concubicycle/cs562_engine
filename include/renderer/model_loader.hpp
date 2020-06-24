@@ -24,6 +24,8 @@ namespace renderer
 		util::string_table _strings;
 		asset::asset_loader& _asset_loader;
 		assimp_vram_loader& _vram_loader;
+
+		void assign_material(opengl_material& material, json definition);
 	};
 }
 

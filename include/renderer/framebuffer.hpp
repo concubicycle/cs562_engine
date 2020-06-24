@@ -55,7 +55,12 @@ namespace renderer
 
 		void bind_textures()
 		{
-
+			using namespace gl;
+			for (size_t i = 0; i < NumTextures; ++i)
+			{
+				glActiveTexture(GL_TEXTURE0 + i);
+				glBindTexture(GL_TEXTURE_2D, texture(i));
+			}
 		}
 
 

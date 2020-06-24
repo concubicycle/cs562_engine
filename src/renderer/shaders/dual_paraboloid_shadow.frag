@@ -21,12 +21,12 @@ float edgeness()
 
 void main()
 {
-//	float edge_proximity = fs_in.xy.x*fs_in.xy.x + fs_in.xy.y*fs_in.xy.y; // goes to 1
-//	float edgeness_factor = edge_proximity > (1-EDGE_EPSILON)
-//		? 5 * edge_proximity - 4.5 
-//		: 0;
-//
-	float depth = fs_in.depth;
+	float edge_proximity = fs_in.xy.x*fs_in.xy.x + fs_in.xy.y*fs_in.xy.y; // goes to 1
+	float edgeness_factor = edge_proximity > (1-EDGE_EPSILON)
+		? 5 * edge_proximity - 4.5 
+		: 0;
+
+	float depth = fs_in.depth;// + edgeness_factor * (1 - fs_in.depth);
 
 	FragColor = vec4(
 		depth,

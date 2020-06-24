@@ -92,7 +92,7 @@ namespace renderer
 		compute_shader_program _gaussian_vertical{ 
 			_assets.get_text(gaussian_vertical_comp) };
 		
-		framebuffer<3> _gbuffer{
+		framebuffer<4> _gbuffer{
 			_glfw.width(),
 			_glfw.height(),
 			texture_description(
@@ -115,11 +115,14 @@ namespace renderer
 				_glfw.height(),
 				gl::GLenum::GL_RGBA,
 				gl::GLenum::GL_RGBA,
+				gl::GLenum::GL_FLOAT),
+			texture_description(
+				gl::GLenum::GL_COLOR_ATTACHMENT3,
+				_glfw.width(),
+				_glfw.height(),
+				gl::GLenum::GL_RGBA,
+				gl::GLenum::GL_RGBA,
 				gl::GLenum::GL_FLOAT) };
-
-
-
-		std::string shader_src(std::string path);
 
 		void set_light_uniforms(
 			ecs::state& state, 

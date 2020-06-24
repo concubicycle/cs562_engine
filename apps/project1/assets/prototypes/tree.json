@@ -1,0 +1,24 @@
+{
+  "root": {
+    "components": [
+      {
+        "type": "transform",
+        "position": [ 4, 1, 3 ]
+      },
+      {
+        "type": "model_instance",
+        "model": "assets/models/tree/tree.gltf",
+        "materials": {
+          "definitions": [
+            {
+              "roughness": 0.5,
+              "metalness": false,
+              "fresnel_color": [1, 0.782, 0.344]
+            }
+          ],
+          "mesh_definition_indices": [0]
+        }
+      }
+    ]
+  }
+}

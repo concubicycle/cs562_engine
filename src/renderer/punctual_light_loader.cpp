@@ -20,7 +20,7 @@ void renderer::punctual_light_loader::load(asset::asset_loader_node& node)
         component.color[2] = json["color"][2].get<float>();
     }
 
-    component.intensity = json.value("intensity", 10.f);
+    component.reference_distance = json.value("reference_distance", 10.f);
 }
 
 component_bitset renderer::punctual_light_loader::components_to_load()

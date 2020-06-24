@@ -51,10 +51,6 @@ const asset::assimp_scene_asset& asset::asset_loader::get_assimp_scene(const std
 	const aiScene* scene = scene_asset.importer.ReadFile(filepath,
 		aiProcess_ValidateDataStructure |
 		aiProcess_Triangulate |
-		aiProcess_FlipUVs |
-		aiProcess_GenSmoothNormals |
-		aiProcess_FixInfacingNormals |
-		aiProcess_OptimizeMeshes |
 		aiProcess_OptimizeGraph |
 		aiProcess_CalcTangentSpace);
 
