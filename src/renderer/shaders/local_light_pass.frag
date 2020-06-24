@@ -24,25 +24,25 @@ in VS_OUT {
 
 //////////////////////////////////////
 /// Reflectance Equation Functions ///
-vec3 schlick_approximation(const vec3 F0, float NdotL_clamp)
+vec3 schlickApproximation(const vec3 F0, float NdotL_clamp)
 {    
     return F0 + (vec3(1)-F0) * pow(1 - NdotL_clamp, 5);
 }
 
-float positive_characteristic(float d)
+float positiveCharacteristic(float d)
 {
 	return d > 0.0 ? 1.0 : 0.0;
 }
 
 // D term of the specular reflectance equation 
-float ggx_normal_distribution_function(
+float ggxNdf(
 	vec3 N, // macrosurface normal 
     vec3 M, // microsurface normal (usually the halfway vector)
 	float roughness_square) // 0 - smooth, 1 - rough
 {
     float n_dot_m = dot(N, M);    
     float n_dot_m_sq = n_dot_m * n_dot_m;
-    float characteristic = positive_characteristic(n_dot_m);
+    float characteristic = positiveCharacteristic(n_dot_m);
     float numerator = characteristic * roughness_square;
     float denominator = 1 + n_dot_m_sq * (roughness_square - 1);
     denominator *= denominator;
@@ -50,7 +50,7 @@ float ggx_normal_distribution_function(
     return numerator / denominator;
 }
 
-vec3 ggx_specular(
+vec3 ggxSpecular(
     vec3 F, 
     vec3 N, 
     vec3 H,
@@ -62,11 +62,11 @@ vec3 ggx_specular(
         NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
         NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));    
 
-    float D = ggx_normal_distribution_function(H, N, roughness_sq);    
+    float D = ggxNdf(H, N, roughness_sq);    
     return F * G_and_denominator * D;
 }
 
-vec3 lambertian_diffuse(vec3 F, vec2 TexCoords)
+vec3 lambertionDiffuse(vec3 F, vec2 TexCoords)
 {
     vec3 albedo = texture(gBaseColor, TexCoords).rgb;
     return (vec3(1) - F) * albedo / PI;
@@ -84,10 +84,10 @@ vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness, vec2 TexCoords)
     float NdotL_clamp = max(NdotL, DOT_CLAMP);
     float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
 
-    vec3 F = schlick_approximation(F0, NdotL_clamp);
+    vec3 F = schlickApproximation(F0, NdotL_clamp);
 
-    vec3 specular = ggx_specular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
-    vec3 diffuse = metalness ? vec3(0) : lambertian_diffuse(F, TexCoords);
+    vec3 specular = ggxSpecular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
+    vec3 diffuse = metalness ? vec3(0) : lambertionDiffuse(F, TexCoords);
 
     return (specular + diffuse) * light_color * NdotL_clamp;
 }
