@@ -53,9 +53,13 @@ component_bitset renderer::model_loader::components_to_load()
 void renderer::model_loader::assign_material(opengl_material& material, json definition)
 {
     material.roughness = definition.value("roughness", 1.0f);
+    material.metalness = definition.value("metalness", false);
 
-    material.fresnel_color = Eigen::Array3f(
-        definition["fresnel_color"][0].get<float>(),
-        definition["fresnel_color"][1].get<float>(),
-        definition["fresnel_color"][2].get<float>());
+    if (definition.find("fresnel_color") != definition.end())
+    {
+        material.fresnel_color = Eigen::Array3f(
+            definition["fresnel_color"][0].get<float>(),
+            definition["fresnel_color"][1].get<float>(),
+            definition["fresnel_color"][2].get<float>());
+    }
 }

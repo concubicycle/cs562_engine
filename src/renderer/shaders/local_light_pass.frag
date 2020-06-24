@@ -10,6 +10,7 @@ out vec4 FragColor;
 layout(binding = 0) uniform sampler2D gPosition;
 layout(binding = 1) uniform sampler2D gNormal;
 layout(binding = 2) uniform sampler2D gBaseColor;
+layout(binding = 3) uniform sampler2D gFresnelColorRoughness;
 
 layout(location = 3) uniform vec3 position;
 layout(location = 4) uniform vec3 color;
@@ -21,55 +22,87 @@ in VS_OUT {
     vec4 world_position;
 } fs_in;
 
-vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 Kd, vec3 Ks, float alpha)
+//////////////////////////////////////
+/// Reflectance Equation Functions ///
+vec3 schlick_approximation(const vec3 F0, float NdotL_clamp)
 {    
-    vec3 H = normalize(L+V);    
-
-    vec3 IaKd = vec3(0);
-    vec3 IiKd = color * Kd;
-    vec3 IiKs = color * Ks;
-        
-    float NdotL = dot(N, L);
-    if (NdotL < 0)
-        return vec3(0);
-
-    NdotL = max(DOT_CLAMP, NdotL);
-    float NdotH = max(DOT_CLAMP, dot(N, H));
-
-    float VdotN = max(DOT_CLAMP, dot(V, N));
-    float LdotH = max(DOT_CLAMP, dot(L, H));
-
-    float NdotH_alpha = pow(NdotH, alpha);
-
-    // A diffuse light part of BRDF.
-    vec3 KdOverPi = Kd / PI;
-
-    // The Schlick approximation to the Fresnel term F
-    vec3 F = Ks + (vec3(1)-Ks) * pow(1-LdotH, 5);
-
-    // an approximation to G(L, V, H) / (dot(L,N)*dot(V,N)). G(L, V, H) Represents how
-    // much is self-occluded. That is, what percent of microfacet normals reflect light
-    // toward another microfacet. I think... might be wrong.
-    float Gcheat = 1 / pow(LdotH, 2);
-
-    // The micro-facet normal distribution term D (what part of microfacets
-    // reflects in V direction). There's a similarity to blinn phong.
-    float D = ((alpha + 2)/(2 * PI)) * NdotH_alpha;
-
-    // KdPi + F(L, H) * G(L, V, H) * D(H) / (4 * ldotn * VdotN)
-    vec3 brdf = KdOverPi + F * Gcheat * D / 4;
-
-    // Blinn Phong
-    //vec3 I = IaKd + IaKd * NdotL + IiKs * NdotH_alpha;
-
-    return color * NdotL * brdf;
+    return F0 + (vec3(1)-F0) * pow(1 - NdotL_clamp, 5);
 }
 
+
+float characteristic_factor(float d)
+{
+	return d > 0.0 ? 1.0 : 0.0;
+}
+
+// D term of the specular reflectance equation 
+float ggx_normal_distribution_function(
+	vec3 N, // macrosurface normal 
+    vec3 M, // microsurface normal (usually the halfway vector)
+	float roughness_square) // 0 - smooth, 1 - rough
+{
+    float n_dot_m = dot(N, M);    
+    float n_dot_m_sq = n_dot_m * n_dot_m;
+    float characteristic = characteristic_factor(n_dot_m_sq);
+    float numerator = characteristic * roughness_square;
+    float denominator = 1 + n_dot_m_sq * (roughness_square - 1);
+    denominator *= denominator;
+    denominator *= PI;
+    return numerator / denominator;
+}
+
+vec3 ggx_specular(
+    vec3 F, 
+    vec3 N, 
+    vec3 H,
+    float NdotL_clamp,
+    float NdotV_clamp,
+    float roughness_sq)
+{
+    float G_and_denominator = 0.5 / (
+        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)) +
+        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp))
+    );
+    
+    float D = ggx_normal_distribution_function(H, N, roughness_sq);
+    
+    return F * G_and_denominator * D;
+}
+
+vec3 lambertian_diffuse(vec3 F, vec2 TexCoords)
+{
+    vec3 albedo = texture(gBaseColor, TexCoords).rgb;
+    return (vec3(1) - F) * albedo / PI;
+}
+
+vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness, vec2 TexCoords)
+{   vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
+    vec3 H = normalize(L+V);
+    vec3 F0 = gFresnelColorRoughness_texel.rgb;   
+    float roughness = gFresnelColorRoughness_texel.a;
+    float roughness_sq = roughness * roughness;
+
+    vec3 N = normalize(texture(gNormal, TexCoords).xyz);    
+    float NdotL = dot(N, L);   
+    float NdotL_clamp = max(NdotL, DOT_CLAMP);
+    float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
+
+    vec3 F = schlick_approximation(F0, NdotL_clamp);
+
+    vec3 specular = ggx_specular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
+    vec3 diffuse = metalness ? vec3(0) : lambertian_diffuse(F, TexCoords);
+
+    return (specular + diffuse) * light_color * NdotL;
+}
 
 void main()
 {
     vec2 gbuffer_coords = (gl_FragCoord.xy - vec2(0.5)) / gbuffer_dimensions;
-    vec3 world_position = texture(gPosition, gbuffer_coords).rgb;
+
+    vec4 gPosition_texel = texture(gPosition, gbuffer_coords);
+    vec3 world_position = gPosition_texel.rgb;
+    bool metalness = gPosition_texel.a == 1 ? true : false;
+    
                 
     vec3 light_vec = position - world_position.xyz;    
 
@@ -92,13 +125,12 @@ void main()
     float one_over_dsq = 1.0/light_dist_sq;
     float attenuation_factor = one_over_dsq - one_over_rsq;
 
-    vec3 brdf = BRDF(
-        L,
-        V,
-        N,
-        vec3(1),
-        color,
-        0.5);
-         
+      vec3 brdf = ggx_brdf(
+            L,
+            V,            
+            color,
+            metalness,
+            gbuffer_coords);
+            
     FragColor = vec4(brdf * attenuation_factor, 1);
 }

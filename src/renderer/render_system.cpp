@@ -183,6 +183,7 @@ void renderer::render_system::bind_material(
 
     program.set_uniform("fresnel_color", material.fresnel_color);    
     program.set_uniform("roughness", material.roughness);
+    program.set_uniform("metalness", material.metalness);
 }
 
 void renderer::render_system::bind_texture(

@@ -14,7 +14,7 @@ layout(binding = 4) uniform sampler2D ambient_occlusion_texture;
 
 uniform vec3 fresnel_color;
 uniform float roughness;
-
+uniform bool metalness;
 
 in VS_OUT {
     vec4 world_pos;
@@ -25,7 +25,7 @@ in VS_OUT {
 
 void main()
 {
-    gPosition = fs_in.world_pos;
+    gPosition = vec4(fs_in.world_pos.xyz, metalness ? 1 : 0);
     gNormal = vec4(fs_in.normal, 1);
     gBaseColor = texture(diffuse_texture, fs_in.texcoords_2d);
     gFresnelColorRoughness = vec4(fresnel_color, roughness);

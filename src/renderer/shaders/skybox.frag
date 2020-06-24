@@ -10,6 +10,6 @@ layout (location = 2) out vec4 gBaseColor;
 void main()
 {
     gPosition = vec4(1/0);
-    gNormal = vec4(0);
+    gNormal = vec4(0, 0, 0, -1);
     gBaseColor = texture(skybox, TexCoords);
 }

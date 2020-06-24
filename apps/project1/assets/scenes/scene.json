@@ -111,7 +111,17 @@
         },
         {
           "type": "model_instance",
-          "model": "assets/models/bunny.obj"
+          "model": "assets/models/bunny.obj",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.1,
+                "metalness": true,
+                "fresnel_color": [ 1, 0.782, 0.344 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
         }
       ]
     },
@@ -124,7 +134,17 @@
         },
         {
           "type": "model_instance",
-          "model": "assets/models/bunny.obj"
+          "model": "assets/models/bunny.obj",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.1,
+                "metalness": true,
+                "fresnel_color": [ 0.913, 0.922, 0.924 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }        
         }
       ]
     },
@@ -138,7 +158,17 @@
         },
         {
           "type": "model_instance",
-          "model": "assets/models/bunny.obj"
+          "model": "assets/models/bunny.obj",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.25,
+                "metalness": true,
+                "fresnel_color": [ 0.542, 0.497, 0.449 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
         }
       ]
     },
@@ -151,7 +181,17 @@
         },
         {
           "type": "model_instance",
-          "model": "assets/models/teapot.obj"
+          "model": "assets/models/teapot.obj",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.1,
+                "metalness": true,
+                "fresnel_color": [ 0.972, 0.960, 0.915 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
         }
       ]
     },
@@ -164,7 +204,17 @@
         },
         {
           "type": "model_instance",
-          "model": "assets/models/pedestal/pedestal.gltf"
+          "model": "assets/models/pedestal/pedestal.gltf",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.01,
+                "metalness": false,
+                "fresnel_color": [ 0.056, 0.056, 0.056 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }        
         }
       ]
     }

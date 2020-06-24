@@ -147,17 +147,16 @@ float shadowIntensityG(
 
 //////////////////////////////////////
 /// Reflectance Equation Functions ///
-vec3 punctual_light_falloff(const PointLight light, float r_square)
+vec3 punctualLightFalloff(const PointLight light, float r_square)
 {
     r_square = r_square < 0 ? 0 : r_square;
     float r0_sq = light.reference_distance * light.reference_distance;
     return light.color * r0_sq * 1 / max(POINT_LIGHT_RMIN_SQ, r_square);
 }
 
-vec3 schlick_approximation(const vec3 F0, const vec3 N, const vec3 L)
-{
-    float NdotL = max(DOT_CLAMP, dot(N, L));
-    return F0 + (vec3(1)-F0) * pow(1 - NdotL, 5);
+vec3 schlick_approximation(const vec3 F0, float NdotL_clamp)
+{    
+    return F0 + (vec3(1)-F0) * pow(1 - NdotL_clamp, 5);
 }
 
 
@@ -182,20 +181,17 @@ float ggx_normal_distribution_function(
     return numerator / denominator;
 }
 
-vec3 brdf_specular(
-    vec3 L, 
-    vec3 V, 
+vec3 ggx_specular(
     vec3 F, 
     vec3 N, 
     vec3 H,
+    float NdotL_clamp,
+    float NdotV_clamp,
     float roughness_sq)
 {
-    float NdotL = max(DOT_CLAMP, dot(N, L)); // mu_i
-    float NdotV = max(DOT_CLAMP, dot(N, V)); // mu_o
- 
     float G_and_denominator = 0.5 / (
-        NdotL * sqrt(roughness_sq + NdotV * (NdotV - roughness_sq * NdotV)) +
-        NdotV * sqrt(roughness_sq + NdotL * (NdotL - roughness_sq * NdotL))
+        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)) +
+        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp))
     );
     
     float D = ggx_normal_distribution_function(H, N, roughness_sq);
@@ -209,36 +205,39 @@ vec3 lambertian_diffuse(vec3 F)
     return (vec3(1) - F) * albedo / PI;
 }
 
-vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color)
-{   
-    vec3 N = normalize(texture(gNormal, TexCoords).xyz);    
-    float NdotL = dot(N, L);
-
-    vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
+vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness)
+{   vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
     vec3 H = normalize(L+V);
-    vec3 F0 = gFresnelColorRoughness_texel.rgb;
-   
+    vec3 F0 = gFresnelColorRoughness_texel.rgb;   
     float roughness = gFresnelColorRoughness_texel.a;
-
     float roughness_sq = roughness * roughness;
 
-    vec3 F = schlick_approximation(F0, H, L);
+    vec3 N = normalize(texture(gNormal, TexCoords).xyz);    
+    float NdotL = dot(N, L);   
+    float NdotL_clamp = max(NdotL, DOT_CLAMP);
+    float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
 
-    vec3 specular = brdf_specular(L, V, F, N, H, roughness);
-    vec3 diffuse = lambertian_diffuse(F);
+    vec3 F = schlick_approximation(F0, NdotL_clamp);
+
+    vec3 specular = ggx_specular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
+    vec3 diffuse = metalness ? vec3(0) : lambertian_diffuse(F);
 
     return (specular + diffuse) * light_color * NdotL;
 }
 
 
 
+
 void main()
 {
-    vec3 world_position = texture(gPosition, TexCoords).rgb;
-    vec3 Kd = texture(gBaseColor, TexCoords).rgb;
-    vec3 N = texture(gNormal, TexCoords).xyz;
+    vec4 gPosition_texel = texture(gPosition, TexCoords);
 
-    if (N.x == 0 && N.y == 0 && N.z == 0)
+    vec3 world_position = gPosition_texel.rgb;
+    bool metalness = gPosition_texel.a == 1 ? true : false;
+    vec3 Kd = texture(gBaseColor, TexCoords).rgb;
+    vec4 N = texture(gNormal, TexCoords);
+
+    if (N.x == 0 && N.y == 0 && N.z == 0 && N.w == -1) // sky or something
     {
         FragColor = vec4(Kd, 1);
         return;
@@ -254,18 +253,19 @@ void main()
         }
 
         vec3 light_pos = point_lights[i].position;
-        vec3 light_vec = light_pos - world_position.xyz;
-        vec3 view_vec = camera_position.xyz - world_position.xyz;
+        vec3 light_vec = light_pos - world_position;
+        vec3 view_vec = camera_position.xyz - world_position;
         vec3 V = normalize(view_vec);
         vec3 L = normalize(light_vec);
 
-        vec3 light_color = punctual_light_falloff(point_lights[i], dot(light_vec, light_vec));
+        vec3 light_color = punctualLightFalloff(point_lights[i], dot(light_vec, light_vec));
         float shadow_intensity = shadowIntensityG(i, light_vec, world_position);
 
         I += ggx_brdf(
             L,
             V,            
-            light_color) * (1-shadow_intensity);
+            light_color,
+            metalness) * (1-shadow_intensity);
     }
 
     FragColor = vec4(I, 1);

@@ -21,8 +21,14 @@ namespace renderer
 		opengl_texture roughness_texture{ gl::GL_TEXTURE0 + 3 };
 		opengl_texture ambient_occlusion_texture{ gl::GL_TEXTURE0 + 4 };
 				
+		// alpha brdf term
 		float roughness{ 1 };
-		Eigen::Array3f fresnel_color{ 0.562, 0.565, 0.578 }; // iron
+
+		//dielectric or no
+		bool metalness{ false }; 
+
+		// F0 term for Schlick Approximation to Fresnel Term.
+		Eigen::Array3f fresnel_color{ 0, 0, 0 }; 
 
 
 

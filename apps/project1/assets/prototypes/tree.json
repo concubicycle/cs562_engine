@@ -11,9 +11,9 @@
         "materials": {
           "definitions": [
             {
-              "roughness": 0.5,
+              "roughness": 1,
               "metalness": false,
-              "fresnel_color": [1, 0.782, 0.344]
+              "fresnel_color": [0, 0, 0]
             }
           ],
           "mesh_definition_indices": [0]
