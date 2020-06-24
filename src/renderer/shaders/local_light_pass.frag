@@ -72,7 +72,7 @@ vec3 lambertionDiffuse(vec3 F, vec2 TexCoords)
     return (vec3(1) - F) * albedo / PI;
 }
 
-vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness, vec2 TexCoords)
+vec3 ggxReflectance(vec3 L, vec3 V, vec3 light_color, bool metalness, vec2 TexCoords)
 {   vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
     vec3 H = normalize(L+V);
     vec3 F0 = gFresnelColorRoughness_texel.rgb;   
@@ -122,7 +122,7 @@ void main()
     float one_over_dsq = 1.0/light_dist_sq;
     float attenuation_factor = one_over_dsq - one_over_rsq;
 
-      vec3 brdf = ggx_brdf(
+      vec3 brdf = ggxReflectance(
             L,
             V,            
             color,

@@ -203,7 +203,7 @@ vec3 lambertianDiffuse(vec3 F)
     return (vec3(1) - F) * albedo / PI;
 }
 
-vec3 ggxBRDF(vec3 L, vec3 V, vec3 light_color, bool metalness)
+vec3 ggxReflectance(vec3 L, vec3 V, vec3 light_color, bool metalness)
 {   
     vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
     vec3 H = normalize(L+V);
@@ -256,7 +256,7 @@ void main()
         vec3 light_color = punctualLightFalloff(point_lights[i], dot(light_vec, light_vec));
         float shadow_intensity = shadowIntensityG(i, light_vec, world_position);
 
-        I += ggxBRDF(
+        I += ggxReflectance(
             L,
             V,            
             light_color,
