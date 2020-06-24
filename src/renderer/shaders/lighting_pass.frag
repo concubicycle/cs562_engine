@@ -160,7 +160,7 @@ vec3 schlick_approximation(const vec3 F0, float NdotL_clamp)
 }
 
 
-float characteristic_factor(float d)
+float positive_characteristic(float d)
 {
 	return d > 0.0 ? 1.0 : 0.0;
 }
@@ -173,7 +173,7 @@ float ggx_normal_distribution_function(
 {
     float n_dot_m = dot(N, M);    
     float n_dot_m_sq = n_dot_m * n_dot_m;
-    float characteristic = characteristic_factor(n_dot_m_sq);
+    float characteristic = positive_characteristic(n_dot_m);
     float numerator = characteristic * roughness_square;
     float denominator = 1 + n_dot_m_sq * (roughness_square - 1);
     denominator *= denominator;
@@ -222,7 +222,7 @@ vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness)
     vec3 specular = ggx_specular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
     vec3 diffuse = metalness ? vec3(0) : lambertian_diffuse(F);
 
-    return (specular + diffuse) * light_color * NdotL;
+    return (specular + diffuse) * light_color * NdotL_clamp;
 }
 
 
