@@ -154,15 +154,15 @@ vec3 punctualLightFalloff(const PointLight light, float r_square)
     return light.color * r0_sq * 1 / max(POINT_LIGHT_RMIN_SQ, r_square);
 }
 
-vec3 schlick_approximation(const vec3 F0, float NdotL_clamp)
-{    
-    return F0 + (vec3(1)-F0) * pow(1 - NdotL_clamp, 5);
-}
-
-
 float positive_characteristic(float d)
 {
 	return d > 0.0 ? 1.0 : 0.0;
+}
+
+// F term
+vec3 schlick_approximation(const vec3 F0, float NdotL_clamp)
+{    
+    return F0 + (vec3(1)-F0) * pow(1 - NdotL_clamp, 5);
 }
 
 // D term of the specular reflectance equation 
@@ -243,15 +243,10 @@ void main()
         return;
     }
         
-    vec3 I = vec3(0); // ambient_light * Kd;
+    vec3 I = vec3(0);
 
     for (int i = 0; i < point_light_count; i++)
     {
-        if (dot(point_lights[i].color, point_lights[i].color) < 0.0001)
-        {
-            continue;
-        }
-
         vec3 light_pos = point_lights[i].position;
         vec3 light_vec = light_pos - world_position;
         vec3 view_vec = camera_position.xyz - world_position;
