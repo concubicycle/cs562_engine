@@ -185,17 +185,15 @@ vec3 ggx_specular(
     vec3 F, 
     vec3 N, 
     vec3 H,
-    float NdotL_clamp,
-    float NdotV_clamp,
+    float NdotL_clamp, // mu_i
+    float NdotV_clamp, // mu_o
     float roughness_sq)
 {
     float G_and_denominator = 0.5 / (
-        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)) +
-        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp))
-    );
-    
-    float D = ggx_normal_distribution_function(H, N, roughness_sq);
-    
+        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
+        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));    
+
+    float D = ggx_normal_distribution_function(H, N, roughness_sq);    
     return F * G_and_denominator * D;
 }
 
@@ -206,7 +204,8 @@ vec3 lambertian_diffuse(vec3 F)
 }
 
 vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness)
-{   vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
+{   
+    vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
     vec3 H = normalize(L+V);
     vec3 F0 = gFresnelColorRoughness_texel.rgb;   
     float roughness = gFresnelColorRoughness_texel.a;
@@ -224,6 +223,7 @@ vec3 ggx_brdf(vec3 L, vec3 V, vec3 light_color, bool metalness)
 
     return (specular + diffuse) * light_color * NdotL_clamp;
 }
+
 
 
 

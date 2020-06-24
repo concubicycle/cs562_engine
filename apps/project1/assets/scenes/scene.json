@@ -208,7 +208,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.01,
+                "roughness": 0.7,
                 "metalness": false,
                 "fresnel_color": [ 0.056, 0.056, 0.056 ]
               }
