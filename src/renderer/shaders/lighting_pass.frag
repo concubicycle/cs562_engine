@@ -183,18 +183,26 @@ float ggxNdf(
 }
 
 vec3 ggxSpecular(
-    vec3 F, 
-    vec3 N, 
+    vec3 F,
+    vec3 N,
     vec3 H,
     float NdotL_clamp, // mu_i
     float NdotV_clamp, // mu_o
     float roughness_sq)
 {
-    float G_and_denominator = 0.5 / (
-        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
-        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));    
+//    Caution : the " NdotL *" and " NdotV *" are explicitely inversed , this is not a mistake .
+//    float Lambda_GGXV = NdotL_clamp * sqrt (( - NdotV_clamp * roughness_sq + NdotV_clamp ) * NdotV_clamp + roughness_sq );
+//    float Lambda_GGXL = NdotV_clamp * sqrt (( - NdotL_clamp * roughness_sq + NdotL_clamp ) * NdotL_clamp + roughness_sq );
 
-    float D = ggxNdf(N, H, roughness_sq);    
+    float G_and_denominator = 
+    
+    //0.5 / ( Lambda_GGXV + Lambda_GGXL );
+    
+    0.5 / (
+        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
+        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));
+    
+    float D = ggxNdf(N, H, roughness_sq);
     return F * G_and_denominator * D;
 }
 
@@ -241,7 +249,6 @@ void main()
     vec4 gPosition_texel = texture(gPosition, TexCoords);
     vec3 world_position = gPosition_texel.rgb;
     bool metalness = gPosition_texel.a == 1 ? true : false;
-        
     vec3 I = vec3(0);
 
     for (unsigned int i = 0; i < point_light_count; i++)
@@ -249,11 +256,11 @@ void main()
         vec3 light_pos = point_lights[i].position;
         vec3 light_vec = light_pos - world_position;
         vec3 view_vec = camera_position.xyz - world_position;
-        vec3 V = normalize(view_vec);
-        vec3 L = normalize(light_vec);
-
         vec3 light_color = punctualLightFalloff(point_lights[i], dot(light_vec, light_vec));
         float shadow_intensity = shadowIntensityG(i, light_vec, world_position);
+
+        vec3 V = normalize(view_vec);
+        vec3 L = normalize(light_vec);
 
         I += ggxReflectance(
             L,
