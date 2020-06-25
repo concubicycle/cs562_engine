@@ -86,18 +86,21 @@ void renderer::render_system::set_light_uniforms(
     GLint light_count = 0;
     GLint shadowmap_texture_unit = 4;
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].color", pl.color);
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].position", t.world_position());
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].reference_distance", pl.reference_distance);
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].light_view", pl.light_view);
-        shader.set_uniform("point_lights[" + std::to_string(light_count) + "].light_view_back", pl.light_view_back);
+        std::string point_light_str = "point_lights[" + std::to_string(light_count) + "]";
+
+        shader.set_uniform(point_light_str + ".color", pl.color);
+        shader.set_uniform(point_light_str + ".position", t.world_position());
+        shader.set_uniform(point_light_str + ".reference_distance", pl.reference_distance);
+        shader.set_uniform(point_light_str + ".light_view", pl.light_view);
+        shader.set_uniform(point_light_str + ".light_view_back", pl.light_view_back);
 
         // bind shadow map
-        auto location = shader.uniform_location("shadow_maps[" + std::to_string(light_count) + "]");
+        auto location = shader.uniform_location(point_light_str + ".shadow_map");
         glActiveTexture(GL_TEXTURE0 + shadowmap_texture_unit);
         glBindTexture(GL_TEXTURE_2D, pl.shadowmap_framebuffer.texture(0));
         glUniform1i(location, shadowmap_texture_unit);
 
+        shadowmap_texture_unit++;
         light_count++;        
     });    
     

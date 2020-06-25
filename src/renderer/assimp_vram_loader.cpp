@@ -55,6 +55,10 @@ renderer::opengl_material renderer::assimp_vram_loader::load_material(const asse
 {
 	opengl_material result;
 	
+	result.roughness = material.roughness;
+	result.metalness = material.metalness > 0.5f ? true : false;
+	//result.fresnel_color = material.base_color.block<3, 1>(0, 0);
+
 	auto has = [&](aiTextureType tt) { return material.material_textures.find(tt) != material.material_textures.end(); };
 	auto get = [&](aiTextureType tt) { return material.material_textures.at(tt); };
 	auto do_textype = [&](opengl_texture& tex, aiTextureType tt) {

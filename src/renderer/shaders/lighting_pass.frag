@@ -27,11 +27,12 @@ struct PointLight {
     float reference_distance;
     mat4 light_view;
     mat4 light_view_back;
+
+    sampler2D shadow_map;
 };
 
 
 uniform PointLight point_lights[MAX_POINT_LIGHTS];
-uniform sampler2D shadow_maps[MAX_POINT_LIGHTS];
 uniform int point_light_count;
 
 // ambient light(s)
@@ -115,7 +116,7 @@ float edgeness(vec2 xy)
 }
 
 float shadowIntensityG(
-    int light_index,
+    unsigned int light_index,
     const vec3 light_vec, 
     const vec3 world_position)
 {
@@ -123,23 +124,23 @@ float shadowIntensityG(
             ? point_lights[light_index].light_view * vec4(world_position, 1)
             : point_lights[light_index].light_view_back * vec4(world_position, 1);
 
-        float fragment_depth = -light_space_pos.z;
-        fragment_depth /= 100;
+    float fragment_depth = -light_space_pos.z;
+    fragment_depth /= 100;
 
-        // Calculate and set the X and Y coordinates  
-        light_space_pos.xyz = normalize(light_space_pos.xyz);        
-        light_space_pos.xy /= 1.0 - light_space_pos.z;
+    // calculate and set the X and Y coordinates  
+    light_space_pos.xyz = normalize(light_space_pos.xyz);        
+    light_space_pos.xy /= 1.0 - light_space_pos.z;
 
-        // convet to texture coordinates
-        float underscale = edgeness(light_space_pos.xy) ;
-        light_space_pos.xy = (underscale * light_space_pos.xy + vec2(1)) / 2;
+    // convet to texture coordinates
+    float underscale = edgeness(light_space_pos.xy) ;
+    light_space_pos.xy = (underscale * light_space_pos.xy + vec2(1)) / 2;
 
-        light_space_pos.x = light_vec.z > 0
-            ? light_space_pos.x/2
-            : light_space_pos.x/2 + 0.5;
+    light_space_pos.x = light_vec.z > 0
+        ? light_space_pos.x/2
+        : light_space_pos.x/2 + 0.5;
 
-        vec4 b = texture(shadow_maps[light_index], light_space_pos.xy);
-        return hamburger4MSM(b, fragment_depth);
+    vec4 b = texture(point_lights[light_index].shadow_map, light_space_pos.xy);    
+    return hamburger4MSM(b, fragment_depth);
 }
 
 
@@ -193,7 +194,7 @@ vec3 ggxSpecular(
         NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
         NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));    
 
-    float D = ggxNdf(H, N, roughness_sq);    
+    float D = ggxNdf(N, H, roughness_sq);    
     return F * G_and_denominator * D;
 }
 
@@ -226,26 +227,24 @@ vec3 ggxReflectance(vec3 L, vec3 V, vec3 light_color, bool metalness)
 
 
 
-
-
 void main()
 {
-    vec4 gPosition_texel = texture(gPosition, TexCoords);
-
-    vec3 world_position = gPosition_texel.rgb;
-    bool metalness = gPosition_texel.a == 1 ? true : false;
-    vec3 Kd = texture(gBaseColor, TexCoords).rgb;
     vec4 N = texture(gNormal, TexCoords);
 
     if (N.x == 0 && N.y == 0 && N.z == 0 && N.w == -1) // sky or something
     {
+        vec3 Kd = texture(gBaseColor, TexCoords).rgb;
         FragColor = vec4(Kd, 1);
         return;
     }
+
+    vec4 gPosition_texel = texture(gPosition, TexCoords);
+    vec3 world_position = gPosition_texel.rgb;
+    bool metalness = gPosition_texel.a == 1 ? true : false;
         
     vec3 I = vec3(0);
 
-    for (int i = 0; i < point_light_count; i++)
+    for (unsigned int i = 0; i < point_light_count; i++)
     {
         vec3 light_pos = point_lights[i].position;
         vec3 light_vec = light_pos - world_position;

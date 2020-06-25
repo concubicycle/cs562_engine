@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <asset/assimp_model.hpp>
 
+#include <assimp/material.h>
+#include <assimp/pbrmaterial.h>
 
 asset::assimp_model::assimp_model(const aiScene* ai_scene, asset_loader& loader)
     : _ai_scene(ai_scene)
@@ -30,7 +32,62 @@ asset::assimp_material asset::assimp_model::load_assimp_material(aiMesh* mesh)
 
     if (mesh->mMaterialIndex >= 0)
     {
-        aiMaterial* material = _ai_scene->mMaterials[mesh->mMaterialIndex];        
+        aiMaterial* material = _ai_scene->mMaterials[mesh->mMaterialIndex];
+        unsigned int read_buffer_size;
+
+        ai_real pbrmetallicroughness_base_color_factor[4];
+        if (AI_SUCCESS == material->Get(
+            AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, 
+            (ai_real*)pbrmetallicroughness_base_color_factor, 
+            &read_buffer_size))
+        {
+            memcpy(mat.base_color.data(), pbrmetallicroughness_base_color_factor, sizeof(float) * 4);
+        }
+
+        ai_real pbrmetallicroughness_metallic_factor;
+        if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, pbrmetallicroughness_metallic_factor))
+        {
+            mat.metalness = pbrmetallicroughness_metallic_factor;
+        }
+
+        ai_real pbrmetallicroughness_roughness_factor;
+        if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, pbrmetallicroughness_roughness_factor))
+        {
+            mat.roughness = pbrmetallicroughness_roughness_factor;
+        }
+        
+        //aiString alphamode;
+        //if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_ALPHAMODE, alphamode))
+        //{
+        //    int foo = 0;
+        //}
+
+        //ai_real alphacutoff;
+        //if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alphacutoff))
+        //{
+        //    int foo = 0;
+        //}
+
+        //ai_real pbrspecularglossiness;
+        //if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRSPECULARGLOSSINESS, pbrspecularglossiness))
+        //{
+        //    int foo = 0;
+        //}
+
+        //ai_real pbrspecularglossiness_glossiness_factor;
+        //if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRSPECULARGLOSSINESS_GLOSSINESS_FACTOR, pbrspecularglossiness_glossiness_factor))
+        //{
+        //    int foo = 0;
+        //}
+
+        //ai_real unlit;
+        //if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_UNLIT, unlit))
+        //{
+        //    int foo = 0;
+        //}
+
+        
+        
         load_material_texture(material, aiTextureType_DIFFUSE, mat.material_textures);
         load_material_texture(material, aiTextureType_SPECULAR, mat.material_textures);
         load_material_texture(material, aiTextureType_AMBIENT, mat.material_textures);

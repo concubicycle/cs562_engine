@@ -28,10 +28,12 @@ add_subdirectory(thirdparty/stb)
 add_subdirectory(thirdparty/freetype)
 add_subdirectory(thirdparty/fmod)
 add_subdirectory(thirdparty/eigen)
+add_subdirectory(thirdparty/rgbe)
 
 # Main build targets
 add_subdirectory(src)
 add_subdirectory(apps/project1)
+add_subdirectory(apps/sample_filter)
 
 # Tests
 add_subdirectory(test)
