@@ -38,6 +38,7 @@ namespace renderer
 		opengl_material load_material(const asset::assimp_material& material);
 		opengl_mesh load_mesh(const asset::assimp_mesh& mesh);
 		gl::GLuint load_texture(const asset::texture_asset& texture_asset);
+		gl::GLuint load_texturef(const asset::texture_assetf& texture_asset);
 
 		opengl_cubemap load_cubemap(
 			const asset::texture_asset& left,
@@ -54,7 +55,7 @@ namespace renderer
 
 		gl::GLuint load_cubemap(std::vector<const asset::texture_asset*> faces);
 
-		gl::GLenum num_channels_to_gltype(int num_channels);
+		gl::GLenum num_channels_to_gltype(int num_channels, bool is_f32 = false);
 	};
 }
 

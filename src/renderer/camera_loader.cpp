@@ -57,6 +57,13 @@ void renderer::camera_loader::load(asset::asset_loader_node& node)
             back_texture
         );
     }
+
+    if (json.find("skydome") != json.end())
+    {
+        auto skydome_file = json["skydome"].get<std::string>();
+        auto& texture = _loader.get_texturef(skydome_file);
+        component.skydome_texture = _vram_loader.load_texturef(texture);
+    }
 }
 
 component_bitset renderer::camera_loader::components_to_load()

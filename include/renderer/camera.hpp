@@ -14,7 +14,8 @@ namespace renderer
 	{
 		none = 0, 
 		color = 1, 
-		cubemap = 2
+		cubemap = 2,
+		skydome = 3
 	};
 
 	struct camera : public ecs::component<camera>
@@ -25,6 +26,7 @@ namespace renderer
 		background_type background;
 
 		std::optional<opengl_cubemap> skybox_cubemap;
+		std::optional<gl::GLuint> skydome_texture;
 		Eigen::Array4f clear_color;
 
 		float fov;

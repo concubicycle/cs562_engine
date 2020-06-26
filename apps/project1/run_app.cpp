@@ -37,7 +37,7 @@ void run_app()
 	// register systems
 	transforms::transform_system transform_system;
 	transforms::freefly_system freefly(input, timer);
-	renderer::render_system render_system(strings, loader, glfw, config);
+	renderer::render_system render_system(strings, loader, vram_loader, glfw, config);
 	renderer::camera_update_system camera_updater(glfw);
 	firefly_ai firefly_system(timer);
 

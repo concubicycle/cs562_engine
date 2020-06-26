@@ -77,16 +77,26 @@ namespace renderer
 					float z = sin_phi;
 					_vertices.emplace_back(x, y, z);
 				}
+				
+				// additional sector to avoid a shared vertex
+				auto theta = sectors * sector_inc;
+				auto cos_theta = std::cos(theta);
+				auto sin_theta = std::sin(theta);
+
+				float x = cos_phi * cos_theta;
+				float y = cos_phi * sin_theta;
+				float z = sin_phi;
+				_vertices.emplace_back(x, y, z);
 			}
 
 			for (std::uint32_t stack = 0; stack < stacks; ++stack)
 			{
-				auto ring_start = stack * sectors;
-				auto next_ring_start = (stack + 1) * sectors;
+				auto ring_start = stack * (sectors+1);
+				auto next_ring_start = (stack + 1) * (sectors + 1);
 
 				for (std::uint32_t sector = 0; sector < sectors; ++sector)
 				{
-					auto next_sector = (sector + 1) % sectors;
+					auto next_sector = sector + 1;
 
 					auto lower_left = ring_start + sector;
 					auto upper_left = next_ring_start + sector;

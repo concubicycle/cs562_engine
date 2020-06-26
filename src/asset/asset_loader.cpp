@@ -92,6 +92,28 @@ const asset::texture_asset& asset::asset_loader::get_texture(const std::string& 
 	return _texture_cache.find(filepath)->second;
 }
 
+const asset::texture_assetf& asset::asset_loader::get_texturef(const std::string& file)
+{
+	auto cached = _hdr_texture_cache.find(file);
+	if (cached != _hdr_texture_cache.end())
+		return cached->second;
+
+	validate_path(file);
+
+	int width, height, channels;
+	auto floats = stbi_loadf(file.c_str(), &width, &height, &channels, 0);
+	if (!floats)
+	{
+		throw std::runtime_error("Failed to load hdr texture " + file);
+	}
+
+	_hdr_texture_cache.try_emplace(
+		file,
+		width, height, channels, floats);
+
+	return _hdr_texture_cache.find(file)->second;
+}
+
 const std::string& asset::asset_loader::get_text(const std::string& filepath)
 {
 	auto cached = _text_cache.find(filepath);

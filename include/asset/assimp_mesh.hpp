@@ -1,6 +1,7 @@
 #ifndef __ASSIMP_MESH_HPP_
 #define __ASSIMP_MESH_HPP_
 
+#include <string>
 #include <cstdint>
 #include <vector>
 #include <assimp/scene.h>

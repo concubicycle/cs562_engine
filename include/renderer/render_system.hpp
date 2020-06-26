@@ -5,6 +5,7 @@
 #include <core/glfw_context.hpp>
 #include <core/startup_config.hpp>
 #include <ecs/system_base.hpp>
+#include <renderer/assimp_vram_loader.hpp>
 #include <renderer/camera.hpp>
 #include <renderer/compute_shader_prograam.hpp>
 #include <renderer/framebuffer.hpp>
@@ -29,6 +30,8 @@ namespace renderer
 		const std::string default_frag = "assets/shaders/default.frag";
 		const std::string skybox_vert = "assets/shaders/skybox.vert";
 		const std::string skybox_frag = "assets/shaders/skybox.frag";
+		const std::string skydome_vert = "assets/shaders/skydome.vert";
+		const std::string skydome_frag = "assets/shaders/skydome.frag";
 		const std::string geometry_pass_vert = "assets/shaders/geometry_pass.vert";
 		const std::string geometry_pass_frag = "assets/shaders/geometry_pass.frag";
 		const std::string lighting_pass_vert = "assets/shaders/lighting_pass.vert";
@@ -44,6 +47,7 @@ namespace renderer
 		render_system(
 			util::string_table& strings,
 			asset::asset_loader& assets,
+			assimp_vram_loader& vram_loader,
 			core::glfw_context& glfw,
 			core::startup_config& config);
 
@@ -55,12 +59,14 @@ namespace renderer
 
 		util::string_table& _strings;
 		asset::asset_loader& _assets;
+		assimp_vram_loader& _vram_loader;
 		core::glfw_context& _glfw;
 		core::startup_config& _config;
 		full_screen_quad _fsq;
 
-
 		sphere _sphere{4, 4};
+
+		opengl_mesh _icosphere{ load_icosphere() };
 
 		shader_program _default{ 
 			_assets.get_text(default_vert), 
@@ -69,6 +75,10 @@ namespace renderer
 		shader_program _skybox{ 
 			_assets.get_text(skybox_vert), 
 			_assets.get_text(skybox_frag) };
+
+		shader_program _skydome{
+			_assets.get_text(skydome_vert),
+			_assets.get_text(skydome_frag) };
 		
 		shader_program _geometry_pass{
 			_assets.get_text(geometry_pass_vert), 
@@ -155,6 +165,7 @@ namespace renderer
 			const camera& cam);
 
 		void draw_skybox(const camera& cam);
+		void draw_skydome(const camera& cam);
 
 		void draw_local_lights(
 			ecs::state& state,
@@ -165,6 +176,8 @@ namespace renderer
 			ecs::state& state, 
 			transforms::transform& t, 
 			punctual_light& pl);
+
+		opengl_mesh load_icosphere();
 	};
 }
 

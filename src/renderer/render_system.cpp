@@ -11,10 +11,12 @@
 renderer::render_system::render_system(
     util::string_table& strings, 
     asset::asset_loader& assets,
+    assimp_vram_loader& vram_loader,
     core::glfw_context& glfw,
     core::startup_config& config)
     : _strings(strings)
     , _assets(assets)
+    , _vram_loader(vram_loader)
     , _glfw(glfw)
     , _config(config)      
 {
@@ -134,15 +136,20 @@ void renderer::render_system::handle_cam_background(
 
     switch (cam.background)
     {
-    case background_type::color:
-        glClearColor(cam.clear_color[0], cam.clear_color[1], cam.clear_color[2], cam.clear_color[3]);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        break;
     case background_type::cubemap:
         glClearColor(cam.clear_color[0], cam.clear_color[1], cam.clear_color[2], cam.clear_color[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         draw_skybox(cam);
+        break;
+    case background_type::skydome:
+        glClearColor(cam.clear_color[0], cam.clear_color[1], cam.clear_color[2], cam.clear_color[3]);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        draw_skydome(cam);
+        break;
+    case background_type::color:
     default:
+        glClearColor(cam.clear_color[0], cam.clear_color[1], cam.clear_color[2], cam.clear_color[3]);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         break;
     }
 }
@@ -237,6 +244,40 @@ void renderer::render_system::draw_skybox(
 
     glDepthMask(GL_TRUE);
     _skybox.unbind();
+}
+
+void renderer::render_system::draw_skydome(
+    const camera& cam)
+{
+    using namespace gl;
+
+    auto texture_id = *cam.skydome_texture;
+    auto vao = _icosphere.vao;
+
+    Eigen::Matrix3f mat3 = cam.view.rotation().matrix();
+    Eigen::Matrix4f mat4 = Eigen::Matrix4f::Identity();
+    mat4.block(0, 0, 3, 3) = mat3;
+
+    _skydome.bind();
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+
+    _skydome.set_uniform("view", mat4);
+    _skydome.set_uniform("projection", cam.projection);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _icosphere.ebo);
+    glDrawElements(GL_TRIANGLES, _icosphere.index_count, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glEnable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+    _skydome.unbind();
 }
 
 // CAREFUL: This is a performance bottleneck. TODO: Instanced rendering for light spheres. 
@@ -375,3 +416,11 @@ void renderer::render_system::draw_scene_shadowmap(ecs::state& state)
 
     glCullFace(GL_BACK);
 }
+
+
+renderer::opengl_mesh renderer::render_system::load_icosphere()
+{
+    auto& asset = _assets.get_assimp_scene("assets/3d_shapes/icosphere.glb");
+    return _vram_loader.load_mesh(asset::assimp_mesh(asset.aiscene->mMeshes[0]));
+}
+

@@ -19,12 +19,14 @@ namespace asset
 		nlohmann::json& get_json(const std::string& file);
 		const assimp_scene_asset& get_assimp_scene(const std::string& file);
 		const texture_asset& get_texture(const std::string& file);
+		const texture_assetf& get_texturef(const std::string& file);
 		const std::string& get_text(const std::string& file);
 
 	private:
 		std::unordered_map<std::string, nlohmann::json> _json_cache;
 		std::unordered_map<std::string, assimp_scene_asset> _assimp_cache;
 		std::unordered_map<std::string, texture_asset> _texture_cache;
+		std::unordered_map<std::string, texture_assetf> _hdr_texture_cache;
 		std::unordered_map<std::string, std::string> _text_cache;
 
 		

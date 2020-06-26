@@ -117,8 +117,7 @@ gl::GLuint renderer::assimp_vram_loader::load_texture(const asset::texture_asset
 {
 	using namespace gl;
 
-	gl::GLuint result;	
-
+	gl::GLuint result;
 	auto texture_channels_gl = num_channels_to_gltype(texture_asset.channels);
 
 	// Create OpenGL representation
@@ -147,6 +146,37 @@ gl::GLuint renderer::assimp_vram_loader::load_texture(const asset::texture_asset
 	return result;
 }
 
+gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_assetf& texture_asset)
+{
+	using namespace gl;
+
+	auto texture_channels_gl = num_channels_to_gltype(texture_asset.channels);
+	gl::GLuint result;
+
+	// Create OpenGL representation
+	glGenTextures(1, &result);
+	glBindTexture(GL_TEXTURE_2D, result);
+
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		texture_channels_gl,
+		texture_asset.width,
+		texture_asset.height,
+		0,
+		texture_channels_gl,
+		GL_FLOAT,
+		texture_asset.data.get());
+
+	// OpenGL texture settings
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	return result;
+}
 
 
 renderer::opengl_cubemap renderer::assimp_vram_loader::load_cubemap(
@@ -223,20 +253,20 @@ gl::GLuint renderer::assimp_vram_loader::load_cubemap(std::vector<const asset::t
 
 
 
-gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels)
+gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels, bool is_f32)
 {
 	using namespace gl;
 	GLenum texture_channels_gl;
 	switch (num_channels)
 	{
 	case 1:
-		return GL_RED;
+		return is_f32 ? GL_R32F : GL_RED;
 	case 2:
-		return GL_RG;
+		return is_f32 ? GL_RG32F : GL_RG;
 	case 3:
-		return GL_RGB;
+		return is_f32 ? GL_RGB32F : GL_RGB;
 	case 4:
-		return GL_RGBA;
+		return is_f32 ? GL_RGBA32F : GL_RGBA;
 
 	default:
 		throw std::runtime_error("Error: Unexpected amount of channels while loading texture.");

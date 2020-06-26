@@ -7,13 +7,14 @@
 
 namespace asset
 {
-	struct texture_asset
+	template <typename T>
+	struct texture_asset_template
 	{
-		texture_asset(
+		texture_asset_template(
 			int p_width,
 			int p_height,
 			int p_channels,
-			unsigned char* p_data
+			T* p_data
 		) :
 			width(p_width),
 			height(p_height),
@@ -25,8 +26,11 @@ namespace asset
 		int width;
 		int height;
 		int channels;
-		std::unique_ptr<unsigned char, decltype(&stbi_image_free)> data;
+		std::unique_ptr<T, decltype(&stbi_image_free)> data;
 	};
+
+	typedef texture_asset_template<unsigned char> texture_asset;
+	typedef texture_asset_template<float> texture_assetf;
 }
 
 #endif
