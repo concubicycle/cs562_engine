@@ -252,7 +252,9 @@ void renderer::render_system::draw_skydome(
     using namespace gl;
 
     auto texture_id = *cam.skydome_texture;
-    auto vao = _icosphere.vao;
+    auto vao = _icosphere.get_vao();
+    auto ebo = _icosphere.get_ebo();
+    auto index_count = _icosphere.get_index_count();
 
     Eigen::Matrix3f mat3 = cam.view.rotation().matrix();
     Eigen::Matrix4f mat4 = Eigen::Matrix4f::Identity();
@@ -269,8 +271,8 @@ void renderer::render_system::draw_skydome(
 
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glBindVertexArray(vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _icosphere.ebo);
-    glDrawElements(GL_TRIANGLES, _icosphere.index_count, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);

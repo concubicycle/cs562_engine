@@ -79,7 +79,7 @@ namespace renderer
 				}
 				
 				// additional sector to avoid a shared vertex
-				auto theta = sectors * sector_inc;
+				auto theta = 2 * 3.14159f;
 				auto cos_theta = std::cos(theta);
 				auto sin_theta = std::sin(theta);
 

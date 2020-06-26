@@ -55,7 +55,7 @@ namespace renderer
 
 		gl::GLuint load_cubemap(std::vector<const asset::texture_asset*> faces);
 
-		gl::GLenum num_channels_to_gltype(int num_channels, bool is_f32 = false);
+		gl::GLenum num_channels_to_gltype(int num_channels);
 	};
 }
 

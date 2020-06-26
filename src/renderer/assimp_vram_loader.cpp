@@ -172,7 +172,7 @@ gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_asse
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	return result;
@@ -253,20 +253,20 @@ gl::GLuint renderer::assimp_vram_loader::load_cubemap(std::vector<const asset::t
 
 
 
-gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels, bool is_f32)
+gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels)
 {
 	using namespace gl;
 	GLenum texture_channels_gl;
 	switch (num_channels)
 	{
 	case 1:
-		return is_f32 ? GL_R32F : GL_RED;
+		return GL_RED;
 	case 2:
-		return is_f32 ? GL_RG32F : GL_RG;
+		return GL_RG;
 	case 3:
-		return is_f32 ? GL_RGB32F : GL_RGB;
+		return GL_RGB;
 	case 4:
-		return is_f32 ? GL_RGBA32F : GL_RGBA;
+		return GL_RGBA;
 
 	default:
 		throw std::runtime_error("Error: Unexpected amount of channels while loading texture.");

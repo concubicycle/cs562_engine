@@ -66,7 +66,7 @@ namespace renderer
 
 		sphere _sphere{4, 4};
 
-		opengl_mesh _icosphere{ load_icosphere() };
+		sphere _icosphere{ 128, 128 };
 
 		shader_program _default{ 
 			_assets.get_text(default_vert), 
