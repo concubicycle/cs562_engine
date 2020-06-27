@@ -159,6 +159,12 @@ float shadowIntensityG(
 
 //////////////////////////////////////
 /// Reflectance Equation Functions ///
+vec3 lambertianDiffuse(vec3 F)
+{
+    vec3 albedo = texture(gBaseColor, TexCoords).rgb;
+    return (vec3(1) - F) * albedo / PI;
+}
+
 vec3 punctualLightFalloff(const PointLight light, float r_square)
 {
     r_square = r_square < 0 ? 0 : r_square;
@@ -201,15 +207,7 @@ vec3 ggxSpecular(
     float NdotV_clamp, // mu_o
     float roughness_sq)
 {
-//    Caution : the " NdotL *" and " NdotV *" are explicitely inversed , this is not a mistake .
-//    float Lambda_GGXV = NdotL_clamp * sqrt (( - NdotV_clamp * roughness_sq + NdotV_clamp ) * NdotV_clamp + roughness_sq );
-//    float Lambda_GGXL = NdotV_clamp * sqrt (( - NdotL_clamp * roughness_sq + NdotL_clamp ) * NdotL_clamp + roughness_sq );
-
-    float G_and_denominator = 
-    
-    //0.5 / ( Lambda_GGXV + Lambda_GGXL );
-    
-    0.5 / (
+    float G_and_denominator = 0.5 / (
         NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
         NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));
     
@@ -217,11 +215,7 @@ vec3 ggxSpecular(
     return F * G_and_denominator * D;
 }
 
-vec3 lambertianDiffuse(vec3 F)
-{
-    vec3 albedo = texture(gBaseColor, TexCoords).rgb;
-    return (vec3(1) - F) * albedo / PI;
-}
+
 
 vec3 ggxReflectance(vec3 N, vec3 L, vec3 V, vec3 light_color, bool metalness, float roughness, vec3 F0)
 {
@@ -230,10 +224,9 @@ vec3 ggxReflectance(vec3 N, vec3 L, vec3 V, vec3 light_color, bool metalness, fl
 
     float NdotL_clamp = max(dot(N, L), DOT_CLAMP);
     float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
-    float NdotH_clamp = max(dot(N, H), DOT_CLAMP);
+    float HdotL_clamp = max(dot(H, L), DOT_CLAMP);
 
-    vec3 F = schlickApproximation(F0, NdotH_clamp);
-
+    vec3 F = schlickApproximation(F0, HdotL_clamp);
     vec3 specular = ggxSpecular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
     vec3 diffuse = metalness ? vec3(0) : lambertianDiffuse(F);
 
@@ -258,13 +251,13 @@ vec3 uvToL(vec2 uv)
 
 vec3 ibl_specular_montecarlo_estimator(vec3 N, vec3 L, vec3 V, vec3 F0, float roughness, vec3 light_color)
 {
+    float roughness_sq = roughness*roughness;
     vec3 H = normalize(L + V);
     float NdotL_clamp = max(dot(N, L), DOT_CLAMP);
     float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
-    float NdotH_clamp = max(dot(N, H), DOT_CLAMP);
-    float roughness_sq = roughness*roughness;
+    float HdotL_clamp = max(dot(H, L), DOT_CLAMP);    
 
-    vec3 F = schlickApproximation(F0, NdotH_clamp);
+    vec3 F = schlickApproximation(F0, HdotL_clamp);
     float G_and_denominator = 0.5 / (
         NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
         NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));
