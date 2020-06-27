@@ -8,6 +8,8 @@ out vec4 FragColor;
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
 
+#define MAX_HAMMERSLEY_N 128
+
 #define POINT_LIGHT_RMIN_SQ 0.01
 
 layout(binding = 0) uniform sampler2D gPosition;
@@ -37,11 +39,20 @@ uniform int point_light_count;
 
 // ambient light(s)
 uniform vec3 ambient_light;// Ia
+uniform bool use_ambient_light;
+
+// skydome light
+uniform sampler2D skydome_light;
+uniform bool use_skydome_light;
 
 // camera uniforms
 uniform vec3 camera_position;
 
-
+// random number sequence
+uniform HammersleyBlock {
+    int N;
+    float hammersley[2*MAX_HAMMERSLEY_N];
+} hammersley_block;
 
 
 //////////////////////////////////////
@@ -212,20 +223,16 @@ vec3 lambertianDiffuse(vec3 F)
     return (vec3(1) - F) * albedo / PI;
 }
 
-vec3 ggxReflectance(vec3 L, vec3 V, vec3 light_color, bool metalness)
-{   
-    vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
-    vec3 H = normalize(L+V);
-    vec3 F0 = gFresnelColorRoughness_texel.rgb;   
-    float roughness = gFresnelColorRoughness_texel.a;
+vec3 ggxReflectance(vec3 N, vec3 L, vec3 V, vec3 light_color, bool metalness, float roughness, vec3 F0)
+{
+    vec3 H = normalize(L+V);    
     float roughness_sq = roughness * roughness;
 
-    vec3 N = normalize(texture(gNormal, TexCoords).xyz);    
-    float NdotL = dot(N, L);   
-    float NdotL_clamp = max(NdotL, DOT_CLAMP);
+    float NdotL_clamp = max(dot(N, L), DOT_CLAMP);
     float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
+    float NdotH_clamp = max(dot(N, H), DOT_CLAMP);
 
-    vec3 F = schlickApproximation(F0, NdotL_clamp);
+    vec3 F = schlickApproximation(F0, NdotH_clamp);
 
     vec3 specular = ggxSpecular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
     vec3 diffuse = metalness ? vec3(0) : lambertianDiffuse(F);
@@ -234,40 +241,125 @@ vec3 ggxReflectance(vec3 L, vec3 V, vec3 light_color, bool metalness)
 }
 
 
+uniform int foo;
+
+
+//////////////////////////////////////
+//////////////// IBL ///////////////// 
+vec3 uvToL(vec2 uv)
+{
+    return vec3(
+        cos(2.0*PI*(0.5 - uv[0])) * sin(PI * uv[1]),        
+        sin(2.0*PI*(0.5 - uv[0])) * sin(PI * uv[1]),
+        cos(PI * uv[1])
+    );
+}
+
+
+vec3 ibl_specular_montecarlo_estimator(vec3 N, vec3 L, vec3 V, vec3 F0, float roughness, vec3 light_color)
+{
+    vec3 H = normalize(L + V);
+    float NdotL_clamp = max(dot(N, L), DOT_CLAMP);
+    float NdotV_clamp = max(dot(N, V), DOT_CLAMP);
+    float NdotH_clamp = max(dot(N, H), DOT_CLAMP);
+    float roughness_sq = roughness*roughness;
+
+    vec3 F = schlickApproximation(F0, NdotH_clamp);
+    float G_and_denominator = 0.5 / (
+        NdotV_clamp * sqrt(roughness_sq + NdotL_clamp * (NdotL_clamp - roughness_sq * NdotL_clamp)) +
+        NdotL_clamp * sqrt(roughness_sq + NdotV_clamp * (NdotV_clamp - roughness_sq * NdotV_clamp)));
+
+    return F  * G_and_denominator * light_color * NdotL_clamp;
+}
+
+vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
+{
+    roughness = 0.02;
+
+    vec3 R = normalize(2 * dot(N, V) * N - V);
+    vec3 A = normalize(vec3(-R.y, R.x, 0));
+    vec3 B = normalize(cross(R, A));
+
+    vec3 sum = vec3(0);
+
+    for (int i = 0; i < hammersley_block.N; ++i)
+    {
+        int block_index = i*2;
+        
+        vec2 xsi = vec2(
+            hammersley_block.hammersley[block_index], 
+            hammersley_block.hammersley[block_index+1]);
+
+        float phong_roughness = 2 * pow(roughness, -2) - 2;
+        float xsi_1_power = 1.0 / (phong_roughness + 1.0);
+        vec2 uv = vec2(xsi[0], acos(pow(xsi[1], xsi_1_power)) / PI);
+        vec3 L = uvToL(uv);
+        vec3 omega_k = normalize(L.x * A + L.y * B + L.z * R);
+        vec3 incoming_light_color = texture(skydome_light, uv).rgb;
+
+        sum += 
+            ibl_specular_montecarlo_estimator(
+                N, 
+                omega_k,
+                V,
+                F0, 
+                roughness,
+                incoming_light_color);
+    }
+
+    return sum / hammersley_block.N;
+}
+
+
+
 
 void main()
 {
-    vec4 N = texture(gNormal, TexCoords);
+    vec4 gNormal_texel = texture(gNormal, TexCoords);
 
-    if (N.x == 0 && N.y == 0 && N.z == 0 && N.w == -1) // sky or something
+    if (gNormal_texel.x == 0 && gNormal_texel.y == 0 && gNormal_texel.z == 0 && gNormal_texel.w == -1) // sky or something
     {
         vec3 Kd = texture(gBaseColor, TexCoords).rgb;
-        FragColor = vec4(Kd, 1);
+        vec3 I = vec3(pow(Kd.x, 1.0/2.2), pow(Kd.y, 1.0/2.2), pow(Kd.z, 1.0/2.2));
+        FragColor = vec4(I, 1);
         return;
     }
 
+    vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
     vec4 gPosition_texel = texture(gPosition, TexCoords);
+    
     vec3 world_position = gPosition_texel.rgb;
     bool metalness = gPosition_texel.a == 1 ? true : false;
+    float roughness = gFresnelColorRoughness_texel.w;
+    vec3 view_vec = camera_position.xyz - world_position;
+    vec3 F0 = gFresnelColorRoughness_texel.rgb;
+    vec3 N = normalize(gNormal_texel.xyz);
+    vec3 V = normalize(view_vec);
+
     vec3 I = vec3(0);
 
     for (unsigned int i = 0; i < point_light_count; i++)
     {
         vec3 light_pos = point_lights[i].position;
-        vec3 light_vec = light_pos - world_position;
-        vec3 view_vec = camera_position.xyz - world_position;
+        vec3 light_vec = light_pos - world_position;        
         vec3 light_color = punctualLightFalloff(point_lights[i], dot(light_vec, light_vec));
         float shadow_intensity = shadowIntensityG(i, light_vec, world_position);
-
-        vec3 V = normalize(view_vec);
+        
         vec3 L = normalize(light_vec);
 
-        I += ggxReflectance(
-            L,
-            V,            
-            light_color,
-            metalness) * (1-shadow_intensity);
+//        I += ggxReflectance(
+//            N,
+//            L,
+//            V,            
+//            light_color,
+//            metalness, 
+//            roughness, 
+//            F0) * (1-shadow_intensity);
     }
+
+    I += ibl_specular(N, V, F0, roughness);
+
+    I = vec3(pow(I.x, 1.0/2.2), pow(I.y, 1.0/2.2), pow(I.z, 1.0/2.2));
 
     FragColor = vec4(I, 1);
 }

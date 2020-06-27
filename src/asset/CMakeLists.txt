@@ -20,3 +20,8 @@ target_link_libraries(asset PUBLIC
     stb_image
     assimp 
     fmod)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(asset PUBLIC OpenMP::OpenMP_CXX)
+endif()

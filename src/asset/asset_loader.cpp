@@ -107,6 +107,23 @@ const asset::texture_assetf& asset::asset_loader::get_texturef(const std::string
 		throw std::runtime_error("Failed to load hdr texture " + file);
 	}
 
+	// Gamma correct the image to linear color space.  Use gamma=2.2
+	// if you have no specific gamma information. Skip this step if
+	// you know image is already in linear space.
+
+	// This is included to demonstrate the magic of OpenMP: This
+	// pragma turns the following loop into a multi-threaded loop,
+	// making use of all the cores your machine may have.
+	#pragma omp parallel for schedule(dynamic, 1) // Magic: Multi-thread y loop
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
+			int p = (j * width + i);
+			for (int c = 0; c < 3; c++) {
+				floats[3 * p + c] *= pow(floats[3 * p + c], 1.8);
+			}
+		}
+	}
+
 	_hdr_texture_cache.try_emplace(
 		file,
 		width, height, channels, floats);

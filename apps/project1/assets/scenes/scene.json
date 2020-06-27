@@ -12,9 +12,8 @@
           "fov": 0.6,
           "near_distance": 0.1,
           "far_distance": 10000,
-          "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
           "background": 3,
-          "skydome": "assets/skydome/Tropical_Beach_3k.hdr",
+          "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
           "skybox": {
             "left": "assets/skybox/xneg.png",
             "top": "assets/skybox/ypos.png",
@@ -22,7 +21,8 @@
             "bottom": "assets/skybox/yneg.png",
             "right": "assets/skybox/xpos.png",
             "back": "assets/skybox/zpos.png"
-          }
+          },
+          "skydome": "assets/skydome/Tropical_Beach_3k.hdr"
         },
         {
           "type": "ambient_light",
@@ -218,7 +218,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.2,
+                "roughness": 0.02,
                 "metalness": true,
                 "fresnel_color": [ 0.972, 0.960, 0.915 ]
               }

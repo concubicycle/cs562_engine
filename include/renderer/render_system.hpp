@@ -8,6 +8,7 @@
 #include <renderer/assimp_vram_loader.hpp>
 #include <renderer/camera.hpp>
 #include <renderer/compute_shader_prograam.hpp>
+#include <renderer/hammersley.hpp>
 #include <renderer/framebuffer.hpp>
 #include <renderer/full_screen_quad.hpp>
 #include <renderer/model_instance.hpp>
@@ -26,23 +27,6 @@ namespace renderer
 {
 	class render_system : public ecs::system_base
 	{
-		const std::string default_vert = "assets/shaders/default.vert";
-		const std::string default_frag = "assets/shaders/default.frag";
-		const std::string skybox_vert = "assets/shaders/skybox.vert";
-		const std::string skybox_frag = "assets/shaders/skybox.frag";
-		const std::string skydome_vert = "assets/shaders/skydome.vert";
-		const std::string skydome_frag = "assets/shaders/skydome.frag";
-		const std::string geometry_pass_vert = "assets/shaders/geometry_pass.vert";
-		const std::string geometry_pass_frag = "assets/shaders/geometry_pass.frag";
-		const std::string lighting_pass_vert = "assets/shaders/lighting_pass.vert";
-		const std::string lighting_pass_frag = "assets/shaders/lighting_pass.frag";
-		const std::string local_light_pass_vert = "assets/shaders/local_light_pass.vert";
-		const std::string local_light_pass_frag = "assets/shaders/local_light_pass.frag";
-		const std::string dual_paraboloid_shadow_vert = "assets/shaders/dual_paraboloid_shadow.vert";
-		const std::string dual_paraboloid_shadow_frag = "assets/shaders/dual_paraboloid_shadow.frag";
-		const std::string gaussian_horizontal_comp = "assets/shaders/gaussian_horizontal.comp";
-		const std::string gaussian_vertical_comp = "assets/shaders/gaussian_vertical.comp";
-
 	public:
 		render_system(
 			util::string_table& strings,
@@ -65,42 +49,42 @@ namespace renderer
 		full_screen_quad _fsq;
 
 		sphere _sphere{4, 4};
-
-		sphere _icosphere{ 128, 128 };
+		sphere skydome_mesh{ 128, 128};
+		opengl_hammersley_block<40> _hammersley_block{};
 
 		shader_program _default{ 
-			_assets.get_text(default_vert), 
-			_assets.get_text(default_frag) };
+			_assets.get_text("assets/shaders/default.vert"),
+			_assets.get_text("assets/shaders/default.frag") };
 		
 		shader_program _skybox{ 
-			_assets.get_text(skybox_vert), 
-			_assets.get_text(skybox_frag) };
+			_assets.get_text("assets/shaders/skybox.vert"),
+			_assets.get_text("assets/shaders/skybox.frag") };
 
 		shader_program _skydome{
-			_assets.get_text(skydome_vert),
-			_assets.get_text(skydome_frag) };
+			_assets.get_text("assets/shaders/skydome.vert"),
+			_assets.get_text("assets/shaders/skydome.frag") };
 		
 		shader_program _geometry_pass{
-			_assets.get_text(geometry_pass_vert), 
-			_assets.get_text(geometry_pass_frag) };
+			_assets.get_text("assets/shaders/geometry_pass.vert"),
+			_assets.get_text("assets/shaders/geometry_pass.frag") };
 		
 		shader_program _lighting_pass{ 
-			_assets.get_text(lighting_pass_vert), 
-			_assets.get_text(lighting_pass_frag) };
+			_assets.get_text("assets/shaders/lighting_pass.vert"),
+			_assets.get_text("assets/shaders/lighting_pass.frag") };
 
 		shader_program _local_light_pass{ 
-			_assets.get_text(local_light_pass_vert), 
-			_assets.get_text(local_light_pass_frag) };
+			_assets.get_text("assets/shaders/local_light_pass.vert"),
+			_assets.get_text("assets/shaders/local_light_pass.frag") };
 
 		shader_program _dual_paraboloid_shadow{ 
-			_assets.get_text(dual_paraboloid_shadow_vert), 
-			_assets.get_text(dual_paraboloid_shadow_frag) };
+			_assets.get_text("assets/shaders/dual_paraboloid_shadow.vert"),
+			_assets.get_text("assets/shaders/dual_paraboloid_shadow.frag") };
 
 		compute_shader_program _gaussian_horizontal{ 
-			_assets.get_text(gaussian_horizontal_comp) };
+			_assets.get_text("assets/shaders/gaussian_horizontal.comp") };
 
 		compute_shader_program _gaussian_vertical{ 
-			_assets.get_text(gaussian_vertical_comp) };
+			_assets.get_text("assets/shaders/gaussian_vertical.comp") };
 		
 		framebuffer<4> _gbuffer{
 			_glfw.width(),

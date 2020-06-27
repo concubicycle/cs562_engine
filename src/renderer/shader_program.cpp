@@ -124,6 +124,14 @@ void renderer::shader_program_base::set_uniform(const std::string& name, const E
     gl::glUniform4fv(loc, 1, val.data());
 }
 
+void renderer::shader_program_base::bind_uniform_block(const std::string& name, gl::GLuint bindpoint) const
+{
+    auto loc = _info.getUniformBlockLocation(name);
+    if (loc == -1) return;
+    gl::glUniformBlockBinding(_id, loc, bindpoint);
+}
+
+
 void renderer::shader_program_base::set_uniform(gl::GLuint loc, gl::GLfloat val) const
 {
     gl::glUniform1f(loc, val);

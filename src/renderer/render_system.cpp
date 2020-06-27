@@ -109,7 +109,21 @@ void renderer::render_system::set_light_uniforms(
     shader.set_uniform("point_light_count", light_count);
 
     state.each<ambient_light>([&](ambient_light& al) {
-        shader.set_uniform("ambient_light", al.color); // only one will bind
+        shader.set_uniform("ambient_light", al.color);
+        shader.set_uniform("use_ambient_light", true);
+    });
+
+    state.each<camera>([&](camera& cam) {
+        if (cam.skydome_texture && cam.background == background_type::skydome)
+        {
+            shader.set_uniform("use_skydome_light", true);
+            auto location = shader.uniform_location("skydome_light");
+            glActiveTexture(GL_TEXTURE0 + shadowmap_texture_unit);
+            glBindTexture(GL_TEXTURE_2D, *cam.skydome_texture);
+            glUniform1i(location, shadowmap_texture_unit++);
+            
+            shader.bind_uniform_block("HammersleyBlock", _hammersley_block.bindpoint());
+        }
     });
 }
 
@@ -252,9 +266,9 @@ void renderer::render_system::draw_skydome(
     using namespace gl;
 
     auto texture_id = *cam.skydome_texture;
-    auto vao = _icosphere.get_vao();
-    auto ebo = _icosphere.get_ebo();
-    auto index_count = _icosphere.get_index_count();
+    auto vao = skydome_mesh.get_vao();
+    auto ebo = skydome_mesh.get_ebo();
+    auto index_count = skydome_mesh.get_index_count();
 
     Eigen::Matrix3f mat3 = cam.view.rotation().matrix();
     Eigen::Matrix4f mat4 = Eigen::Matrix4f::Identity();

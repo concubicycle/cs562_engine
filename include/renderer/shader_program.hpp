@@ -34,6 +34,8 @@ namespace renderer
 		void set_uniform(gl::GLuint loc, const Eigen::Array3f& val) const;
 		void set_uniform(gl::GLuint loc, const Eigen::Array4f& val) const;
 
+		void bind_uniform_block(const std::string& name, gl::GLuint bindpoint) const;
+
 		void bind();
 		void unbind();
 
