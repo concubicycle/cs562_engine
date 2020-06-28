@@ -123,7 +123,7 @@ float edgeness(vec2 xy)
 	float edge_proximity = 1 - xy.x*xy.x - xy.y*xy.y;
 	if (edge_proximity > EDGE_EPSILON) return 1;
 
-    return 0.2 * edge_proximity + 0.9;
+    return 0.04 * edge_proximity + 0.98;
 }
 
 float shadowIntensityG(
@@ -239,17 +239,23 @@ uniform int foo;
 
 //////////////////////////////////////
 //////////////// IBL ///////////////// 
-vec3 uvToL(vec2 uv)
+vec2 directionToUv(vec3 N)
+{
+    float u = 0.5 - atan(N.z, N.x) / (2 * PI);
+    float v = acos(N.y) / PI;
+    return vec2(u, v);
+}
+
+vec3 uvToDirection(vec2 uv)
 {
     return vec3(
-        cos(2.0*PI*(0.5 - uv[0])) * sin(PI * uv[1]),        
-        sin(2.0*PI*(0.5 - uv[0])) * sin(PI * uv[1]),
-        cos(PI * uv[1])
+        cos(2.0*PI*(0.5 - uv[0])) * sin(PI * uv[1]),
+        cos(PI * uv[1]),
+        sin(2.0*PI*(0.5 - uv[0])) * sin(PI * uv[1])
     );
 }
 
-
-vec3 ibl_specular_montecarlo_estimator(vec3 N, vec3 L, vec3 V, vec3 F0, float roughness, vec3 light_color)
+vec3 iblSpecularMonteCarloEstimator(vec3 N, vec3 L, vec3 V, vec3 F0, float roughness, vec3 light_color)
 {
     float roughness_sq = roughness*roughness;
     vec3 H = normalize(L + V);
@@ -267,8 +273,6 @@ vec3 ibl_specular_montecarlo_estimator(vec3 N, vec3 L, vec3 V, vec3 F0, float ro
 
 vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
 {
-    roughness = 0.02;
-
     vec3 R = normalize(2 * dot(N, V) * N - V);
     vec3 A = normalize(vec3(-R.y, R.x, 0));
     vec3 B = normalize(cross(R, A));
@@ -277,21 +281,22 @@ vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
 
     for (int i = 0; i < hammersley_block.N; ++i)
     {
-        int block_index = i*2;
+        unsigned int block_index = i*2;
         
-        vec2 xsi = vec2(
+        vec2 xi = vec2(
             hammersley_block.hammersley[block_index], 
             hammersley_block.hammersley[block_index+1]);
 
-        float phong_roughness = 2 * pow(roughness, -2) - 2;
-        float xsi_1_power = 1.0 / (phong_roughness + 1.0);
-        vec2 uv = vec2(xsi[0], acos(pow(xsi[1], xsi_1_power)) / PI);
-        vec3 L = uvToL(uv);
+        float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;
+        float xi_1_power = 1.0 / (phong_roughness + 1.0);
+        vec2 cdf_uv = vec2(xi[0]*2, 0.5* acos(pow(xi[1], xi_1_power)) / PI);
+        vec3 L = uvToDirection(cdf_uv);
         vec3 omega_k = normalize(L.x * A + L.y * B + L.z * R);
+        vec2 uv = directionToUv(omega_k);
         vec3 incoming_light_color = texture(skydome_light, uv).rgb;
 
         sum += 
-            ibl_specular_montecarlo_estimator(
+            iblSpecularMonteCarloEstimator(
                 N, 
                 omega_k,
                 V,
@@ -301,6 +306,13 @@ vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
     }
 
     return sum / hammersley_block.N;
+}
+
+vec3 linearToSrgb(vec3 linear)
+{
+    return linear;
+    linear = linear / (linear + vec3(1.0));
+    return pow(linear, vec3(1.0/2.2));  
 }
 
 
@@ -313,8 +325,7 @@ void main()
     if (gNormal_texel.x == 0 && gNormal_texel.y == 0 && gNormal_texel.z == 0 && gNormal_texel.w == -1) // sky or something
     {
         vec3 Kd = texture(gBaseColor, TexCoords).rgb;
-        vec3 I = vec3(pow(Kd.x, 1.0/2.2), pow(Kd.y, 1.0/2.2), pow(Kd.z, 1.0/2.2));
-        FragColor = vec4(I, 1);
+        FragColor = vec4(linearToSrgb(Kd), 1);
         return;
     }
 
@@ -340,19 +351,17 @@ void main()
         
         vec3 L = normalize(light_vec);
 
-//        I += ggxReflectance(
-//            N,
-//            L,
-//            V,            
-//            light_color,
-//            metalness, 
-//            roughness, 
-//            F0) * (1-shadow_intensity);
+        I += ggxReflectance(
+            N,
+            L,
+            V,            
+            light_color,
+            metalness, 
+            roughness, 
+            F0) * (1-shadow_intensity);
     }
 
-    I += ibl_specular(N, V, F0, roughness);
+    //I += ibl_specular(N, V, F0, roughness);
 
-    I = vec3(pow(I.x, 1.0/2.2), pow(I.y, 1.0/2.2), pow(I.z, 1.0/2.2));
-
-    FragColor = vec4(I, 1);
+    FragColor = vec4(linearToSrgb(I), 1);
 }

@@ -12,7 +12,7 @@
           "fov": 0.6,
           "near_distance": 0.1,
           "far_distance": 10000,
-          "background": 3,
+          "background": 2,
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
           "skybox": {
             "left": "assets/skybox/xneg.png",
@@ -221,6 +221,29 @@
                 "roughness": 0.02,
                 "metalness": true,
                 "fresnel_color": [ 0.972, 0.960, 0.915 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 5, 5, -7 ],
+          "scale": [ 1, 1, 1 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/sphere.glb",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.01,
+                "metalness": true,
+                "fresnel_color": [ 1, 1, 1 ]
               }
             ],
             "mesh_definition_indices": [ 0 ]
