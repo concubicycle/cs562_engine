@@ -30,23 +30,12 @@ namespace renderer
 			}
 		}
 	
-		void shuffle()
-		{
-			for (size_t i = 0; i < N-1; i+= 2)
-			{
-				int swap_index = distribution(generator);
-				std::swap(hammersley[i], hammersley[swap_index]);
-				std::swap(hammersley[i+1], hammersley[swap_index+1]);
-			}
-		}
+	
 
 		std::int32_t count{ N };
 		float hammersley[2 * N];
-
-	private:
-		std::default_random_engine generator;
-		std::uniform_int_distribution<int> distribution{ 0, N - 2 };
 	};
+
 
 	template<size_t N = 40>
 	class opengl_hammersley_block

@@ -12,7 +12,7 @@
           "fov": 0.6,
           "near_distance": 0.1,
           "far_distance": 10000,
-          "background": 2,
+          "background": 3,
           "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
           "skybox": {
             "left": "assets/skybox/xneg.png",
@@ -22,7 +22,10 @@
             "right": "assets/skybox/xpos.png",
             "back": "assets/skybox/zpos.png"
           },
-          "skydome": "assets/skydome/Tropical_Beach_3k.hdr"
+          "skydome": {
+            "image": "assets/skydome/Tropical_Beach_3k.hdr",
+            "irradiance_map": "assets/skydome/Tropical_Beach_3k.irr.hdr"
+          }
         },
         {
           "type": "ambient_light",
@@ -60,7 +63,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.15,
+                "roughness": 0.3,
                 "metalness": true,
                 "fresnel_color": [ 0.99, 0.99, 0.99 ]
               }
@@ -256,7 +259,8 @@
         {
           "type": "transform",
           "position": [ 5, 0.6, -7 ],
-          "scale": [ 0.3, 0.3, 0.3 ]
+          "scale": [ 0.3, 0.3, 0.3 ],
+          "rotation": [0.01, 0, 0]
         },
         {
           "type": "model_instance",

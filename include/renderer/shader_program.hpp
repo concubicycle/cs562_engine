@@ -21,6 +21,7 @@ namespace renderer
 		void set_uniform(const std::string& name, const Eigen::Vector2f& val) const;
 		void set_uniform(const std::string& name, const gl::GLint val) const;
 		void set_uniform(const std::string& name, const Eigen::Translation3f& val) const;
+		void set_uniform(const std::string& name, const Eigen::Array2f& val) const;
 		void set_uniform(const std::string& name, const Eigen::Array3f& val) const;
 		void set_uniform(const std::string& name, const Eigen::Array4f& val) const;
 

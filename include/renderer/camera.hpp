@@ -27,6 +27,8 @@ namespace renderer
 
 		std::optional<opengl_cubemap> skybox_cubemap;
 		std::optional<gl::GLuint> skydome_texture;
+		std::optional<gl::GLuint> skydome_irradiance_map_texture;
+		Eigen::Array2f skydome_size;
 		Eigen::Array4f clear_color;
 
 		float fov;

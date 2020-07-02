@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstdint>
+
 #include <stb/stb_image.h>
 
 namespace asset

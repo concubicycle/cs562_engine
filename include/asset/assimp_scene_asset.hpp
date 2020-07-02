@@ -9,7 +9,7 @@ namespace asset
 	struct assimp_scene_asset
 	{
 		Assimp::Importer importer;
-		const aiScene* aiscene;
+		const aiScene* aiscene{ nullptr };
 	};
 }
 

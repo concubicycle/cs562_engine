@@ -8,6 +8,7 @@
 #include <asset/assimp_scene_asset.hpp>
 #include <asset/texture_asset.hpp>
 
+
 namespace asset
 {
 	class asset_loader
@@ -20,6 +21,7 @@ namespace asset
 		const assimp_scene_asset& get_assimp_scene(const std::string& file);
 		const texture_asset& get_texture(const std::string& file);
 		const texture_assetf& get_texturef(const std::string& file);
+		const texture_assetf& get_texturef_untonemapped(const std::string& file);
 		const std::string& get_text(const std::string& file);
 
 	private:

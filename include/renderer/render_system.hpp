@@ -50,7 +50,7 @@ namespace renderer
 
 		sphere _sphere{4, 4};
 		sphere skydome_mesh{ 128, 128};
-		opengl_hammersley_block<80> _hammersley_block{};
+		opengl_hammersley_block<40> _hammersley_block{};
 
 		shader_program _default{ 
 			_assets.get_text("assets/shaders/default.vert"),

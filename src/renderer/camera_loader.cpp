@@ -60,9 +60,16 @@ void renderer::camera_loader::load(asset::asset_loader_node& node)
 
     if (json.find("skydome") != json.end())
     {
-        auto skydome_file = json["skydome"].get<std::string>();
+        auto skydome_file = json["skydome"]["image"].get<std::string>();
+        auto irradiance_file = json["skydome"]["irradiance_map"].get<std::string>();
+
         auto& texture = _loader.get_texturef(skydome_file);
+        auto& irradiance_texture = _loader.get_texturef(irradiance_file);
+
         component.skydome_texture = _vram_loader.load_texturef(texture);
+        component.skydome_irradiance_map_texture = _vram_loader.load_texturef(irradiance_texture);
+
+        component.skydome_size = Eigen::Array2f(texture.width, texture.height);
     }
 }
 

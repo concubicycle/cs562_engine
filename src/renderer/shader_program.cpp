@@ -103,6 +103,13 @@ void renderer::shader_program_base::set_uniform(const std::string& name, const E
     gl::glUniform3fv(loc, 1, val.vector().data());
 }
 
+void renderer::shader_program_base::set_uniform(const std::string& name, const Eigen::Array2f& val) const
+{
+    auto loc = _info.getUniformLocation(name);
+    if (loc == -1) return;
+    gl::glUniform2fv(loc, 1, val.data());
+}
+
 void renderer::shader_program_base::set_uniform(const std::string& name, const Eigen::Array3f& val) const
 {
     auto loc = _info.getUniformLocation(name);

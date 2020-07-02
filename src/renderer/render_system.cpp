@@ -117,9 +117,16 @@ void renderer::render_system::set_light_uniforms(
         if (cam.skydome_texture && cam.background == background_type::skydome)
         {
             shader.set_uniform("use_skydome_light", true);
-            auto location = shader.uniform_location("skydome_light");
+            shader.set_uniform("skydome_size", cam.skydome_size);
+
+            auto location = shader.uniform_location("skydome_light");            
             glActiveTexture(GL_TEXTURE0 + shadowmap_texture_unit);
             glBindTexture(GL_TEXTURE_2D, *cam.skydome_texture);
+            glUniform1i(location, shadowmap_texture_unit++);
+
+            location = shader.uniform_location("skydome_irradiance_map");
+            glActiveTexture(GL_TEXTURE0 + shadowmap_texture_unit);
+            glBindTexture(GL_TEXTURE_2D, *cam.skydome_irradiance_map_texture);
             glUniform1i(location, shadowmap_texture_unit++);
             
             shader.bind_uniform_block("HammersleyBlock", _hammersley_block.bindpoint());

@@ -33,6 +33,7 @@ add_subdirectory(thirdparty/rgbe)
 # Main build targets
 add_subdirectory(src)
 add_subdirectory(apps/project1)
+add_subdirectory(apps/irrmapgen)
 
 # Tests
 add_subdirectory(test)

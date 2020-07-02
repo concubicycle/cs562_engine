@@ -12,6 +12,7 @@
 
 
 
+
 asset::asset_loader::asset_loader()
 {
 }
@@ -19,8 +20,6 @@ asset::asset_loader::asset_loader()
 asset::asset_loader::~asset_loader()
 {
 }
-
-
 
 nlohmann::json& asset::asset_loader::get_json(const std::string& path)
 {	
@@ -52,8 +51,8 @@ const asset::assimp_scene_asset& asset::asset_loader::get_assimp_scene(const std
 		aiProcess_ValidateDataStructure |
 		aiProcess_Triangulate |
 		aiProcess_FlipUVs |
-		//aiProcess_GenSmoothNormals |
-		//aiProcess_FixInfacingNormals |
+		aiProcess_GenSmoothNormals |
+		aiProcess_FixInfacingNormals |
 		aiProcess_OptimizeMeshes |
 		aiProcess_OptimizeGraph |
 		aiProcess_CalcTangentSpace);
@@ -92,7 +91,8 @@ const asset::texture_asset& asset::asset_loader::get_texture(const std::string& 
 	return _texture_cache.find(filepath)->second;
 }
 
-const asset::texture_assetf& asset::asset_loader::get_texturef(const std::string& file)
+const asset::texture_assetf& asset::asset_loader::get_texturef(
+	const std::string& file)
 {
 	auto cached = _hdr_texture_cache.find(file);
 	if (cached != _hdr_texture_cache.end())
@@ -106,14 +106,9 @@ const asset::texture_assetf& asset::asset_loader::get_texturef(const std::string
 	{
 		throw std::runtime_error("Failed to load hdr texture " + file);
 	}
-
+	
 	// Gamma correct the image to linear color space.  Use gamma=2.2
-	// if you have no specific gamma information. Skip this step if
-	// you know image is already in linear space.
-
-	// This is included to demonstrate the magic of OpenMP: This
-	// pragma turns the following loop into a multi-threaded loop,
-	// making use of all the cores your machine may have.
+	// if you have no specific gamma information.
 	#pragma omp parallel for schedule(dynamic, 1) // Magic: Multi-thread y loop
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
@@ -122,6 +117,28 @@ const asset::texture_assetf& asset::asset_loader::get_texturef(const std::string
 				floats[3 * p + c] *= pow(floats[3 * p + c], 1.8);
 			}
 		}
+	}	
+
+	_hdr_texture_cache.try_emplace(
+		file,
+		width, height, channels, floats);
+
+	return _hdr_texture_cache.find(file)->second;
+}
+
+const asset::texture_assetf& asset::asset_loader::get_texturef_untonemapped(const std::string& file)
+{
+	auto cached = _hdr_texture_cache.find(file);
+	if (cached != _hdr_texture_cache.end())
+		return cached->second;
+
+	validate_path(file);
+
+	int width, height, channels;
+	auto floats = stbi_loadf(file.c_str(), &width, &height, &channels, 0);
+	if (!floats)
+	{
+		throw std::runtime_error("Failed to load hdr texture " + file);
 	}
 
 	_hdr_texture_cache.try_emplace(

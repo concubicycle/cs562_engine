@@ -43,7 +43,9 @@ uniform bool use_ambient_light;
 
 // skydome light
 uniform sampler2D skydome_light;
+uniform sampler2D skydome_irradiance_map;
 uniform bool use_skydome_light;
+uniform vec2 skydome_size;
 
 // camera uniforms
 uniform vec3 camera_position;
@@ -159,9 +161,8 @@ float shadowIntensityG(
 
 //////////////////////////////////////
 /// Reflectance Equation Functions ///
-vec3 lambertianDiffuse(vec3 F)
-{
-    vec3 albedo = texture(gBaseColor, TexCoords).rgb;
+vec3 lambertianDiffuse(vec3 F, vec3 albedo)
+{    
     return (vec3(1) - F) * albedo / PI;
 }
 
@@ -217,7 +218,15 @@ vec3 ggxSpecular(
 
 
 
-vec3 ggxReflectance(vec3 N, vec3 L, vec3 V, vec3 light_color, bool metalness, float roughness, vec3 F0)
+vec3 ggxReflectance(
+    vec3 N, 
+    vec3 L, 
+    vec3 V, 
+    vec3 light_color, 
+    bool metalness, 
+    float roughness, 
+    vec3 F0,
+    vec3 albedo)
 {
     vec3 H = normalize(L+V);    
     float roughness_sq = roughness * roughness;
@@ -228,13 +237,12 @@ vec3 ggxReflectance(vec3 N, vec3 L, vec3 V, vec3 light_color, bool metalness, fl
 
     vec3 F = schlickApproximation(F0, HdotL_clamp);
     vec3 specular = ggxSpecular(F, N, H, NdotL_clamp, NdotV_clamp, roughness_sq);
-    vec3 diffuse = metalness ? vec3(0) : lambertianDiffuse(F);
+    vec3 diffuse = metalness ? vec3(0) : lambertianDiffuse(F, albedo);
 
     return (specular + diffuse) * light_color * NdotL_clamp;
 }
 
 
-uniform int foo;
 
 
 //////////////////////////////////////
@@ -271,11 +279,11 @@ vec3 iblSpecularMonteCarloEstimator(vec3 N, vec3 L, vec3 V, vec3 F0, float rough
     return F  * G_and_denominator * light_color * NdotL_clamp;
 }
 
-vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
+vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
 {
     vec3 R = normalize(2 * dot(N, V) * N - V);
     vec3 A = normalize(vec3(-R.y, R.x, 0));
-    vec3 B = normalize(cross(R, A));
+    vec3 B = normalize(cross(R, A));    
 
     vec3 sum = vec3(0);
 
@@ -287,13 +295,17 @@ vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
             hammersley_block.hammersley[block_index], 
             hammersley_block.hammersley[block_index+1]);
 
-        float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;
+        float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;        
         float xi_1_power = 1.0 / (phong_roughness + 1.0);
         vec2 cdf_uv = vec2(xi[0]*2, 0.5* acos(pow(xi[1], xi_1_power)) / PI);
         vec3 L = uvToDirection(cdf_uv);
-        vec3 omega_k = normalize(L.x * A + L.y * B + L.z * R);
+        vec3 omega_k = normalize(L.x * A + L.y * R + L.z * B);
         vec2 uv = directionToUv(omega_k);
-        vec3 incoming_light_color = texture(skydome_light, uv).rgb;
+
+        vec3 H = normalize(omega_k + V);
+        float D = ggxNdf(N, H, roughness * roughness);
+        float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D);
+        vec3 incoming_light_color = textureLod(skydome_light, uv, level).rgb;
 
         sum += 
             iblSpecularMonteCarloEstimator(
@@ -308,9 +320,21 @@ vec3 ibl_specular(vec3 N, vec3 V, vec3 F0, float roughness)
     return sum / hammersley_block.N;
 }
 
+vec3 iblDiffuse(vec3 Kd, vec3 N)
+{
+    vec2 irradiance_uv = directionToUv(N);
+    vec3 irradiance = texture(skydome_irradiance_map, irradiance_uv).rgb;
+    return (Kd / PI) * irradiance;
+}
+
+
+
+
+
+//////////////////////////////////////
+/////////// Tone Mapping ////////////
 vec3 linearToSrgb(vec3 linear)
 {
-    return linear;
     linear = linear / (linear + vec3(1.0));
     return pow(linear, vec3(1.0/2.2));  
 }
@@ -318,17 +342,23 @@ vec3 linearToSrgb(vec3 linear)
 
 
 
+//////////////////////////////////////
+/////////////// MAIN ////////////////
 void main()
 {
     vec4 gNormal_texel = texture(gNormal, TexCoords);
+    vec3 Kd = texture(gBaseColor, TexCoords).rgb;
 
-    if (gNormal_texel.x == 0 && gNormal_texel.y == 0 && gNormal_texel.z == 0 && gNormal_texel.w == -1) // sky or something
-    {
-        vec3 Kd = texture(gBaseColor, TexCoords).rgb;
+    if (
+        gNormal_texel.x == 0 && 
+        gNormal_texel.y == 0 && 
+        gNormal_texel.z == 0 && 
+        gNormal_texel.w == -1) // not a surface
+    {        
         FragColor = vec4(linearToSrgb(Kd), 1);
         return;
     }
-
+    
     vec4 gFresnelColorRoughness_texel = texture(gFresnelColorRoughness, TexCoords);
     vec4 gPosition_texel = texture(gPosition, TexCoords);
     
@@ -338,8 +368,8 @@ void main()
     vec3 view_vec = camera_position.xyz - world_position;
     vec3 F0 = gFresnelColorRoughness_texel.rgb;
     vec3 N = normalize(gNormal_texel.xyz);
-    vec3 V = normalize(view_vec);
-
+    vec3 V = normalize(view_vec);    
+    
     vec3 I = vec3(0);
 
     for (unsigned int i = 0; i < point_light_count; i++)
@@ -358,10 +388,17 @@ void main()
             light_color,
             metalness, 
             roughness, 
-            F0) * (1-shadow_intensity);
+            F0,
+            Kd) * (1-shadow_intensity);
     }
 
-    //I += ibl_specular(N, V, F0, roughness);
+    if (use_skydome_light)
+    {
+        I += iblSpecular(N, V, F0, roughness);
+
+        if (!metalness)
+            I += iblDiffuse(Kd, N);
+    }
 
     FragColor = vec4(linearToSrgb(I), 1);
 }
