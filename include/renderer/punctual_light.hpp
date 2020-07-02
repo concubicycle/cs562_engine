@@ -21,8 +21,8 @@ namespace renderer
 
 		framebuffer<1> shadowmap_framebuffer
 		{
-			shadow_map_resolution * 2,
-			shadow_map_resolution,
+			static_cast<float>(shadow_map_resolution * 2),
+			static_cast<float>(shadow_map_resolution),
 			texture_description(
 				gl::GLenum::GL_COLOR_ATTACHMENT0,
 				shadow_map_resolution * 2,
