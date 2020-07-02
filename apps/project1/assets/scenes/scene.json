@@ -23,8 +23,8 @@
             "back": "assets/skybox/zpos.png"
           },
           "skydome": {
-            "image": "assets/skydome/Tropical_Beach_3k.hdr",
-            "irradiance_map": "assets/skydome/foo.hdr"
+            "image": "assets/skydome/Sierra_Madre_B_Ref.hdr",
+            "irradiance_map": "assets/skydome/Sierra_Madre_B_Ref.irr.hdr"
           }
         },
         {
