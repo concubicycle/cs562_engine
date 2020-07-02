@@ -32,7 +32,7 @@ public:
 	spherical_harmonic_approximator& operator=(spherical_harmonic_approximator&& other) = delete;
 
 	void run(const std::string& output_filename);
-	Eigen::Array3f irradiance(Eigen::Vector3f dir);
+	Eigen::Array3f irradiance(const Eigen::Vector3f& dir);
 	void generate_output();
 	void write_output(const std::string& filename);
 
@@ -55,21 +55,19 @@ private:
 
 
 	Eigen::Vector3f polar_to_dir(polar_coords coords);
-	Eigen::Array3f light_integral(float(*basis_function)(Eigen::Vector3f));
+	Eigen::Array3f light_integral(float(*basis_function)(const Eigen::Vector3f&));
 
-	static float Y_00(Eigen::Vector3f dir);
+	static float Y_00(const Eigen::Vector3f& dir);
 
-	static float Y_10(Eigen::Vector3f dir);
-	static float Y_11(Eigen::Vector3f dir);
-	static float Y_12(Eigen::Vector3f dir);
+	static float Y_10(const Eigen::Vector3f& dir);
+	static float Y_11(const Eigen::Vector3f& dir);
+	static float Y_12(const Eigen::Vector3f& dir);
 
-	static float Y_20(Eigen::Vector3f dir);
-	static float Y_21(Eigen::Vector3f dir);
-	static float Y_22(Eigen::Vector3f dir);
-	static float Y_23(Eigen::Vector3f dir);
-	static float Y_24(Eigen::Vector3f dir);
-
-
+	static float Y_20(const Eigen::Vector3f& dir);
+	static float Y_21(const Eigen::Vector3f& dir);
+	static float Y_22(const Eigen::Vector3f& dir);
+	static float Y_23(const Eigen::Vector3f& dir);
+	static float Y_24(const Eigen::Vector3f& dir);
 };
 
 

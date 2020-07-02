@@ -64,7 +64,7 @@ void renderer::camera_loader::load(asset::asset_loader_node& node)
         auto irradiance_file = json["skydome"]["irradiance_map"].get<std::string>();
 
         auto& texture = _loader.get_texturef(skydome_file);
-        auto& irradiance_texture = _loader.get_texturef(irradiance_file);
+        auto& irradiance_texture = _loader.get_texturef_untonemapped(irradiance_file);
 
         component.skydome_texture = _vram_loader.load_texturef(texture);
         component.skydome_irradiance_map_texture = _vram_loader.load_texturef(irradiance_texture);

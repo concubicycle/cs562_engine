@@ -49,7 +49,7 @@ namespace renderer
 		full_screen_quad _fsq;
 
 		sphere _sphere{4, 4};
-		sphere skydome_mesh{ 128, 128};
+		sphere skydome_mesh{ 64, 128};
 		opengl_hammersley_block<40> _hammersley_block{};
 
 		shader_program _default{ 

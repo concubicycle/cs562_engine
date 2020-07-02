@@ -25,43 +25,29 @@ spherical_harmonic_approximator::~spherical_harmonic_approximator()
 
 void spherical_harmonic_approximator::run(const std::string& filename)
 {
-	static float (*base_functions[9]) (Eigen::Vector3f) = {
+	static float (*base_functions[9]) (const Eigen::Vector3f&) = {
 		Y_00, Y_10, Y_11, Y_12, Y_20, Y_21, Y_22, Y_23, Y_24
 	};
 
-	std::cout << "|---------|" << std::endl;
-	_coefficients[0] = light_integral(Y_00) * A0;
+	static float a_coefficients[9] = {
+		A0, A1, A1, A1, A2, A2, A2, A2, A2
+	};
 
-	std::cout << "||--------|" << std::endl;
-	_coefficients[1] = light_integral(Y_10) * A1;
-
-
-	std::cout << "|||-------|" << std::endl;
-	_coefficients[2] = light_integral(Y_11) * A1;
-	std::cout << "||||------|" << std::endl;
-	_coefficients[3] = light_integral(Y_12) * A1;
-	std::cout << "|||||-----|" << std::endl;
-	_coefficients[4] = light_integral(Y_20) * A2;
-
-
-	std::cout << "||||||----|" << std::endl;
-	_coefficients[5] = light_integral(Y_21) * A2;
-	std::cout << "|||||||---|" << std::endl;
-	_coefficients[6] = light_integral(Y_22) * A2;
-	std::cout << "||||||||--|" << std::endl;
-	_coefficients[7] = light_integral(Y_23) * A2;
-	std::cout << "|||||||||-|" << std::endl;
-	_coefficients[8] = light_integral(Y_24) * A2;
+	for (size_t i = 0; i < 9; ++i)
+	{
+		_coefficients[i] = light_integral(base_functions[i]) * a_coefficients[i];
+		std::cout << i << "/9" << std::endl;
+	}
 
 	generate_output();
 	write_output(filename);
 }
 
-Eigen::Array3f spherical_harmonic_approximator::irradiance(Eigen::Vector3f dir)
+Eigen::Array3f spherical_harmonic_approximator::irradiance(const Eigen::Vector3f& dir)
 {
 	Eigen::Array3f result(0, 0, 0);
 
-	static float (*base_functions[9]) (Eigen::Vector3f) = {
+	static float (*base_functions[9]) (const Eigen::Vector3f&) = {
 		Y_00, Y_10, Y_11, Y_12, Y_20, Y_21, Y_22, Y_23, Y_24
 	};
 
@@ -102,13 +88,6 @@ void spherical_harmonic_approximator::write_output(const std::string& filename)
 	size_t h = _output_dimensions[1];
 	size_t count = w * h * 3;
 
-	// back to srgb
-	for (size_t i = 0; i < count; ++i)
-	{
-		float linear = _output[i];
-		_output[i] = std::pow(linear, 1.0 / 2.2);
-	}
-
 	stbi_write_hdr(
 		filename.c_str(),
 		(int)_output_dimensions[0], 
@@ -117,56 +96,56 @@ void spherical_harmonic_approximator::write_output(const std::string& filename)
 		_output);
 }
 
-float spherical_harmonic_approximator::Y_00(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_00(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.5f * std::sqrt(1.f / util::Pi);
 	return c;
 }
 
-float spherical_harmonic_approximator::Y_10(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_10(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.5f * std::sqrt(3.f / util::Pi);
 	return c * dir.y();
 }
 
-float spherical_harmonic_approximator::Y_11(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_11(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.5f * std::sqrt(3.f / util::Pi);
 	return c * dir.z();
 }
 
-float spherical_harmonic_approximator::Y_12(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_12(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.5f * std::sqrt(3.f / util::Pi);
 	return c * dir.x();
 }
 
-float spherical_harmonic_approximator::Y_20(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_20(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.5f * std::sqrt(15.f / util::Pi);
 	return c * dir.x() * dir.y();
 }
 
-float spherical_harmonic_approximator::Y_21(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_21(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.5f * std::sqrtf(15.f / util::Pi);
 	return c * dir.y() * dir.z();
 }
 
-float spherical_harmonic_approximator::Y_22(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_22(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.25f * std::sqrtf(5.f / util::Pi);
 	float z_sq = dir.z() * dir.z();
 	return c * (3.f * z_sq - 1);
 }
 
-float spherical_harmonic_approximator::Y_23(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_23(const Eigen::Vector3f& dir)
 {
-	static auto c = -0.5f * std::sqrtf(15.f / util::Pi);
+	static auto c = 0.5f * std::sqrtf(15.f / util::Pi);
 	return c * dir.x() * dir.z();
 }
 
-float spherical_harmonic_approximator::Y_24(Eigen::Vector3f dir)
+float spherical_harmonic_approximator::Y_24(const Eigen::Vector3f& dir)
 {
 	static auto c = 0.25f * std::sqrtf(15.f / util::Pi);
 	float x_sq = dir.x() * dir.x();
@@ -201,7 +180,7 @@ Eigen::Vector3f spherical_harmonic_approximator::polar_to_dir(polar_coords coord
 	);
 }
 
-Eigen::Array3f spherical_harmonic_approximator::light_integral(float(*basis_function)(Eigen::Vector3f))
+Eigen::Array3f spherical_harmonic_approximator::light_integral(float(*basis_function)(const Eigen::Vector3f&))
 {
 	Eigen::Array3f sum(0, 0, 0);
 
@@ -229,5 +208,5 @@ Eigen::Array3f spherical_harmonic_approximator::light_integral(float(*basis_func
 		}
 	}
 
-	return sum / (4 * util::FourPi);
+	return sum;
 }
