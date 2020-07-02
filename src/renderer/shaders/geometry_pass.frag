@@ -29,4 +29,4 @@ void main()
     gNormal = vec4(fs_in.normal, 1);
     gBaseColor = texture(diffuse_texture, fs_in.texcoords_2d);
     gFresnelColorRoughness = vec4(fresnel_color, roughness);
-}  
+}

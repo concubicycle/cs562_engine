@@ -74,6 +74,7 @@ void run_app()
 		&fps
 	);
 
+
 	while (scene_tracker.has_next() && !glfwWindowShouldClose(glfw.window()))
 	{
 		asset::scene scene(scene_tracker.next(), loader);

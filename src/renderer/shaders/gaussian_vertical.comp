@@ -20,7 +20,7 @@
 
 // Variable					Type	Meaning
 // ------------------------------------------
-// gl_WorkGroupSize			uvec3	The number of invocations per work group in each dimension—the same
+// gl_WorkGroupSize			uvec3	The number of invocations per work group in each dimensionï¿½the same
 //									as what is defined in the layout specifier.
 // gl_NumWorkGroups			uvec3	The total number of work groups in each dimension.
 // gl_WorkGroupID			uvec3	The index of the current work group for this shader invocation.
@@ -60,7 +60,7 @@ void storeToLocalData()
 	// is local blur area out of bounds (left)?
 	if (gl_LocalInvocationID.y < HALF_KERNEL_FLOOR)
 	{		
-		unsigned int local_data_index = gl_LocalInvocationID.y;
+		uint local_data_index = gl_LocalInvocationID.y;
 
 		// is global blur area out of bounds?
 		if (gl_GlobalInvocationID.y < HALF_KERNEL_FLOOR)
@@ -79,8 +79,8 @@ void storeToLocalData()
 	// is local blur area out of bounds (right)?
 	if ((INVOCATION_COUNT - gl_LocalInvocationID.y) <= HALF_KERNEL_FLOOR)
 	{
-		unsigned int local_data_index = gl_LocalInvocationID.y + 2*HALF_KERNEL_FLOOR;
-		unsigned int overflow_index_global = gl_GlobalInvocationID.y + HALF_KERNEL_FLOOR;
+		uint local_data_index = gl_LocalInvocationID.y + 2*HALF_KERNEL_FLOOR;
+		uint overflow_index_global = gl_GlobalInvocationID.y + HALF_KERNEL_FLOOR;
 
 		if (overflow_index_global > gSize.y)
 		{
@@ -96,7 +96,7 @@ void storeToLocalData()
 
 void applyFilterHorizontal()
 {
-	unsigned int target_texel_index = gl_LocalInvocationID.y + HALF_KERNEL_FLOOR;
+	uint target_texel_index = gl_LocalInvocationID.y + HALF_KERNEL_FLOOR;
     vec4 target_texel_color = local_data[target_texel_index] * Weights[0];
 
 	for(int i = 1; i < HALF_KERNEL_FLOOR; ++i)

@@ -34,4 +34,4 @@ void main()
 		depth * depth * depth,
 		depth * depth * depth * depth
 	);
-} 
+}

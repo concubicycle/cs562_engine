@@ -129,7 +129,7 @@ float edgeness(vec2 xy)
 }
 
 float shadowIntensityG(
-    unsigned int light_index,
+    int light_index,
     const vec3 light_vec, 
     const vec3 world_position)
 {
@@ -289,7 +289,7 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
 
     for (int i = 0; i < hammersley_block.N; ++i)
     {
-        unsigned int block_index = i*2;
+        int block_index = i*2;
         
         vec2 xi = vec2(
             hammersley_block.hammersley[block_index], 
@@ -372,7 +372,7 @@ void main()
     
     vec3 I = vec3(0);
 
-    for (unsigned int i = 0; i < point_light_count; i++)
+    for (int i = 0; i < point_light_count; i++)
     {
         vec3 light_pos = point_lights[i].position;
         vec3 light_vec = light_pos - world_position;        

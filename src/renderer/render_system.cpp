@@ -47,7 +47,7 @@ void renderer::render_system::update(ecs::state& state)
 {
     using namespace transforms;
     using namespace gl;
-    
+
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
         render_shadowmap(state, t, pl);
     });

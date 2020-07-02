@@ -87,8 +87,8 @@ namespace renderer
 			_assets.get_text("assets/shaders/gaussian_vertical.comp") };
 		
 		framebuffer<4> _gbuffer{
-			_glfw.width(),
-			_glfw.height(),
+		    (float)_glfw.width(),
+		    (float)_glfw.height(),
 			texture_description(
 				gl::GLenum::GL_COLOR_ATTACHMENT0,
 				_glfw.width(),
