@@ -23,8 +23,8 @@
             "back": "assets/skybox/zpos.png"
           },
           "skydome": {
-            "image": "assets/skydome/Sierra_Madre_B_Ref.hdr",
-            "irradiance_map": "assets/skydome/Sierra_Madre_B_Ref.irr.hdr"
+            "image": "assets/skydome/Summi_Pool_3k.hdr",
+            "irradiance_map": "assets/skydome/Summi_Pool_3k.irr.hdr"
           }
         },
         {
@@ -221,7 +221,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.02,
+                "roughness": 0.06,
                 "metalness": true,
                 "fresnel_color": [ 0.972, 0.960, 0.915 ]
               }

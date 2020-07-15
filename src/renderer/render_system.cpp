@@ -4,6 +4,7 @@
 #include <renderer/punctual_light.hpp>
 #include <renderer/local_punctual_light.hpp>
 #include <renderer/ambient_light.hpp>
+#include <renderer/projections.hpp>
 #include <transforms/transform.hpp>
 
 
@@ -50,6 +51,10 @@ void renderer::render_system::update(ecs::state& state)
 
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
         render_shadowmap(state, t, pl);
+    });
+
+    state.each<transform, directional_light>([&](transform& t, directional_light& dl) {
+        render_shadowmap_directional(state, t, dl);
     });
 
     glViewport(0, 0, _glfw.width(), _glfw.height());
@@ -407,6 +412,60 @@ void renderer::render_system::render_shadowmap(
     dst_img_loc = _gaussian_vertical.uniform_location("output_image");
     glBindImageTexture(0, *(pl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
     glBindImageTexture(1, pl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glUniform1i(src_img_loc, 0);
+    glUniform1i(dst_img_loc, 1);
+    glDispatchCompute(width, height / 128, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    _gaussian_vertical.unbind();
+}
+
+void renderer::render_system::render_shadowmap_directional(
+    ecs::state& state, 
+    transforms::transform& t, 
+    directional_light& dl)
+{
+    using namespace gl;
+    using namespace transforms;
+
+    dl.shadowmap_framebuffer.bind();
+    _directional_shadow.bind();
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+    glViewport(0, 0, dl.shadow_map_resolution, dl.shadow_map_resolution);
+    Eigen::Translation3f translate(t.world_position());
+    affine_transform view_transform = translate * affine_transform::Identity();
+    dl.light_view = view_transform.matrix().inverse();
+
+    _directional_shadow.set_uniform("view", dl.light_view);
+    _directional_shadow.set_uniform("projection", dl.light_projection);
+    draw_scene_shadowmap(state);
+        
+    _directional_shadow.unbind();
+    dl.shadowmap_framebuffer.unbind();
+
+    // gaussian blur
+    auto width = dl.shadow_map_resolution;
+    auto height = dl.shadow_map_resolution;
+
+    // horizontal
+    _gaussian_horizontal.bind();
+    auto src_img_loc = _gaussian_horizontal.uniform_location("input_image");
+    auto dst_img_loc = _gaussian_horizontal.uniform_location("output_image");
+    glBindImageTexture(0, dl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, *(dl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glUniform1i(src_img_loc, 0);
+    glUniform1i(dst_img_loc, 1);
+    glDispatchCompute(width / 128, height, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    // vertical
+    _gaussian_vertical.bind();
+    src_img_loc = _gaussian_vertical.uniform_location("input_image");
+    dst_img_loc = _gaussian_vertical.uniform_location("output_image");
+    glBindImageTexture(0, *(dl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, dl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
     glUniform1i(src_img_loc, 0);
     glUniform1i(dst_img_loc, 1);
     glDispatchCompute(width, height / 128, 1);

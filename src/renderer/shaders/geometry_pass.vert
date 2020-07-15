@@ -12,6 +12,7 @@ out VS_OUT {
     vec4 world_pos;
     vec3 normal;
     vec2 texcoords_2d;
+    float depth;
 } vs_out;
 
 // camera uniforms
@@ -28,9 +29,12 @@ void main()
 {
     vec4 world_pos = model * vec4(position, 1);
 
+    float depth = (view * world_pos).z;
+
     vs_out.world_pos = world_pos;
     vs_out.normal = mat3(adjoint_transpose) * normal;
     vs_out.texcoords_2d = texture_coords;
+    vs_out.depth = depth;
 
     gl_Position = projection * view * world_pos;
 }

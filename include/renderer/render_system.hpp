@@ -19,6 +19,7 @@
 #include <renderer/shader_program.hpp>
 #include <renderer/sphere.hpp>
 #include <renderer/punctual_light.hpp>
+#include <renderer/directional_light.hpp>
 #include <transforms/transform.hpp>
 #include <util/string_table.hpp>
 
@@ -79,6 +80,10 @@ namespace renderer
 		shader_program _dual_paraboloid_shadow{ 
 			_assets.get_text("assets/shaders/dual_paraboloid_shadow.vert"),
 			_assets.get_text("assets/shaders/dual_paraboloid_shadow.frag") };
+
+		shader_program _directional_shadow{
+			_assets.get_text("assets/shaders/directional_shadow.vert"),
+			_assets.get_text("assets/shaders/directional_shadow.frag") };
 
 		compute_shader_program _gaussian_horizontal{ 
 			_assets.get_text("assets/shaders/gaussian_horizontal.comp") };
@@ -160,6 +165,11 @@ namespace renderer
 			ecs::state& state, 
 			transforms::transform& t, 
 			punctual_light& pl);
+
+		void render_shadowmap_directional(
+			ecs::state& state,
+			transforms::transform& t,
+			directional_light& dl);
 
 		opengl_mesh load_icosphere();
 	};

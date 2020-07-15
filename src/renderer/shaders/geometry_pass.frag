@@ -19,14 +19,15 @@ uniform bool metalness;
 in VS_OUT {
     vec4 world_pos;
     vec3 normal;
-    vec2 texcoords_2d;    
+    vec2 texcoords_2d;
+    float depth;
 } fs_in;
 
 
 void main()
 {
     gPosition = vec4(fs_in.world_pos.xyz, metalness ? 1 : 0);
-    gNormal = vec4(fs_in.normal, 1);
+    gNormal = vec4(fs_in.normal, fs_in.depth);
     gBaseColor = texture(diffuse_texture, fs_in.texcoords_2d);
     gFresnelColorRoughness = vec4(fresnel_color, roughness);
 }

@@ -9,7 +9,8 @@ namespace renderer
 		punctual_light = 5,
 		camera = 6,
 		ambient_light = 7,
-		local_punctual_light = 8
+		local_punctual_light = 8,
+		directional_light = 9
 	};
 }
 

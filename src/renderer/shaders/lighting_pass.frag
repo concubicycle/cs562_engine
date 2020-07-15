@@ -7,6 +7,7 @@ out vec4 FragColor;
 #define PI 3.1415926535897932384626433832795
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
+#define MAX_DIRECTIONAL_LIGHTS 4
 
 #define MAX_HAMMERSLEY_N 128
 
@@ -33,9 +34,21 @@ struct PointLight {
     sampler2D shadow_map;
 };
 
+struct DirectionalLight {
+    vec3 color;
+    vec3 direction;
+    mat4 light_view;
+    mat4 light_projection;
 
+    sampler2D shadow_map;
+};
+
+// Lights
 uniform PointLight point_lights[MAX_POINT_LIGHTS];
 uniform int point_light_count;
+
+uniform DirectionalLight directional_lights[MAX_DIRECTIONAL_LIGHTS];
+uniform int directional_light_count;
 
 // ambient light(s)
 uniform vec3 ambient_light;// Ia
@@ -55,6 +68,8 @@ uniform HammersleyBlock {
     int N;
     float hammersley[2*MAX_HAMMERSLEY_N];
 } hammersley_block;
+
+
 
 
 //////////////////////////////////////
@@ -156,6 +171,24 @@ float shadowIntensityG(
     return hamburger4MSM(b, fragment_depth);
 }
 
+float shadowIntensityG_directional(
+    int light_index,
+    const vec3 world_position)
+{
+    vec4 light_space_pos = 
+        directional_lights[light_index].light_view * 
+        directional_lights[light_index].light_projection * 
+        vec4(world_position, 1);
+
+    // [-1, 1] to [0, 1]
+    light_space_pos.xy = (light_space_pos.xy + vec2(1)) / 2;
+
+    float fragment_depth = -light_space_pos.z;
+    fragment_depth /= 100;
+
+    vec4 b = texture(directional_lights[light_index].shadow_map, light_space_pos.xy);    
+    return hamburger4MSM(b, fragment_depth);
+}
 
 
 
@@ -215,8 +248,6 @@ vec3 ggxSpecular(
     float D = ggxNdf(N, H, roughness_sq);
     return F * G_and_denominator * D;
 }
-
-
 
 vec3 ggxReflectance(
     vec3 N, 
@@ -297,7 +328,7 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
 
         float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;        
         float xi_1_power = 1.0 / (phong_roughness + 1.0);
-        vec2 cdf_uv = vec2(xi[0]*2, 0.5* acos(pow(xi[1], xi_1_power)) / PI);
+        vec2 cdf_uv = vec2(xi[0], acos(pow(xi[1], xi_1_power)) / PI);
         vec3 L = uvToDirection(cdf_uv);
         vec3 omega_k = normalize(L.x * A + L.y * R + L.z * B);
         vec2 uv = directionToUv(omega_k);
@@ -386,6 +417,22 @@ void main()
             L,
             V,            
             light_color,
+            metalness, 
+            roughness, 
+            F0,
+            Kd) * (1-shadow_intensity);
+    }
+
+    for (int i = 0; i < directional_light_count; ++i)
+    {
+        vec3 L = directional_lights[i].direction * -1;
+        float shadow_intensity = shadowIntensityG_directional(i, world_position);
+
+        I += ggxReflectance(
+            N,
+            L,
+            V,            
+            directional_lights[i].color,
             metalness, 
             roughness, 
             F0,
