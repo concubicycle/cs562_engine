@@ -44,6 +44,6 @@ void main()
 
     gBaseColor = 
         //vec4(TexCoords, 0, 1); 
-        textureLod(skybox, directionToUv(model_space_position), 0);
+        texture(skybox, directionToUv(model_space_position));
         //texture(skybox, TexCoords);
 }

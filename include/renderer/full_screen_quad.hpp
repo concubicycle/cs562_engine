@@ -40,7 +40,8 @@ namespace renderer
 				(void*)offsetof(textured_quad_vertex, position));
 
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(textured_quad_vertex),
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 
+				sizeof(textured_quad_vertex),
 				(void*)offsetof(textured_quad_vertex, texture_coords));
 		}
 

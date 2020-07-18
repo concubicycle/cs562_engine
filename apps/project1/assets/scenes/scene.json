@@ -121,20 +121,16 @@
       ]
     },
     {
-      "prototype": "assets/prototypes/punctual_light.json",
       "components": [
         {
           "type": "transform",
-          "position": [ -4, 6, -15 ]
-        }
-      ]
-    },
-    {
-      "prototype": "assets/prototypes/punctual_light.json",
-      "components": [
+          "position": [ 0, 50, 0 ],
+          "rotation": [ -1, 0, 0 ]
+        },
         {
-          "type": "transform",
-          "position": [ 4, 6, -5 ]
+          "type": "directional_light",
+          "direction": [ 0, -0.78087, -0.62469 ],
+          "color": [ 0.5, 0.5, 0.6 ]
         }
       ]
     },
@@ -231,6 +227,32 @@
         }
       ]
     },
+
+
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, -35 ],
+          "scale": [ 0.1, 0.1, 0.1 ]
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/ruinwall/ruin_wall.gltf",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 1,
+                "metalness": false,
+                "fresnel_color": [ 0.3, 0.3, 0.1 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
+        }
+      ]
+    },
+
     {
       "components": [
         {

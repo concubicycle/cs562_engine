@@ -1,23 +1,23 @@
 #version 430 core
-
-#define EDGE_EPSILON 0.1
-
 out vec4 FragColor;
 
-in VS_OUT {
-	highp float depth;
-	vec2 xy;
+#define EPSILON 0.0000001
+#define PI 3.1415926535897932384626433832795
+#define DOT_CLAMP 0.00001
+#define MAX_POINT_LIGHTS 8
+
+
+in VS_OUT {    
+    float depth;
 } fs_in;
+
 
 
 void main()
 {
-	float depth = fs_in.depth;
-
-	FragColor = vec4(
-		depth,
-		depth * depth,
-		depth * depth * depth,
-		depth * depth * depth * depth
-	);
+    FragColor = vec4(
+        fs_in.depth, 
+        fs_in.depth * fs_in.depth,
+        fs_in.depth * fs_in.depth * fs_in.depth, 
+        fs_in.depth * fs_in.depth * fs_in.depth * fs_in.depth);
 }

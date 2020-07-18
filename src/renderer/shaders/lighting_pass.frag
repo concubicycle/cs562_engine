@@ -4,6 +4,7 @@ out vec4 FragColor;
 #define EPSILON 0.000000001
 #define EDGE_EPSILON 0.5
 #define SHADOW_BIAS 0.00000001
+#define SHADOW_BIAS_DIRECTIONAL 0.00001
 #define PI 3.1415926535897932384626433832795
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
@@ -104,9 +105,9 @@ vec2 solve_quadratic(float a, float b, float c)
     );
 }
 
-float hamburger4MSM(vec4 b, float fragment_depth)
+float hamburger4MSM(vec4 b, float fragment_depth, float alpha)
 {
-    vec4 b_prime = (1-SHADOW_BIAS) * b + SHADOW_BIAS * vec4(0.5);
+    vec4 b_prime = (1-alpha) * b + alpha * vec4(0.5);
     
     vec3 m1 = vec3(1, b_prime[0], b_prime[1]);
     vec2 m2 = vec2(b_prime[1], b_prime[2]);
@@ -120,7 +121,7 @@ float hamburger4MSM(vec4 b, float fragment_depth)
     float zf = fragment_depth;
     float z2 = min(z_roots[0], z_roots[1]);
     float z3 = max(z_roots[0], z_roots[1]);
-
+     
     if (fragment_depth <= z2) return 0;
     else if (fragment_depth <= z3)
     {
@@ -168,26 +169,24 @@ float shadowIntensityG(
         : light_space_pos.x/2 + 0.5;
 
     vec4 b = texture(point_lights[light_index].shadow_map, light_space_pos.xy);    
-    return hamburger4MSM(b, fragment_depth);
+    return hamburger4MSM(b, fragment_depth, SHADOW_BIAS);
 }
 
 float shadowIntensityG_directional(
     int light_index,
     const vec3 world_position)
 {
-    vec4 light_space_pos = 
-        directional_lights[light_index].light_view * 
-        directional_lights[light_index].light_projection * 
+    vec4 light_space_pos =
+        directional_lights[light_index].light_view *
         vec4(world_position, 1);
-
-    // [-1, 1] to [0, 1]
-    light_space_pos.xy = (light_space_pos.xy + vec2(1)) / 2;
 
     float fragment_depth = -light_space_pos.z;
     fragment_depth /= 100;
 
-    vec4 b = texture(directional_lights[light_index].shadow_map, light_space_pos.xy);    
-    return hamburger4MSM(b, fragment_depth);
+    vec4 tex_coords = directional_lights[light_index].light_projection * light_space_pos;
+    tex_coords.xy = (tex_coords.xy + vec2(1)) / 2;
+    vec4 b = texture(directional_lights[light_index].shadow_map, tex_coords.xy);
+    return hamburger4MSM(b, fragment_depth, SHADOW_BIAS_DIRECTIONAL);
 }
 
 

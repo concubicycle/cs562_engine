@@ -5,6 +5,7 @@
 #include <renderer/local_punctual_light.hpp>
 #include <renderer/ambient_light.hpp>
 #include <renderer/projections.hpp>
+#include <renderer/lookat.hpp>
 #include <transforms/transform.hpp>
 
 
@@ -64,8 +65,8 @@ void renderer::render_system::update(ecs::state& state)
         _gbuffer.bind();
         handle_cam_background(c);
         _geometry_pass.bind();
-        bind_camera_uniforms(_geometry_pass, t, c);        
-        draw_scene(state, _geometry_pass);        
+        bind_camera_uniforms(_geometry_pass, t, c);
+        draw_scene(state, _geometry_pass);
         _gbuffer.unbind();
                 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -78,6 +79,7 @@ void renderer::render_system::update(ecs::state& state)
         _fsq.draw();
 
         draw_local_lights(state, t, c);
+        draw_airlight(state, t, c);
     });
 }
 
@@ -108,10 +110,29 @@ void renderer::render_system::set_light_uniforms(
         glUniform1i(location, shadowmap_texture_unit);
 
         shadowmap_texture_unit++;
-        light_count++;        
-    });    
+        light_count++;
+    });
+
+    GLint directional_light_count = 0;
+    state.each<transform, directional_light>([&](transform& t, directional_light& dl) {
+        std::string direction_light_str = "directional_lights[" + std::to_string(directional_light_count) + "]";
+
+        shader.set_uniform(direction_light_str + ".color", dl.color);
+        shader.set_uniform(direction_light_str + ".direction", dl.direction);
+        shader.set_uniform(direction_light_str + ".light_view", dl.light_view);
+        shader.set_uniform(direction_light_str + ".light_projection", dl.light_projection);
+        
+        auto location = shader.uniform_location(direction_light_str + ".shadow_map");
+        glActiveTexture(GL_TEXTURE0 + shadowmap_texture_unit);
+        glBindTexture(GL_TEXTURE_2D, *(dl.filter_output_texture.texture_id));
+        glUniform1i(location, shadowmap_texture_unit);
+
+        shadowmap_texture_unit++;
+        directional_light_count++;
+    });
     
     shader.set_uniform("point_light_count", light_count);
+    shader.set_uniform("directional_light_count", directional_light_count);
 
     state.each<ambient_light>([&](ambient_light& al) {
         shader.set_uniform("ambient_light", al.color);
@@ -358,6 +379,55 @@ void renderer::render_system::draw_local_lights(
     glEnable(GL_DEPTH_TEST);
 }
 
+void renderer::render_system::draw_airlight(
+    ecs::state& state, 
+    const transforms::transform& camera_transform, 
+    const camera& cam)
+{
+    using namespace transforms;
+    using namespace gl;
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    _airlight.bind();
+
+    glBindVertexArray(_sphere.get_vao());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
+
+    Eigen::Vector2f gbuffer_dimensions(_glfw.width(), _glfw.height());
+
+    _airlight.set_uniform("projection", cam.projection);
+    _airlight.set_uniform("view", cam.view.matrix());
+
+    state.each<transform, directional_light>([&](transform& t, directional_light& dl) {
+        Eigen::Matrix4f light_view_inverse = dl.light_view.inverse();
+        Eigen::Matrix4f light_projection_inverse = dl.light_projection.inverse();
+
+        _airlight.set_uniform("light_view_inverse", light_view_inverse);
+        _airlight.set_uniform("light_projection_inverse", light_projection_inverse);
+
+        // bind shadow map
+        auto location = _airlight.uniform_location("shadow_map");
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, dl.shadowmap_framebuffer.texture(0));
+        glUniform1i(location, 0);
+
+        dl.airlight_mesh.draw();
+    });
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    _airlight.unbind();
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+}
+
 void renderer::render_system::render_shadowmap(
     ecs::state& state, 
     transforms::transform& t, 
@@ -378,7 +448,7 @@ void renderer::render_system::render_shadowmap(
     affine_transform view_transform = translate * affine_transform::Identity();
     pl.light_view = view_transform.matrix().inverse();    
     _dual_paraboloid_shadow.set_uniform("view", pl.light_view);
-    draw_scene_shadowmap(state);
+    draw_scene_shadowmap(state, _dual_paraboloid_shadow);
 
     // back facing
     glViewport(pl.shadow_map_resolution, 0, pl.shadow_map_resolution, pl.shadow_map_resolution);
@@ -386,7 +456,7 @@ void renderer::render_system::render_shadowmap(
     view_transform = translate * rotate * affine_transform::Identity();
     pl.light_view_back = view_transform.matrix().inverse();
     _dual_paraboloid_shadow.set_uniform("view", pl.light_view_back);
-    draw_scene_shadowmap(state);
+    draw_scene_shadowmap(state, _dual_paraboloid_shadow);
 
     _dual_paraboloid_shadow.unbind();
     pl.shadowmap_framebuffer.unbind();
@@ -434,14 +504,15 @@ void renderer::render_system::render_shadowmap_directional(
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
     glViewport(0, 0, dl.shadow_map_resolution, dl.shadow_map_resolution);
-    Eigen::Translation3f translate(t.world_position());
-    affine_transform view_transform = translate * affine_transform::Identity();
-    dl.light_view = view_transform.matrix().inverse();
+    Eigen::Vector3f position = t.world_position();
+    Eigen::Vector3f center = position + dl.direction;
+    
+    dl.light_view = lookat(position, center, Eigen::Vector3f(0, 0, -1));
 
     _directional_shadow.set_uniform("view", dl.light_view);
     _directional_shadow.set_uniform("projection", dl.light_projection);
-    draw_scene_shadowmap(state);
-        
+    draw_scene_shadowmap(state, _directional_shadow);
+
     _directional_shadow.unbind();
     dl.shadowmap_framebuffer.unbind();
 
@@ -454,7 +525,7 @@ void renderer::render_system::render_shadowmap_directional(
     auto src_img_loc = _gaussian_horizontal.uniform_location("input_image");
     auto dst_img_loc = _gaussian_horizontal.uniform_location("output_image");
     glBindImageTexture(0, dl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-    glBindImageTexture(1, *(dl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, *(dl.filter_intermediate_texture.texture_id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
     glUniform1i(src_img_loc, 0);
     glUniform1i(dst_img_loc, 1);
     glDispatchCompute(width / 128, height, 1);
@@ -464,8 +535,8 @@ void renderer::render_system::render_shadowmap_directional(
     _gaussian_vertical.bind();
     src_img_loc = _gaussian_vertical.uniform_location("input_image");
     dst_img_loc = _gaussian_vertical.uniform_location("output_image");
-    glBindImageTexture(0, *(dl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-    glBindImageTexture(1, dl.shadowmap_framebuffer.texture(0), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glBindImageTexture(0, *(dl.filter_intermediate_texture.texture_id), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, *(dl.filter_output_texture.texture_id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
     glUniform1i(src_img_loc, 0);
     glUniform1i(dst_img_loc, 1);
     glDispatchCompute(width, height / 128, 1);
@@ -473,7 +544,7 @@ void renderer::render_system::render_shadowmap_directional(
     _gaussian_vertical.unbind();
 }
 
-void renderer::render_system::draw_scene_shadowmap(ecs::state& state)
+void renderer::render_system::draw_scene_shadowmap(ecs::state& state, shader_program& shader)
 {
     using namespace gl;
     using namespace transforms;
@@ -493,7 +564,7 @@ void renderer::render_system::draw_scene_shadowmap(ecs::state& state)
         }
 
         for (size_t i = 0; i < mi.model.mesh_count; ++i)
-            draw_mesh(t, mi.model.meshes[i], _dual_paraboloid_shadow);
+            draw_mesh(t, mi.model.meshes[i], shader);
         });
 
     glCullFace(GL_BACK);

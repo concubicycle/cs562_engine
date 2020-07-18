@@ -25,6 +25,7 @@ void run_app()
 	ecs::register_component<renderer::punctual_light>("punctual_light");
 	ecs::register_component<renderer::camera>("camera");
 	ecs::register_component<renderer::ambient_light>("ambient_light");
+	ecs::register_component<renderer::directional_light>("directional_light");
 	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
 	ecs::register_component<firefly>("firefly");
 
@@ -56,6 +57,7 @@ void run_app()
 	renderer::model_loader model_loader(strings, loader, vram_loader);
 	renderer::punctual_light_loader punctual_light_loader;
 	renderer::local_punctual_light_loader local_punctual_light_loader;
+	renderer::directional_light_loader directional_light_loader;
 	renderer::camera_loader camera_loader(loader, vram_loader);
 	renderer::ambient_light_loader ambient_light_loader;
 
@@ -64,6 +66,7 @@ void run_app()
 		&model_loader,
 		&punctual_light_loader,
 		&local_punctual_light_loader,
+		&directional_light_loader,
 		&camera_loader, 
 		&ambient_light_loader);
 	

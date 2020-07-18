@@ -50,8 +50,8 @@ namespace renderer
 		full_screen_quad _fsq;
 
 		sphere _sphere{4, 4};
-		sphere skydome_mesh{ 64, 128};
-		opengl_hammersley_block<40> _hammersley_block{};
+		sphere skydome_mesh{ 32, 64};
+		opengl_hammersley_block<30> _hammersley_block{};
 
 		shader_program _default{ 
 			_assets.get_text("assets/shaders/default.vert"),
@@ -76,6 +76,10 @@ namespace renderer
 		shader_program _local_light_pass{ 
 			_assets.get_text("assets/shaders/local_light_pass.vert"),
 			_assets.get_text("assets/shaders/local_light_pass.frag") };
+
+		shader_program _airlight{
+			_assets.get_text("assets/shaders/airlight.vert"),
+			_assets.get_text("assets/shaders/airlight.frag") };
 
 		shader_program _dual_paraboloid_shadow{ 
 			_assets.get_text("assets/shaders/dual_paraboloid_shadow.vert"),
@@ -134,7 +138,9 @@ namespace renderer
 			ecs::state& state, 
 			const shader_program& program);
 
-		void draw_scene_shadowmap(ecs::state& state);
+		void draw_scene_shadowmap(
+			ecs::state& state,
+			shader_program& shader);
 
 		void draw_mesh(
 			const transforms::transform& transform, 
@@ -157,6 +163,11 @@ namespace renderer
 		void draw_skydome(const camera& cam);
 
 		void draw_local_lights(
+			ecs::state& state,
+			const transforms::transform& camera_transform,
+			const camera& cam);
+
+		void draw_airlight(
 			ecs::state& state,
 			const transforms::transform& camera_transform,
 			const camera& cam);

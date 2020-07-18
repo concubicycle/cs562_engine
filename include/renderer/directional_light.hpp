@@ -8,6 +8,7 @@
 #include <renderer/framebuffer.hpp>
 #include <renderer/opengl_texture.hpp>
 #include <renderer/projections.hpp>
+#include <renderer/airlight_mesh.hpp>
 #include <transforms/transform.hpp>
 
 namespace renderer
@@ -18,9 +19,12 @@ namespace renderer
 		Eigen::Vector3f direction;				
 		Eigen::Matrix4f light_view;
 		Eigen::Matrix4f light_projection { 
-			orthographic({-100, -100, 0.1 }, {100, 100, 1000 })
+			orthographic(Eigen::Vector3f(-20, -20, -0.1f), Eigen::Vector3f(20, 20, -10000))
+			//perspective(0.6f, 1.f, 0.1f, 1000.f)
 		};
-		std::uint32_t shadow_map_resolution{ 2048 };
+		std::uint32_t shadow_map_resolution{ 128 };
+
+		airlight_mesh airlight_mesh{ shadow_map_resolution , shadow_map_resolution };
 
 		framebuffer<1> shadowmap_framebuffer
 		{
@@ -28,7 +32,7 @@ namespace renderer
 			static_cast<float>(shadow_map_resolution),
 			texture_description(
 				gl::GLenum::GL_COLOR_ATTACHMENT0,
-				shadow_map_resolution * 2,
+				shadow_map_resolution,
 				shadow_map_resolution,
 				gl::GLenum::GL_RGBA32F,
 				gl::GLenum::GL_RGBA,
@@ -36,8 +40,14 @@ namespace renderer
 		};
 
 		opengl_texture filter_output_texture{
-			gl::GLenum::GL_TEXTURE1,
-			shadow_map_resolution * 2,
+			gl::GLenum::GL_TEXTURE2,
+			shadow_map_resolution,
+			shadow_map_resolution
+		};
+
+		opengl_texture filter_intermediate_texture{
+			gl::GLenum::GL_TEXTURE3,
+			shadow_map_resolution,
 			shadow_map_resolution
 		};
 	};
