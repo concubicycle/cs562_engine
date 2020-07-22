@@ -94,7 +94,7 @@
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 588,
+            "count" : 564,
             "max" : [
                 20,
                 49.983428955078125,
@@ -110,13 +110,13 @@
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 588,
+            "count" : 564,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 588,
+            "count" : 564,
             "type" : "VEC2"
         },
         {
@@ -129,28 +129,28 @@
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 7056,
+            "byteLength" : 6768,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 7056,
-            "byteOffset" : 7056
+            "byteLength" : 6768,
+            "byteOffset" : 6768
         },
         {
             "buffer" : 0,
-            "byteLength" : 4704,
-            "byteOffset" : 14112
+            "byteLength" : 4512,
+            "byteOffset" : 13536
         },
         {
             "buffer" : 0,
             "byteLength" : 2064,
-            "byteOffset" : 18816
+            "byteOffset" : 18048
         }
     ],
     "buffers" : [
         {
-            "byteLength" : 20880,
+            "byteLength" : 20112,
             "uri" : "cabinroom.bin"
         }
     ]

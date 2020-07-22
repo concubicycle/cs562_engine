@@ -15,9 +15,13 @@ uniform float width;
 uniform float height;
 uniform vec3 light_position;
 uniform vec3 eye_position;
-uniform float beta = 0.05;
+uniform float beta = 0.04;
+uniform mat4 light_view;
+uniform bool use_single_scattering;
 
-uniform float F_table_resolution = 1024;
+uniform vec3 initial_intensity;
+
+uniform float F_table_range = 10;
 
 in VS_OUT {
     float view_depth;
@@ -27,49 +31,54 @@ in VS_OUT {
 
 float F_lookup(float u, float v)
 {
-    u = u / F_table_resolution;
+    u = u / F_table_range;
     v = v / (PI/2.0);
-
     vec2 texCoords = vec2(u, v);
-
     return texture(F_table, texCoords).r;
 }
 
-vec3 A0(float Tsv, float gamma, vec3 color)
+
+vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
 {
-    float beta_sq = beta * beta;
     float cos_gamma = cos(gamma);
     float sin_gamma = sin(gamma);
+    float Tsv = beta * Dsv;
+    float Tvp = beta * Dvp;
     
-    vec3 numerator = beta_sq * color  * exp(-Tsv * cos_gamma);
-    float denominator = 2 * PI * Tsv * sin_gamma;
-    return numerator / denominator;
-}
-
-float A1(float Tsv, float gamma)
-{
-    return Tsv * sin(gamma);
-}
-
-vec3 LaFinite(float Tsv, float Tvp, float gamma, vec3 color)
-{
-    float cos_gamma = cos(gamma);
-    float sin_gamma = sin(gamma);
-    float atan_term = atan(Tvp - Tsv * cos_gamma, Tsv * sin_gamma);
-
-    float A1_eval = A1(Tsv, gamma);
+    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (2.0 * PI * Dsv * sin_gamma);
+    float A1_eval = Tsv * sin_gamma;
 
     float u1 = A1_eval;
     float u2 = A1_eval;
 
-    float v1 = PI/4 + 0.5 * atan_term;
+    float v1 = PI/4.0 + 0.5 * atan(Tvp - Tsv * cos_gamma, Tsv * sin_gamma);
     float v2 = gamma / 2.0;
 
-    vec3 A0_eval  = A0(Tsv, gamma, color);
+    float f1 = F_lookup(u1, v1);
+    float f2 = F_lookup(u2, v2);
+    
+    if (Tsv > 10) return vec3(-1, 0, 0);
+    if (u1 > F_table_range || u2 > F_table_range) return vec3(-1, 0, 0);
+    if (v1 > (PI/2) || v2 > (PI/2)) return vec3(0, -1, 0);
+    if (v1 < 0 || v2 < 0) return vec3(0, 0, -1);
+    if (u1 < 0 || u2 < 0) return vec3(-1, 0, 0);    
 
-    return A0_eval * (F_lookup(u1, v1) - F_lookup(u2, v2));
+     return A0_eval * (f1 - f2);
 }
 
+vec3 LaInfinite(float Dsv, float gamma, vec3 color)
+{
+    float cos_gamma = cos(gamma);
+    float sin_gamma = sin(gamma);
+    float Tsv = beta * Dsv;
+    
+    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (2.0 * PI * Dsv * sin_gamma);
+    float A1_eval = Tsv * sin_gamma;
+
+    float f1 = F_lookup(A1_eval, PI/2);
+    float f2 = F_lookup(A1_eval, gamma/2);
+    return A0_eval * (f1 - f2);
+}
 
 
 //////////////////////////////////////
@@ -91,26 +100,20 @@ void main()
     
     vec4 gNormal_texel = texture(gNormal, TexCoords);
     vec4 gPosition_texel = texture(gPosition, TexCoords);
-    
+
+    float backwall_depth = gNormal_texel.w;
+
     vec3 eye_to_light = light_position - eye_position;
     vec3 eye_to_surface = fs_in.fragment_position.xyz - eye_position;
     vec3 eye_to_light_dir = normalize(eye_to_light);
     vec3 eye_to_surface_dir = normalize(eye_to_surface);
-
     float dprod = dot(eye_to_light_dir, eye_to_surface_dir);
+    float gamma = clamp(acos(dprod), 0.1, PI/2.0 - 0.0001);
 
-    float gamma = acos(dprod);
+    vec4 eye_from_light = light_view * vec4(eye_position, 1);
 
-    float Tsv = beta * length(eye_to_light);
-    float Tvp = beta * fs_in.view_depth; //length(eye_to_surface);
-
-    float colval = 10000;
-
-    vec3 color = 
-        Tvp * vec3(0.3, 0.3, 0.3);    
-        //LaFinite(Tsv, Tvp, gamma, vec3(colval));
-
-    float backwall_depth = gNormal_texel.w;
+    float Dsv = -eye_from_light.z;
+    float Dvp = fs_in.view_depth; //length(eye_to_surface);
 
     bool not_a_surface = 
         gNormal_texel.x == 0 && 
@@ -119,7 +122,14 @@ void main()
         gNormal_texel.w == -1;
 
     if (fs_in.view_depth > (backwall_depth) && !not_a_surface)
-        discard;
+        Dvp = backwall_depth;
+
+    vec3 color = use_single_scattering
+        ? not_a_surface
+            ? LaInfinite(Dsv, gamma, vec3(initial_intensity))
+            : LaFinite(Dsv, Dvp, gamma, vec3(initial_intensity))
+        : beta * Dvp * vec3(0.3, 0.3, 0.3);        
+
  
     float s0 = gl_FrontFacing ? 1 : -1;
 

@@ -46,6 +46,9 @@ namespace core
 
         const Eigen::Vector2f mouse_delta() { return _mouse_delta.average(); }        
 
+        void skip_frame() { _skip_frame = true; }
+        void set_mouse_disabled(bool value) { _is_mouse_disabled = value; }
+
     private:
         GLFWwindow *_window;
         double _last_x, _last_y;
@@ -63,6 +66,9 @@ namespace core
         std::uint8_t _mouse_button_state_b[GLFW_MOUSE_BUTTON_8 +1];
 
         Eigen::Vector2f _last_click_position;
+
+        bool _skip_frame;
+        bool _is_mouse_disabled;
 
         static void (*build_mouse_callback(input_manager& r))(GLFWwindow* window, int, int, int)
         {

@@ -6,6 +6,7 @@
 #include <renderer/ambient_light.hpp>
 #include <renderer/projections.hpp>
 #include <renderer/lookat.hpp>
+#include <renderer/participating_medium.hpp>
 #include <transforms/transform.hpp>
 
 
@@ -40,7 +41,7 @@ renderer::render_system::render_system(
 
     _fuv_table_dimensions[0] = fuv_tex.width;
     _fuv_table_dimensions[1] = fuv_tex.height;
-    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex);
+    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex, false);
 }
 
 
@@ -392,12 +393,16 @@ void renderer::render_system::draw_airlight(
     using namespace transforms;
     using namespace gl;
 
+    auto* pm = state.first<participating_medium>();
+    if (!pm) return;
+
+    auto& participating_medium_component = pm->get_component<participating_medium>();
+
     _airlight.bind();
 
-    glBindVertexArray(_sphere.get_vao());
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
-
-    Eigen::Vector2f gbuffer_dimensions(_glfw.width(), _glfw.height());
+    _airlight.set_uniform("beta", participating_medium_component.beta);
+    _airlight.set_uniform("initial_intensity", participating_medium_component.initial_intensity);
+    _airlight.set_uniform("use_single_scattering", participating_medium_component.use_single_scattering);
 
     _airlight.set_uniform("projection", cam.projection);
     _airlight.set_uniform("view", cam.view.matrix());
@@ -424,12 +429,11 @@ void renderer::render_system::draw_airlight(
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-        
+    
+    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+    glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+
     glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-
-  
-
 
     state.each<transform, directional_light>([&](transform& t, directional_light& dl) {
         Eigen::Matrix4f light_view_inverse = dl.light_view.inverse();
@@ -438,6 +442,7 @@ void renderer::render_system::draw_airlight(
         _airlight.set_uniform("light_view_inverse", light_view_inverse);
         _airlight.set_uniform("light_projection_inverse", light_projection_inverse);
         _airlight.set_uniform("light_position", t.world_position());
+        _airlight.set_uniform("light_view", dl.light_view);
 
         // bind shadow map
         auto location = _airlight.uniform_location("shadow_map");
@@ -445,28 +450,27 @@ void renderer::render_system::draw_airlight(
         glBindTexture(GL_TEXTURE_2D, dl.shadowmap_framebuffer.texture(0));
         glUniform1i(location, 3);
 
+        // draw airlight to FBO
         _post_process_buffer.bind();
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        
-        glBlendEquation(GL_FUNC_ADD);
-        //glCullFace(GL_BACK);
         dl.airlight_mesh.draw();
+        _post_process_buffer.unbind();
 
-        // blend 
+        // blend FBO into 
+        _draw_texture.bind();
 
-        // draw back faces, subtracting the contribution
-        //glBlendEquation(GL_FUNC_REVERSE_SUBTRACT); // dest = dest - source
-        //glCullFace(GL_FRONT);
-        //dl.airlight_mesh.draw();
-    });
+        location = _airlight.uniform_location("color");
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _post_process_buffer.texture(0));
+        glUniform1i(location, 0);
 
-    _post_process_buffer.unbind();
-
-    glCullFace(GL_BACK);
+        _fsq.draw();
+    });    
+        
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

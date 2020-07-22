@@ -27,7 +27,9 @@ void run_app()
 	ecs::register_component<renderer::ambient_light>("ambient_light");
 	ecs::register_component<renderer::directional_light>("directional_light");
 	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
+	ecs::register_component<renderer::participating_medium>("participating_medium");
 	ecs::register_component<firefly>("firefly");
+	
 
 	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
 	asset::asset_loader loader;
@@ -72,9 +74,11 @@ void run_app()
 	
 	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
 	engineui::fps_display fps(glfw, timer);
+	engineui::participating_medium_display pm_display(glfw, state);
 
 	overlay.register_views(		
-		&fps
+		&fps,
+		&pm_display
 	);
 
 

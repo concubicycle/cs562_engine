@@ -40,6 +40,15 @@ bool core::input_manager::was_mouse_released(std::uint8_t mouse_button)
 
 void core::input_manager::update()
 {    
+    if (_skip_frame) 
+    {
+        _skip_frame = false;
+        memcpy(_last_key_states, _current_key_states, sizeof(std::uint8_t) * GLFW_KEY_LAST);
+        memcpy(_last_mouse_button_states, _current_mouse_button_states, sizeof(std::uint8_t) * (GLFW_MOUSE_BUTTON_8 + 1));
+
+        return;
+    }
+
     std::uint8_t* dummy = _last_key_states;
     _last_key_states = _current_key_states;
     _current_key_states = dummy;
@@ -59,6 +68,8 @@ void core::input_manager::update()
         auto state = glfwGetMouseButton(_window, _glfw_mouse_button_codes[i]);
         _current_mouse_button_states[_glfw_mouse_button_codes[i]] = (std::uint8_t) state;
     }
+
+    if (_is_mouse_disabled) return;
 
     double x, y;
     glfwGetCursorPos(_window, &x, &y);

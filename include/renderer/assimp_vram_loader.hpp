@@ -38,7 +38,7 @@ namespace renderer
 		opengl_material load_material(const asset::assimp_material& material);
 		opengl_mesh load_mesh(const asset::assimp_mesh& mesh);
 		gl::GLuint load_texture(const asset::texture_asset& texture_asset);
-		gl::GLuint load_texturef(const asset::texture_assetf& texture_asset);
+		gl::GLuint load_texturef(const asset::texture_assetf& texture_asset, bool mipmap = true);
 
 		opengl_cubemap load_cubemap(
 			const asset::texture_asset& left,

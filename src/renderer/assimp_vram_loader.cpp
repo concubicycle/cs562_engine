@@ -146,7 +146,7 @@ gl::GLuint renderer::assimp_vram_loader::load_texture(const asset::texture_asset
 	return result;
 }
 
-gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_assetf& texture_asset)
+gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_assetf& texture_asset, bool mipmap)
 {
 	using namespace gl;
 
@@ -169,10 +169,12 @@ gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_asse
 		texture_asset.data.get());
 
 	// OpenGL texture settings
-	glGenerateMipmap(GL_TEXTURE_2D);
+	if (mipmap)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	return result;

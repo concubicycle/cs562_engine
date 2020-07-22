@@ -91,6 +91,10 @@ namespace renderer
 			_assets.get_text("assets/shaders/directional_shadow.vert"),
 			_assets.get_text("assets/shaders/directional_shadow.frag") };
 
+		shader_program _draw_texture{
+			_assets.get_text("assets/shaders/draw_texture.vert"),
+			_assets.get_text("assets/shaders/draw_texture.frag") };
+
 		compute_shader_program _gaussian_horizontal{ 
 			_assets.get_text("assets/shaders/gaussian_horizontal.comp") };
 
