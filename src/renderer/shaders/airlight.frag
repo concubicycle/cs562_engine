@@ -18,6 +18,7 @@ uniform vec3 eye_position;
 uniform float beta = 0.04;
 uniform mat4 light_view;
 uniform bool use_single_scattering;
+uniform float darken_bias;
 
 uniform vec3 initial_intensity;
 
@@ -137,7 +138,7 @@ void main()
             : LaFinite(Dsv, Dvp, gamma, vec3(initial_intensity))
         : beta * Dvp * vec3(0.3, 0.3, 0.3);
  
-    float s0 = gl_FrontFacing ? 1 : -1;
+    float s0 = gl_FrontFacing ? 1 : -1 - darken_bias;
 
     if (color.x < 0)
         FragColor = vec4(1, 0, 0, 1);

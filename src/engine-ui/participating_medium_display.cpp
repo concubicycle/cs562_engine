@@ -22,6 +22,7 @@ void engineui::participating_medium_display::draw()
 		ImGui::SliderFloat("Beta (density)", &pm.beta, 0.f, 0.25f);
 		ImGui::InputFloat3("Initial Intensity", pm.initial_intensity.data());
 		ImGui::Checkbox("Use Single Scattering", &pm.use_single_scattering);
+		ImGui::SliderFloat("Darken Bias", &pm.darken_bias, -0.2f, 0.2f);
 		
 		ImGui::End();
 	});

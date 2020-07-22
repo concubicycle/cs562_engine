@@ -13,6 +13,7 @@ namespace renderer
 		float f_lookup_range{ 10.f };
 		Eigen::Vector3f initial_intensity{ 50000.f, 50000.f, 50000.f };
 		bool use_single_scattering{ false };
+		float darken_bias{ 0 };
 	};
 }
 
