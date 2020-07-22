@@ -63,7 +63,14 @@ vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
     if (v1 < 0 || v2 < 0) return vec3(0, 0, -1);
     if (u1 < 0 || u2 < 0) return vec3(-1, 0, 0);    
 
-     return A0_eval * (f1 - f2);
+     vec3 result = A0_eval * (f1 - f2);
+
+     if (isnan(result.x) ||isnan(result.x) ||isnan(result.x))
+     {
+        return vec3(-1, 0, -1);    
+     }
+
+     return result;
 }
 
 vec3 LaInfinite(float Dsv, float gamma, vec3 color)
@@ -128,8 +135,7 @@ void main()
         ? not_a_surface
             ? LaInfinite(Dsv, gamma, vec3(initial_intensity))
             : LaFinite(Dsv, Dvp, gamma, vec3(initial_intensity))
-        : beta * Dvp * vec3(0.3, 0.3, 0.3);        
-
+        : beta * Dvp * vec3(0.3, 0.3, 0.3);
  
     float s0 = gl_FrontFacing ? 1 : -1;
 

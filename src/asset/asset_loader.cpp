@@ -144,6 +144,8 @@ const asset::texture_assetf& asset::asset_loader::get_texturef_untonemapped(cons
 		throw std::runtime_error("Failed to load hdr texture " + file);
 	}
 
+	float max = 0;
+
 	_hdr_texture_cache.try_emplace(
 		file,
 		width, height, channels, floats);

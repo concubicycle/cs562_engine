@@ -51,7 +51,7 @@ namespace renderer
 
 		sphere _sphere{4, 4};
 		sphere skydome_mesh{ 32, 64};
-		opengl_hammersley_block<30> _hammersley_block{};
+		opengl_hammersley_block<40> _hammersley_block{};
 		gl::GLuint _fuv_table_texture;
 		Eigen::Vector2f _fuv_table_dimensions;
 

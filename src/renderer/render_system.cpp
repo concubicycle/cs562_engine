@@ -86,7 +86,12 @@ void renderer::render_system::update(ecs::state& state)
         _fsq.draw();
 
         draw_local_lights(state, t, c);
+        
         draw_airlight(state, t, c);
+
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
     });
 }
 
@@ -398,6 +403,9 @@ void renderer::render_system::draw_airlight(
 
     auto& participating_medium_component = pm->get_component<participating_medium>();
 
+    if (participating_medium_component.beta == 0)
+        return;
+
     _airlight.bind();
 
     _airlight.set_uniform("beta", participating_medium_component.beta);
@@ -433,8 +441,6 @@ void renderer::render_system::draw_airlight(
     glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
 
-    glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-
     state.each<transform, directional_light>([&](transform& t, directional_light& dl) {
         Eigen::Matrix4f light_view_inverse = dl.light_view.inverse();
         Eigen::Matrix4f light_projection_inverse = dl.light_projection.inverse();
@@ -467,13 +473,6 @@ void renderer::render_system::draw_airlight(
 
         _fsq.draw();
     });    
-        
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     _airlight.unbind();
 }

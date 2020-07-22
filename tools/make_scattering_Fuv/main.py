@@ -9,8 +9,8 @@ import cv2
 import sys
 
 FileName = "Fuv.hdr" if len(sys.argv) <= 1 else sys.argv[1]
-Resolution = 64 if len(sys.argv) <= 2 else int(sys.argv[2])
-URange = 10 if len(sys.argv) <= 3 else int(sys.argv[3])
+Resolution = 256 if len(sys.argv) <= 2 else int(sys.argv[2])
+URange = 20 if len(sys.argv) <= 3 else int(sys.argv[3])
 
 def integrand(u, xi):
     return math.exp(-u * math.tan(xi))

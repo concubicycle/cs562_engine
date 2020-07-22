@@ -150,7 +150,9 @@ gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_asse
 {
 	using namespace gl;
 
-	auto texture_channels_gl = num_channels_to_gltype(texture_asset.channels);
+	auto internal_format = num_channels_to_gltype(texture_asset.channels, true);
+	auto format = num_channels_to_gltype(texture_asset.channels);
+
 	gl::GLuint result;
 
 	// Create OpenGL representation
@@ -160,11 +162,11 @@ gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_asse
 	glTexImage2D(
 		GL_TEXTURE_2D,
 		0,
-		texture_channels_gl,
+		internal_format,
 		texture_asset.width,
 		texture_asset.height,
 		0,
-		texture_channels_gl,
+		format,
 		GL_FLOAT,
 		texture_asset.data.get());
 
@@ -174,7 +176,7 @@ gl::GLuint renderer::assimp_vram_loader::load_texturef(const asset::texture_asse
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	return result;
@@ -255,7 +257,7 @@ gl::GLuint renderer::assimp_vram_loader::load_cubemap(std::vector<const asset::t
 
 
 
-gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels)
+gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels, bool float_format)
 {
 	using namespace gl;
 	GLenum texture_channels_gl;
@@ -266,9 +268,9 @@ gl::GLenum renderer::assimp_vram_loader::num_channels_to_gltype(int num_channels
 	case 2:
 		return GL_RG;
 	case 3:
-		return GL_RGB;
+		return float_format ? GL_RGB32F : GL_RGB;
 	case 4:
-		return GL_RGBA;
+		return float_format ? GL_RGBA32F : GL_RGBA;
 
 	default:
 		throw std::runtime_error("Error: Unexpected amount of channels while loading texture.");
