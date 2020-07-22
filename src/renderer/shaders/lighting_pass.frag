@@ -334,7 +334,7 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
 
         vec3 H = normalize(omega_k + V);
         float D = ggxNdf(N, H, roughness * roughness);
-        float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D);
+        float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D/4);
         vec3 incoming_light_color = textureLod(skydome_light, uv, level).rgb;
 
         sum += 
