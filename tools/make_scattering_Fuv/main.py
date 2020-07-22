@@ -4,7 +4,6 @@ import scipy.misc
 import math
 from functools import partial
 import numpy as np
-from PIL import Image
 import cv2
 import sys
 
@@ -36,7 +35,3 @@ for u in np.arange(0, URange, URange / Resolution):
     u_index += 1
 
 cv2.imwrite(FileName, image)
-
-# for u in range(0, Resolution):
-#     for v in range(0, Resolution):
-#         print (image[u, v])
