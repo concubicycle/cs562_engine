@@ -19,10 +19,10 @@ namespace renderer
 		Eigen::Vector3f direction;				
 		Eigen::Matrix4f light_view;
 		Eigen::Matrix4f light_projection { 
-			orthographic(Eigen::Vector3f(-20, -20, -0.1f), Eigen::Vector3f(20, 20, -10000))
+			orthographic(Eigen::Vector3f(-50, -50, -0.1f), Eigen::Vector3f(50, 50, -10000))
 			//perspective(0.6f, 1.f, 0.1f, 1000.f)
 		};
-		std::uint32_t shadow_map_resolution{ 128 };
+		std::uint32_t shadow_map_resolution{ 1024 };
 
 		airlight_mesh airlight_mesh{ shadow_map_resolution , shadow_map_resolution };
 

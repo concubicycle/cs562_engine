@@ -52,6 +52,8 @@ namespace renderer
 		sphere _sphere{4, 4};
 		sphere skydome_mesh{ 32, 64};
 		opengl_hammersley_block<30> _hammersley_block{};
+		gl::GLuint _fuv_table_texture;
+		Eigen::Vector2f _fuv_table_dimensions;
 
 		shader_program _default{ 
 			_assets.get_text("assets/shaders/default.vert"),
@@ -94,6 +96,8 @@ namespace renderer
 
 		compute_shader_program _gaussian_vertical{ 
 			_assets.get_text("assets/shaders/gaussian_vertical.comp") };
+
+		
 		
 		framebuffer<4> _gbuffer{
 		    (float)_glfw.width(),
@@ -124,6 +128,18 @@ namespace renderer
 				_glfw.width(),
 				_glfw.height(),
 				gl::GLenum::GL_RGBA,
+				gl::GLenum::GL_RGBA,
+				gl::GLenum::GL_FLOAT) };
+
+
+		framebuffer<1> _post_process_buffer{
+			(float)_glfw.width(),
+			(float)_glfw.height(),
+			texture_description(
+				gl::GLenum::GL_COLOR_ATTACHMENT0,
+				_glfw.width(),
+				_glfw.height(),
+				gl::GLenum::GL_RGBA32F,
 				gl::GLenum::GL_RGBA,
 				gl::GLenum::GL_FLOAT) };
 

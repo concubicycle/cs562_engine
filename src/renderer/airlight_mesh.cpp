@@ -60,41 +60,54 @@ void renderer::airlight_mesh::build_mesh(
 			_indices.push_back(last_index_start + j);
 			_indices.push_back(last_index_start + j + 1);
 		}
-	}
+	}	
 
 	// add ligh-position vertex
-	_vertices.emplace_back(0, 0, -0.999);
+	_vertices.emplace_back(0.5, 0.5, -0.999);
+	
 	auto lightvertex = _vertices.size() - 1;
+	auto lowerleft = 0;
+	auto lowerright = shadowmap_width - 1;
+	auto upperleft = (shadowmap_height - 1) * shadowmap_width;
+	auto upperright = upperleft + (shadowmap_width - 1);
+
 
 	// w=4, h=3
 	// 8  9  10 11
 	// 4  5  6  7
 	// 0  1  2  3
 
-	auto lowerleft = 0;
-	auto lowerright = shadowmap_width - 1;
-	auto upperleft = (shadowmap_height - 1) * shadowmap_width;
-	auto upperright = upperleft + (shadowmap_width - 1);
+	// link light vertex to bottom row
+	for (size_t j = lowerleft; j < lowerright; ++j)
+	{
+		_indices.push_back(lightvertex);
+		_indices.push_back(j + 1);
+		_indices.push_back(j);
+	}
 
-	// upper
-	_indices.push_back(lightvertex);
-	_indices.push_back(upperright);
-	_indices.push_back(upperleft);
+	// link light vertex to top row
+	for (size_t j = upperleft; j < upperright; ++j)
+	{
+		_indices.push_back(lightvertex);
+		_indices.push_back(j);
+		_indices.push_back(j + 1);
+	}
 
-	// right
-	_indices.push_back(lightvertex);
-	_indices.push_back(lowerright);
-	_indices.push_back(upperright);
+	// link light vertex to left col
+	for (size_t i = lowerleft; i < upperleft; i += shadowmap_width)
+	{
+		_indices.push_back(lightvertex);
+		_indices.push_back(i);
+		_indices.push_back(i + shadowmap_width);
+	}
 
-	// bottom
-	_indices.push_back(lightvertex);
-	_indices.push_back(lowerright);
-	_indices.push_back(lowerleft);
-
-	// left
-	_indices.push_back(lightvertex);
-	_indices.push_back(lowerleft);
-	_indices.push_back(upperleft);
+	// link light vertex to left col
+	for (size_t i = lowerright; i < upperright; i += shadowmap_width)
+	{
+		_indices.push_back(lightvertex);
+		_indices.push_back(i + shadowmap_width);
+		_indices.push_back(i);
+	}
 }
 
 void renderer::airlight_mesh::draw()

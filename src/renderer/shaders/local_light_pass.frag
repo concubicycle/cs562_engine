@@ -98,8 +98,7 @@ void main()
 
     vec4 gPosition_texel = texture(gPosition, gbuffer_coords);
     vec3 world_position = gPosition_texel.rgb;
-    bool metalness = gPosition_texel.a == 1 ? true : false;
-    
+    bool metalness = gPosition_texel.a == 1 ? true : false;    
                 
     vec3 light_vec = position - world_position.xyz;    
 
@@ -115,19 +114,18 @@ void main()
     vec3 view_vec = camera_position.xyz - world_position.xyz;
     vec3 V = normalize(view_vec);
     vec3 L = normalize(light_vec);
-    vec3 N = normalize(texture(gNormal, gbuffer_coords).xyz);
-    
+    vec3 N = normalize(texture(gNormal, gbuffer_coords).xyz);    
 
     float one_over_rsq = 1.0/radius_sq;
     float one_over_dsq = 1.0/light_dist_sq;
     float attenuation_factor = one_over_dsq - one_over_rsq;
 
-      vec3 brdf = ggxReflectance(
-            L,
-            V,            
-            color,
-            metalness,
-            gbuffer_coords);
+    vec3 brdf = ggxReflectance(
+        L,
+        V,            
+        color,
+        metalness,
+        gbuffer_coords);
             
     FragColor = vec4(brdf * attenuation_factor, 1);
 }

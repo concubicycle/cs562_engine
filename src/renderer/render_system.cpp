@@ -35,6 +35,12 @@ renderer::render_system::render_system(
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    auto& fuv_tex = _assets.get_texturef_untonemapped("assets/Fuv.hdr");
+
+    _fuv_table_dimensions[0] = fuv_tex.width;
+    _fuv_table_dimensions[1] = fuv_tex.height;
+    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex);
 }
 
 
@@ -374,8 +380,7 @@ void renderer::render_system::draw_local_lights(
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     _local_light_pass.unbind();
-
-    glDisable(GL_BLEND);
+        
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -387,11 +392,6 @@ void renderer::render_system::draw_airlight(
     using namespace transforms;
     using namespace gl;
 
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-
     _airlight.bind();
 
     glBindVertexArray(_sphere.get_vao());
@@ -401,6 +401,35 @@ void renderer::render_system::draw_airlight(
 
     _airlight.set_uniform("projection", cam.projection);
     _airlight.set_uniform("view", cam.view.matrix());
+    _airlight.set_uniform("width", (float)_glfw.width());
+    _airlight.set_uniform("height", (float)_glfw.height());
+    _airlight.set_uniform("eye_position", camera_transform.world_position());
+    _airlight.set_uniform("F_table_resolution", _fuv_table_dimensions[0]);
+    
+    auto location = _airlight.uniform_location("gPosition");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _gbuffer.texture(1));
+    glUniform1i(location, 0);
+
+    location = _airlight.uniform_location("gNormal");
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, _gbuffer.texture(1));
+    glUniform1i(location, 1);
+
+    location = _airlight.uniform_location("F_table");
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, _fuv_table_texture);
+    glUniform1i(location, 4);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+        
+    glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
+
+  
+
 
     state.each<transform, directional_light>([&](transform& t, directional_light& dl) {
         Eigen::Matrix4f light_view_inverse = dl.light_view.inverse();
@@ -408,24 +437,41 @@ void renderer::render_system::draw_airlight(
 
         _airlight.set_uniform("light_view_inverse", light_view_inverse);
         _airlight.set_uniform("light_projection_inverse", light_projection_inverse);
+        _airlight.set_uniform("light_position", t.world_position());
 
         // bind shadow map
         auto location = _airlight.uniform_location("shadow_map");
-        glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, dl.shadowmap_framebuffer.texture(0));
-        glUniform1i(location, 0);
+        glUniform1i(location, 3);
 
+        _post_process_buffer.bind();
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        
+        glBlendEquation(GL_FUNC_ADD);
+        //glCullFace(GL_BACK);
         dl.airlight_mesh.draw();
+
+        // blend 
+
+        // draw back faces, subtracting the contribution
+        //glBlendEquation(GL_FUNC_REVERSE_SUBTRACT); // dest = dest - source
+        //glCullFace(GL_FRONT);
+        //dl.airlight_mesh.draw();
     });
+
+    _post_process_buffer.unbind();
+
+    glCullFace(GL_BACK);
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     _airlight.unbind();
-
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
 }
 
 void renderer::render_system::render_shadowmap(
@@ -500,7 +546,7 @@ void renderer::render_system::render_shadowmap_directional(
     dl.shadowmap_framebuffer.bind();
     _directional_shadow.bind();
 
-    glClearColor(0, 0, 0, 0);
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
     glViewport(0, 0, dl.shadow_map_resolution, dl.shadow_map_resolution);

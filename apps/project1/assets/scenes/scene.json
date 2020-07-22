@@ -233,12 +233,13 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 0, -35 ],
-          "scale": [ 0.1, 0.1, 0.1 ]
+          "position": [ 0, 3, -35 ],
+          "scale": [ 0.3, 0.3, 0.3 ],
+          "rotation": [ 0, 3.14, 0 ]
         },
         {
           "type": "model_instance",
-          "model": "assets/models/ruinwall/ruin_wall.gltf",
+          "model": "assets/models/cabinroom/cabinroom.gltf",
           "materials": {
             "definitions": [
               {

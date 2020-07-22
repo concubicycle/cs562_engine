@@ -126,6 +126,9 @@ const asset::texture_assetf& asset::asset_loader::get_texturef(
 	return _hdr_texture_cache.find(file)->second;
 }
 
+#include <iostream>
+#include <iomanip>
+
 const asset::texture_assetf& asset::asset_loader::get_texturef_untonemapped(const std::string& file)
 {
 	auto cached = _hdr_texture_cache.find(file);
