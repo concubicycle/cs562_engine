@@ -325,16 +325,27 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
             hammersley_block.hammersley[block_index], 
             hammersley_block.hammersley[block_index+1]);
 
-        float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;        
-        float xi_1_power = 1.0 / (phong_roughness + 1.0);
+        float phong_alpha = 2.0 * pow(roughness, -2.0) - 2.0;        
+        float xi_1_power = 1.0 / (phong_alpha + 1.0);
         vec2 cdf_uv = vec2(xi[0], acos(pow(xi[1], xi_1_power)) / PI);
         vec3 L = uvToDirection(cdf_uv);
+
+        
+
         vec3 omega_k = normalize(L.x * A + L.y * R + L.z * B);
         vec2 uv = directionToUv(omega_k);
 
         vec3 H = normalize(omega_k + V);
-        float D = ggxNdf(N, H, roughness * roughness);
-        float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D/4);
+        float D = ggxNdf(N, H, roughness * roughness);        
+
+        float theta = acos(dot(vec3(0, 0, 1), L));
+        
+        float level = 
+            0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 
+            0.5 * log2(D/4);
+
+        level = max(level, 0);
+
         vec3 incoming_light_color = textureLod(skydome_light, uv, level).rgb;
 
         sum += 

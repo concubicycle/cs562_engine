@@ -50,6 +50,16 @@
         {
           "type": "model_instance",
           "model": "assets/models/terrain/terrain.gltf",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 1,
+                "metalness": false,
+                "fresnel_color": [ 0, 0, 0 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          },
           "is_closed_shape": false
         }
       ]
