@@ -45,7 +45,7 @@ vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
     float sin_gamma = sin(gamma);
     float Tsv = beta * Dsv;
     float Tvp = beta * Dvp;
-    
+        
     vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (2.0 * PI * Dsv * sin_gamma);
     float A1_eval = Tsv * sin_gamma;
 
@@ -66,7 +66,7 @@ vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
 
      vec3 result = A0_eval * (f1 - f2);
 
-     if (isnan(result.x) ||isnan(result.x) ||isnan(result.x))
+     if (isnan(result.x) ||isnan(result.y) ||isnan(result.z))
      {
         return vec3(-1, 0, -1);    
      }
@@ -99,8 +99,6 @@ vec3 linearToSrgb(vec3 linear)
 
 
 
-
-
 void main()
 {
     vec2 TexCoords = gl_FragCoord.xy;
@@ -116,12 +114,12 @@ void main()
     vec3 eye_to_light_dir = normalize(eye_to_light);
     vec3 eye_to_surface_dir = normalize(eye_to_surface);
     float dprod = dot(eye_to_light_dir, eye_to_surface_dir);
-    float gamma = clamp(acos(dprod), 0.1, PI/2.0 - 0.0001);
+    float gamma = clamp(acos(dprod), 0.2, PI / 0.2) / 2;
 
     vec4 eye_from_light = light_view * vec4(eye_position, 1);
 
-    float Dsv = -eye_from_light.z;
-    float Dvp = fs_in.view_depth; //length(eye_to_surface);
+    float Dsv = length(eye_to_light);
+    float Dvp = length(eye_to_surface);
 
     bool not_a_surface = 
         gNormal_texel.x == 0 && 
@@ -130,7 +128,7 @@ void main()
         gNormal_texel.w == -1;
 
     if (fs_in.view_depth > (backwall_depth) && !not_a_surface)
-        Dvp = backwall_depth;
+        Dvp = backwall_depth-0.001;
 
     vec3 color = use_single_scattering
         ? not_a_surface

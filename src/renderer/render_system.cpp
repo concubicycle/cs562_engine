@@ -41,7 +41,7 @@ renderer::render_system::render_system(
 
     _fuv_table_dimensions[0] = fuv_tex.width;
     _fuv_table_dimensions[1] = fuv_tex.height;
-    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex);
+    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex, false);
 }
 
 
@@ -87,7 +87,7 @@ void renderer::render_system::update(ecs::state& state)
 
         draw_local_lights(state, t, c);
         
-        //draw_airlight(state, t, c);
+        draw_airlight(state, t, c);
 
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
@@ -412,13 +412,13 @@ void renderer::render_system::draw_airlight(
     _airlight.set_uniform("initial_intensity", participating_medium_component.initial_intensity);
     _airlight.set_uniform("use_single_scattering", participating_medium_component.use_single_scattering);
     _airlight.set_uniform("darken_bias", participating_medium_component.darken_bias);
+    _airlight.set_uniform("F_table_range", participating_medium_component.f_lookup_range);
 
     _airlight.set_uniform("projection", cam.projection);
     _airlight.set_uniform("view", cam.view.matrix());
     _airlight.set_uniform("width", (float)_glfw.width());
     _airlight.set_uniform("height", (float)_glfw.height());
     _airlight.set_uniform("eye_position", camera_transform.world_position());
-    _airlight.set_uniform("F_table_resolution", _fuv_table_dimensions[0]);
     
     
     auto location = _airlight.uniform_location("gPosition");
