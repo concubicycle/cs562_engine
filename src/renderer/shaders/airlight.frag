@@ -128,7 +128,7 @@ void main()
         gNormal_texel.w == -1;
 
     if (fs_in.view_depth > (backwall_depth) && !not_a_surface)
-        Dvp = backwall_depth-0.001;
+        Dvp = backwall_depth-(gl_FrontFacing ? 0.05 : 0.01);
 
     vec3 color = use_single_scattering
         ? not_a_surface

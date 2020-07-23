@@ -55,11 +55,8 @@ void main()
         
     vs_out.fragment_position = light_view_inverse * pixel;
     
-    // bias to avoid artifacts. this is not necessary, given a different fixe 
-    // presented in Real Time Volumetric Shadows using Polygonal Light Volumes
-
-//    vec3 to_viewer = normalize(eye_position - vs_out.fragment_position.xyz);
-//    vs_out.fragment_position +=  vec4(to_viewer * LIGHT_VOLUME_BIAS, 0);
+    vec3 to_viewer = normalize(eye_position - vs_out.fragment_position.xyz);
+    vs_out.fragment_position +=  vec4(to_viewer * LIGHT_VOLUME_BIAS, 0);
 
     // camera space
     gl_Position = view * vs_out.fragment_position;
