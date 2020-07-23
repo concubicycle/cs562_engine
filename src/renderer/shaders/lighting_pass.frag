@@ -1,6 +1,7 @@
 #version 430 core
 out vec4 FragColor;
 
+#define PHONG_ALPHA_CUTOFF 0.0001
 #define EPSILON 0.000000001
 #define EDGE_EPSILON 0.5
 #define SHADOW_BIAS 0.00000001
@@ -315,6 +316,11 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
     vec3 A = normalize(vec3(-R.y, R.x, 0));
     vec3 B = normalize(cross(R, A));    
 
+    float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;
+
+    if (phong_roughness < PHONG_ALPHA_CUTOFF)
+    return vec3(0);
+
     vec3 sum = vec3(0);
 
     for (int i = 0; i < hammersley_block.N; ++i)
@@ -324,8 +330,7 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
         vec2 xi = vec2(
             hammersley_block.hammersley[block_index], 
             hammersley_block.hammersley[block_index+1]);
-
-        float phong_roughness = 2.0 * pow(roughness, -2.0) - 2.0;        
+       
         float xi_1_power = 1.0 / (phong_roughness + 1.0);
         vec2 cdf_uv = vec2(xi[0]*2, 0.5* acos(pow(xi[1], xi_1_power)) / PI);
         vec3 L = uvToDirection(cdf_uv);

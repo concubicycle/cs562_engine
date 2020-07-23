@@ -41,7 +41,7 @@ renderer::render_system::render_system(
 
     _fuv_table_dimensions[0] = fuv_tex.width;
     _fuv_table_dimensions[1] = fuv_tex.height;
-    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex, false);
+    _fuv_table_texture = _vram_loader.load_texturef(fuv_tex);
 }
 
 
@@ -87,7 +87,7 @@ void renderer::render_system::update(ecs::state& state)
 
         draw_local_lights(state, t, c);
         
-        draw_airlight(state, t, c);
+        //draw_airlight(state, t, c);
 
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);

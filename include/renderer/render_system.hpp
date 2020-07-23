@@ -50,8 +50,8 @@ namespace renderer
 		full_screen_quad _fsq;
 
 		sphere _sphere{4, 4};
-		sphere skydome_mesh{ 32, 64};
-		opengl_hammersley_block<20> _hammersley_block{};
+		sphere skydome_mesh{ 64, 128};
+		opengl_hammersley_block<40> _hammersley_block{};
 		gl::GLuint _fuv_table_texture;
 		Eigen::Vector2f _fuv_table_dimensions;
 

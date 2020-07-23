@@ -78,7 +78,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.3,
+                "roughness": 0.1,
                 "metalness": true,
                 "fresnel_color": [ 0.99, 0.99, 0.99 ]
               }
@@ -232,7 +232,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.2,
+                "roughness": 0.06,
                 "metalness": true,
                 "fresnel_color": [ 0.972, 0.960, 0.915 ]
               }
