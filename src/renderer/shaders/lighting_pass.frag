@@ -76,7 +76,11 @@ uniform HammersleyBlock {
 
 //////////////////////////////////////
 /////////// MSM SHADOWS //////////////
-vec3 cholesky(vec3 m1, vec2 m2, float m33, vec3 z)
+vec3 cholesky(
+    const in vec3 m1, 
+    const in vec2 m2, 
+    const in float m33, 
+    const in vec3 z)
 {
     float a = sqrt(m1[0]);
     float b = m1[1] / a;
@@ -106,7 +110,10 @@ vec2 solve_quadratic(float a, float b, float c)
     );
 }
 
-float hamburger4MSM(vec4 b, float fragment_depth, float alpha)
+float hamburger4MSM(
+    const in vec4 b, 
+    float fragment_depth, 
+    float alpha)
 {
     vec4 b_prime = (1-alpha) * b + alpha * vec4(0.5);
     
@@ -137,7 +144,8 @@ float hamburger4MSM(vec4 b, float fragment_depth, float alpha)
     return 1 - numerator / denominator;
 }
 
-float edgeness(vec2 xy)
+float edgeness(
+    const in vec2 xy)
 {
 	float edge_proximity = 1 - xy.x*xy.x - xy.y*xy.y;
 	if (edge_proximity > EDGE_EPSILON) return 1;
@@ -147,8 +155,8 @@ float edgeness(vec2 xy)
 
 float shadowIntensityG(
     int light_index,
-    const vec3 light_vec, 
-    const vec3 world_position)
+    const in vec3 light_vec, 
+    const in vec3 world_position)
 {
     vec4 light_space_pos = light_vec.z > 0
             ? point_lights[light_index].light_view * vec4(world_position, 1)
@@ -175,7 +183,7 @@ float shadowIntensityG(
 
 float shadowIntensityG_directional(
     int light_index,
-    const vec3 world_position)
+    const in vec3 world_position)
 {
     vec4 light_space_pos =
         directional_lights[light_index].light_view *
@@ -212,15 +220,15 @@ float positiveCharacteristic(float d)
 }
 
 // F term
-vec3 schlickApproximation(const vec3 F0, float NdotL_clamp)
+vec3 schlickApproximation(const in vec3 F0, float NdotL_clamp)
 {    
     return F0 + (vec3(1)-F0) * pow(1 - NdotL_clamp, 5);
 }
 
 // D term of the specular reflectance equation 
 float ggxNdf(
-	vec3 N, // macrosurface normal 
-    vec3 M, // microsurface normal (usually the halfway vector)
+	const in vec3 N, // macrosurface normal 
+    const in vec3 M, // microsurface normal (usually the halfway vector)
 	float roughness_square) // 0 - smooth, 1 - rough
 {
     float n_dot_m = dot(N, M);    
@@ -234,9 +242,9 @@ float ggxNdf(
 }
 
 vec3 ggxSpecular(
-    vec3 F,
-    vec3 N,
-    vec3 H,
+    const in vec3 F,
+    const in vec3 N,
+    const in vec3 H,
     float NdotL_clamp, // mu_i
     float NdotV_clamp, // mu_o
     float roughness_sq)
@@ -250,14 +258,14 @@ vec3 ggxSpecular(
 }
 
 vec3 ggxReflectance(
-    vec3 N, 
-    vec3 L, 
-    vec3 V, 
-    vec3 light_color, 
+    const in vec3 N, 
+    const in vec3 L, 
+    const in vec3 V, 
+    const in vec3 light_color, 
     bool metalness, 
     float roughness, 
-    vec3 F0,
-    vec3 albedo)
+    const in vec3 F0,
+    const in vec3 albedo)
 {
     vec3 H = normalize(L+V);    
     float roughness_sq = roughness * roughness;
@@ -294,7 +302,13 @@ vec3 uvToDirection(vec2 uv)
     );
 }
 
-vec3 iblSpecularMonteCarloEstimator(vec3 N, vec3 L, vec3 V, vec3 F0, float roughness, vec3 light_color)
+vec3 iblSpecularMonteCarloEstimator(
+    const in vec3 N, 
+    const in vec3 L, 
+    const in vec3 V, 
+    const in vec3 F0, 
+    float roughness, 
+    const in vec3 light_color)
 {
     float roughness_sq = roughness*roughness;
     vec3 H = normalize(L + V);
@@ -310,7 +324,11 @@ vec3 iblSpecularMonteCarloEstimator(vec3 N, vec3 L, vec3 V, vec3 F0, float rough
     return F  * G_and_denominator * light_color * NdotL_clamp;
 }
 
-vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
+vec3 iblSpecular(
+    const in vec3 N, 
+    const in vec3 V, 
+    const in vec3 F0, 
+    float roughness)
 {
     vec3 R = normalize(2 * dot(N, V) * N - V);
     vec3 A = normalize(vec3(-R.y, R.x, 0));
@@ -356,13 +374,14 @@ vec3 iblSpecular(vec3 N, vec3 V, vec3 F0, float roughness)
     return sum / hammersley_block.N;
 }
 
-vec3 iblDiffuse(vec3 Kd, vec3 N)
+vec3 iblDiffuse(
+    const in vec3 Kd, 
+    const in vec3 N)
 {
     vec2 irradiance_uv = directionToUv(N);
     vec3 irradiance = texture(skydome_irradiance_map, irradiance_uv).rgb;
     return (Kd / PI) * irradiance;
 }
-
 
 
 
