@@ -28,51 +28,52 @@ uniform vec3 initial_intensity;
 uniform float F_table_range = 10;
 
 in VS_OUT {
-    float view_depth;
-    float light_depth;
+    float view_depth;    
     vec4 fragment_position;
 } fs_in;
 
 
 float F_lookup(float u, float v)
 {
-    u = u / F_table_range;
-    v = v / (HALF_PI);
-    vec2 texCoords = vec2(u, v);
-    return texture(F_table, texCoords).r;
+    u /= F_table_range;
+    v /= (HALF_PI);    
+    return texture(F_table, vec2(u, v)).r;
 }
 
 vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
 {
-    float cos_gamma = cos(gamma);
+
+float cos_gamma = cos(gamma);
     float sin_gamma = sin(gamma);
     float Tsv = beta * Dsv;
     float Tvp = beta * Dvp;
         
-    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (TWO_PI * Dsv * sin_gamma);
+    vec3 A0_eval  = 
+    	(beta * color * exp(-Tsv * cos_gamma)) / 
+    	(TWO_PI * Dsv * sin_gamma);
+
     float A1_eval = Tsv * sin_gamma;
 
     float u1 = A1_eval;
     float u2 = A1_eval;
 
-    float v1 = PI/4.0 + 0.5 * atan(Tvp - Tsv * cos_gamma, Tsv * sin_gamma);
+    float v1 = PI/4.0 + 0.5 * atan(
+    	Tvp - Tsv * cos_gamma, 
+    	Tsv * sin_gamma);
+    	
     float v2 = gamma / 2.0;
 
-    float f1 = F_lookup(u1, v1);
-    float f2 = F_lookup(u2, v2);
-    
+	vec3 result = A0_eval * (F_lookup(u1, v1) - F_lookup(u2, v2));
+
     if (Tsv > 10) return vec3(-1, 0, 0);
     if (u1 > F_table_range || u2 > F_table_range) return vec3(-1, 0, 0);
     if (v1 > (HALF_PI) || v2 > (HALF_PI)) return vec3(0, -1, 0);
     if (v1 < 0 || v2 < 0) return vec3(0, 0, -1);
     if (u1 < 0 || u2 < 0) return vec3(-1, 0, 0);    
-
-     vec3 result = A0_eval * (f1 - f2);
-
-     if (isnan(result.x) ||isnan(result.y) ||isnan(result.z))
-     {
-        return vec3(-1, 0, -1);    
-     }
+    if (isnan(result.x) ||isnan(result.y) ||isnan(result.z))
+    {
+    return vec3(-1, 0, -1);    
+    }
 
      return result;
 }
@@ -83,12 +84,14 @@ vec3 LaInfinite(float Dsv, float gamma, vec3 color)
     float sin_gamma = sin(gamma);
     float Tsv = beta * Dsv;
     
-    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (TWO_PI * Dsv * sin_gamma);
+    vec3 A0_eval  = 
+    	(beta * color * exp(-Tsv * cos_gamma)) / 
+    	(TWO_PI * Dsv * sin_gamma);
+
     float A1_eval = Tsv * sin_gamma;
 
-    float f1 = F_lookup(A1_eval, HALF_PI);
-    float f2 = F_lookup(A1_eval, gamma/2);
-    return A0_eval * (f1 - f2);
+    return A0_eval * 
+    	(F_lookup(A1_eval, HALF_PI) - F_lookup(A1_eval, gamma/2));
 }
 
 
