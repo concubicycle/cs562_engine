@@ -22,9 +22,7 @@ uniform mat4 light_view;
 uniform bool use_single_scattering;
 uniform float darken_bias;
 uniform float light_depth_scale;
-
 uniform vec3 initial_intensity;
-
 uniform float F_table_range = 10;
 
 in VS_OUT {
@@ -70,10 +68,10 @@ float cos_gamma = cos(gamma);
     if (u1 > F_table_range || u2 > F_table_range) return vec3(-1, 0, 0);
     if (v1 > (HALF_PI) || v2 > (HALF_PI)) return vec3(0, -1, 0);
     if (v1 < 0 || v2 < 0) return vec3(0, 0, -1);
-    if (u1 < 0 || u2 < 0) return vec3(-1, 0, 0);    
+    if (u1 < 0 || u2 < 0) return vec3(0, 0, -1);    
     if (isnan(result.x) ||isnan(result.y) ||isnan(result.z))
     {
-    return vec3(-1, 0, -1);    
+        return vec3(-1, 0, -1);    
     }
 
      return result;

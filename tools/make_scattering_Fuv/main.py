@@ -17,12 +17,12 @@ def integrand(u, xi):
 image = np.zeros((Resolution, Resolution), np.float32)
 
 gamma_inc = math.pi / 2 / Resolution
+u_inc = URange / Resolution
 
 u_index = 0
 v_index = 0
 
-
-for u in np.arange(0, URange, URange / Resolution):
+for u in np.arange(0, URange, u_inc):
     integrand_partial = partial(integrand, u)
     print (str(u_index) + '/' + str(Resolution))
 
