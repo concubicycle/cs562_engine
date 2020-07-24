@@ -139,7 +139,7 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 70, 90 ],
+          "position": [ 0, 70, 100 ],
           "rotation": [ -1, 0, 0 ]
         },
         {

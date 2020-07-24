@@ -13,7 +13,7 @@
 
 namespace renderer
 {
-	const float DefaultDirLightSpan = 100.f;
+	const float DefaultDirLightSpan = 130.f;
 
 	struct directional_light : public ecs::component<directional_light>
 	{
