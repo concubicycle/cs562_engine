@@ -5,7 +5,7 @@ out vec4 FragColor;
 #define EPSILON 0.000000001
 #define EDGE_EPSILON 0.5
 #define SHADOW_BIAS 0.00000001
-#define SHADOW_BIAS_DIRECTIONAL 0.00001
+#define SHADOW_BIAS_DIRECTIONAL 0.0001
 #define PI 3.1415926535897932384626433832795
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
@@ -155,7 +155,7 @@ float shadowIntensityG(
             : point_lights[light_index].light_view_back * vec4(world_position, 1);
 
     float fragment_depth = -light_space_pos.z;
-    fragment_depth /= 100;
+    fragment_depth /= 200;
 
     // calculate and set the X and Y coordinates  
     light_space_pos.xyz = normalize(light_space_pos.xyz);        
@@ -182,7 +182,7 @@ float shadowIntensityG_directional(
         vec4(world_position, 1);
 
     float fragment_depth = -light_space_pos.z;
-    fragment_depth /= 100;
+    fragment_depth /= 200;
 
     vec4 tex_coords = directional_lights[light_index].light_projection * light_space_pos;
     tex_coords.xy = (tex_coords.xy + vec2(1)) / 2;

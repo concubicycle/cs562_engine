@@ -18,7 +18,8 @@ namespace renderer
 			std::uint32_t width,
 			std::uint32_t height,
 			gl::GLenum internal_format = gl::GLenum::GL_RGBA32F,
-			gl::GLenum format = gl::GLenum::GL_RGBA)
+			gl::GLenum format = gl::GLenum::GL_RGBA,
+			bool use_mipmap = true)
 			: texture_index(index)
 		{
 			using namespace gl;
@@ -39,10 +40,12 @@ namespace renderer
 				GL_FLOAT,
 				nullptr);
 			
-			glGenerateMipmap(GL_TEXTURE_2D);
+			if (use_mipmap)
+				glGenerateMipmap(GL_TEXTURE_2D);
+
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, use_mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
 

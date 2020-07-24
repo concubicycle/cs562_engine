@@ -23,6 +23,6 @@ void main()
     vec4 world_pos = model * vec4(position, 1);
     vec4 view_pos = view * world_pos;
     gl_Position = projection * view * world_pos;
-    vs_out.depth = -view_pos.z/100;
+    vs_out.depth = -view_pos.z/200;
 }
 

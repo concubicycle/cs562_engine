@@ -37,7 +37,7 @@ void main()
     // which is where the pixel would go on the texture. 
     vs_out.xy = normal.xy / abs(normal.z);
 
-    vs_out.depth /= 100;
+    vs_out.depth /= 200;
 
     gl_Position = vec4(
         vs_out.xy,

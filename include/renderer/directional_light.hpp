@@ -25,7 +25,7 @@ namespace renderer
 				Eigen::Vector3f(DefaultDirLightSpan, DefaultDirLightSpan, -10000))
 			//perspective(0.6f, 1.f, 0.1f, 1000.f)
 		};
-		std::uint32_t shadow_map_resolution{ 1024 };
+		std::uint32_t shadow_map_resolution{ 2048 };
 
 		airlight_mesh airlight_mesh{ shadow_map_resolution , shadow_map_resolution };
 
@@ -52,13 +52,19 @@ namespace renderer
 		opengl_texture filter_output_texture{
 			gl::GLenum::GL_TEXTURE2,
 			shadow_map_resolution,
-			shadow_map_resolution
+			shadow_map_resolution,
+			gl::GLenum::GL_RGBA32F,
+			gl::GLenum::GL_RGBA,
+			false
 		};
 
 		opengl_texture filter_intermediate_texture{
 			gl::GLenum::GL_TEXTURE3,
 			shadow_map_resolution,
-			shadow_map_resolution
+			shadow_map_resolution,
+			gl::GLenum::GL_RGBA32F,
+			gl::GLenum::GL_RGBA,
+			false
 		};
 	};
 }

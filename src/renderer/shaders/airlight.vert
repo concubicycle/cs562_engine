@@ -45,7 +45,7 @@ void main()
     }
 
     vec2 tex_coords = position.xy;
-    float light_depth = texture(shadow_map, tex_coords).x * 100;
+    float light_depth = texture(shadow_map, tex_coords).x * 200;
     
     // bring to [-1, 1] - NDC
     vec4 pixel = vec4(tex_coords*2.0-1.0, -0.9, 1.0);

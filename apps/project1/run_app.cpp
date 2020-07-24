@@ -27,7 +27,7 @@ void run_app()
 	ecs::register_component<renderer::ambient_light>("ambient_light");
 	ecs::register_component<renderer::directional_light>("directional_light");
 	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
-	ecs::register_component<renderer::participating_medium>("participating_medium");
+	ecs::register_component<renderer::participating_medium, 2>("participating_medium");
 	ecs::register_component<firefly>("firefly");
 	
 
@@ -48,8 +48,7 @@ void run_app()
 		&freefly,
 		&transform_system,		
 		&camera_updater,
-		&render_system,
-		//&firefly_system
+		&render_system
 	});
 
 	ecs::world world(systems, state);

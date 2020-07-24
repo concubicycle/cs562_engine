@@ -35,7 +35,10 @@ namespace renderer
 		opengl_texture filter_output_texture {
 			gl::GLenum::GL_TEXTURE1,
 			shadow_map_resolution * 2,
-			shadow_map_resolution
+			shadow_map_resolution,
+			gl::GLenum::GL_RGBA32F,
+			gl::GLenum::GL_RGBA,
+			false
 		};
 	};
 }

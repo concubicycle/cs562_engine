@@ -410,8 +410,7 @@ void renderer::render_system::draw_airlight(
 
     _airlight.set_uniform("beta", participating_medium_component.beta);
     _airlight.set_uniform("initial_intensity", participating_medium_component.initial_intensity);
-    _airlight.set_uniform("use_single_scattering", participating_medium_component.use_single_scattering);
-    _airlight.set_uniform("darken_bias", participating_medium_component.darken_bias);
+    _airlight.set_uniform("use_single_scattering", participating_medium_component.use_single_scattering);    
     _airlight.set_uniform("F_table_range", participating_medium_component.f_lookup_range);
     _airlight.set_uniform("light_depth_scale", participating_medium_component.light_depth_scale);
 
