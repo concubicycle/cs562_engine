@@ -1,7 +1,8 @@
 #version 430 core
 
-#define PI 3.1415926535897932384626433832795
-#define TWO_PI 6.28318530718
+#define PI 3.1415926535897932384626433832795028841971693993751
+#define HALF_PI 1.5707963267948966192313216916397514420985846996876
+#define TWO_PI 6.2831853071795864769252867665590057683943387987502
 
 
 out vec4 FragColor;
@@ -14,11 +15,13 @@ layout(binding = 4) uniform sampler2D F_table;
 uniform float width;
 uniform float height;
 uniform vec3 light_position;
+uniform vec3 light_direction;
 uniform vec3 eye_position;
 uniform float beta = 0.04;
 uniform mat4 light_view;
 uniform bool use_single_scattering;
 uniform float darken_bias;
+uniform float light_depth_scale;
 
 uniform vec3 initial_intensity;
 
@@ -26,6 +29,7 @@ uniform float F_table_range = 10;
 
 in VS_OUT {
     float view_depth;
+    float light_depth;
     vec4 fragment_position;
 } fs_in;
 
@@ -33,11 +37,10 @@ in VS_OUT {
 float F_lookup(float u, float v)
 {
     u = u / F_table_range;
-    v = v / (PI/2.0);
+    v = v / (HALF_PI);
     vec2 texCoords = vec2(u, v);
     return texture(F_table, texCoords).r;
 }
-
 
 vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
 {
@@ -46,7 +49,7 @@ vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
     float Tsv = beta * Dsv;
     float Tvp = beta * Dvp;
         
-    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (2.0 * PI * Dsv * sin_gamma);
+    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (TWO_PI * Dsv * sin_gamma);
     float A1_eval = Tsv * sin_gamma;
 
     float u1 = A1_eval;
@@ -60,7 +63,7 @@ vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
     
     if (Tsv > 10) return vec3(-1, 0, 0);
     if (u1 > F_table_range || u2 > F_table_range) return vec3(-1, 0, 0);
-    if (v1 > (PI/2) || v2 > (PI/2)) return vec3(0, -1, 0);
+    if (v1 > (HALF_PI) || v2 > (HALF_PI)) return vec3(0, -1, 0);
     if (v1 < 0 || v2 < 0) return vec3(0, 0, -1);
     if (u1 < 0 || u2 < 0) return vec3(-1, 0, 0);    
 
@@ -80,10 +83,10 @@ vec3 LaInfinite(float Dsv, float gamma, vec3 color)
     float sin_gamma = sin(gamma);
     float Tsv = beta * Dsv;
     
-    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (2.0 * PI * Dsv * sin_gamma);
+    vec3 A0_eval  = (beta * color * exp(-Tsv * cos_gamma)) / (TWO_PI * Dsv * sin_gamma);
     float A1_eval = Tsv * sin_gamma;
 
-    float f1 = F_lookup(A1_eval, PI/2);
+    float f1 = F_lookup(A1_eval, HALF_PI);
     float f2 = F_lookup(A1_eval, gamma/2);
     return A0_eval * (f1 - f2);
 }
@@ -113,12 +116,18 @@ void main()
     vec3 eye_to_surface = fs_in.fragment_position.xyz - eye_position;
     vec3 eye_to_light_dir = normalize(eye_to_light);
     vec3 eye_to_surface_dir = normalize(eye_to_surface);
-    float dprod = dot(eye_to_light_dir, eye_to_surface_dir);
-    float gamma = clamp(acos(dprod), 0.2, PI / 0.2) / 2;
+
+    
+    //float gamma = clamp(acos(dprod), 0.0, PI);
 
     vec4 eye_from_light = light_view * vec4(eye_position, 1);
+    float light_depth = -eye_from_light.z;
+    vec3 light_from_eye = eye_position - light_depth * light_direction;
 
-    float Dsv = length(eye_to_light);
+    float dprod = dot(normalize(light_from_eye), eye_to_surface_dir);    
+    float gamma = clamp(acos(dprod), 0.0, HALF_PI);
+
+    float Dsv = light_depth * light_depth_scale;
     float Dvp = length(eye_to_surface);
 
     bool not_a_surface = 
@@ -128,7 +137,7 @@ void main()
         gNormal_texel.w == -1;
 
     if (fs_in.view_depth > (backwall_depth) && !not_a_surface)
-        Dvp = backwall_depth-(gl_FrontFacing ? 0.05 : 0.01);
+        Dvp = backwall_depth;
 
     vec3 color = use_single_scattering
         ? not_a_surface

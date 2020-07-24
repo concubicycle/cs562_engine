@@ -139,7 +139,7 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 50, 0 ],
+          "position": [ 0, 70, 90 ],
           "rotation": [ -1, 0, 0 ]
         },
         {
@@ -232,7 +232,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.06,
+                "roughness": 0.1,
                 "metalness": true,
                 "fresnel_color": [ 0.972, 0.960, 0.915 ]
               }

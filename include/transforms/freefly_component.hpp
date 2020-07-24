@@ -8,7 +8,7 @@ namespace transforms
 {
 	struct freefly_component : public ecs::component<freefly_component>
 	{
-		float walk_speed{ 5.f };
+		float walk_speed{ 15.f };
 		Eigen::Vector3f euler_angles{ 0.f, 0.f, 0.f };
 	};
 }

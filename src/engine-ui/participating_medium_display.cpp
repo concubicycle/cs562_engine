@@ -23,6 +23,7 @@ void engineui::participating_medium_display::draw()
 		ImGui::InputFloat3("Initial Intensity", pm.initial_intensity.data());
 		ImGui::Checkbox("Use Single Scattering", &pm.use_single_scattering);
 		ImGui::SliderFloat("Darken Bias", &pm.darken_bias, -0.2f, 0.2f);
+		ImGui::SliderFloat("Light Depth Scale", &pm.light_depth_scale, 0.f, 3.f);
 		
 		ImGui::End();
 	});

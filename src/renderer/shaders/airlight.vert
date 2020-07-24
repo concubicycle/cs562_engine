@@ -1,6 +1,6 @@
 #version 430 core
 
-#define LIGHT_VOLUME_BIAS 0.2
+#define LIGHT_VOLUME_BIAS 0.3
 
 // attribute
 layout (location = 0) in vec3 position;
@@ -16,6 +16,7 @@ uniform vec3 eye_position;
 
 out VS_OUT {
     float view_depth;
+    float light_depth;
     vec4 fragment_position;
 } vs_out;
 
@@ -23,13 +24,16 @@ void main()
 {
     if (position.z < 0) // this is the light vertex
     {
-        // light projection -> world space
-        gl_Position =         
-            light_view_inverse * 
+        // light projection -> view space
+        gl_Position =                     
             light_projection_inverse *
             vec4(position, 1);
 
+        vs_out.light_depth = -gl_Position.z;
         vs_out.fragment_position = gl_Position;
+
+        // view space -> world space
+        gl_Position = light_view_inverse * gl_Position;
 
         // world space -> camera view space
         gl_Position = view * gl_Position;
@@ -42,7 +46,7 @@ void main()
     }
 
     vec2 tex_coords = position.xy;
-    float depth = texture(shadow_map, tex_coords).x * 100;
+    vs_out.light_depth = texture(shadow_map, tex_coords).x * 100;
     
     // bring to [-1, 1] - NDC
     vec4 pixel = vec4(tex_coords*2.0-1.0, -0.9, 1.0);
@@ -51,7 +55,7 @@ void main()
     pixel = light_projection_inverse * pixel;
 
     // orthographic projection - could just set z. add a bit of padding
-    pixel.z = -1 * depth + LIGHT_VOLUME_BIAS;
+    pixel.z = -1 * vs_out.light_depth + LIGHT_VOLUME_BIAS;
         
     vs_out.fragment_position = light_view_inverse * pixel;
     
@@ -60,6 +64,6 @@ void main()
 
     // camera space
     gl_Position = view * vs_out.fragment_position;
-    vs_out.view_depth = -gl_Position .z;
+    vs_out.view_depth = -gl_Position .z - LIGHT_VOLUME_BIAS;
     gl_Position = projection * gl_Position;
 }

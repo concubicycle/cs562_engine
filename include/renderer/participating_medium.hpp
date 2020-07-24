@@ -14,6 +14,7 @@ namespace renderer
 		Eigen::Vector3f initial_intensity{ 50000.f, 50000.f, 50000.f };
 		bool use_single_scattering{ false };
 		float darken_bias{ 0 };
+		float light_depth_scale{ 1.0f };
 	};
 }
 

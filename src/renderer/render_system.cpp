@@ -413,6 +413,7 @@ void renderer::render_system::draw_airlight(
     _airlight.set_uniform("use_single_scattering", participating_medium_component.use_single_scattering);
     _airlight.set_uniform("darken_bias", participating_medium_component.darken_bias);
     _airlight.set_uniform("F_table_range", participating_medium_component.f_lookup_range);
+    _airlight.set_uniform("light_depth_scale", participating_medium_component.light_depth_scale);
 
     _airlight.set_uniform("projection", cam.projection);
     _airlight.set_uniform("view", cam.view.matrix());
@@ -447,9 +448,12 @@ void renderer::render_system::draw_airlight(
         Eigen::Matrix4f light_view_inverse = dl.light_view.inverse();
         Eigen::Matrix4f light_projection_inverse = dl.light_projection.inverse();
 
+        Eigen::Vector3f light_direction = dl.calculate_direction(t.rotation());
+
         _airlight.set_uniform("light_view_inverse", light_view_inverse);
         _airlight.set_uniform("light_projection_inverse", light_projection_inverse);
         _airlight.set_uniform("light_position", t.world_position());
+        _airlight.set_uniform("light_direction", dl.direction);
         _airlight.set_uniform("light_view", dl.light_view);
 
         // bind shadow map
