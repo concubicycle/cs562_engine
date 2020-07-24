@@ -32,7 +32,8 @@ in VS_OUT {
     vec4 fragment_position;
 } fs_in;
 
-
+//////////////////////////////////////
+///////////// Aitlight ///////////////
 float F_lookup(float u, float v)
 {
     u /= F_table_range;
@@ -105,6 +106,8 @@ vec3 linearToSrgb(vec3 linear)
 
 
 
+//////////////////////////////////////
+/////////////// Main /////////////////
 void main()
 {
     vec2 TexCoords = gl_FragCoord.xy;
@@ -119,13 +122,12 @@ void main()
     vec3 eye_to_surface = fs_in.fragment_position.xyz - eye_position;
     vec3 eye_to_light_dir = normalize(eye_to_light);
     vec3 eye_to_surface_dir = normalize(eye_to_surface);
-
-    
+        
     //float gamma = clamp(acos(dprod), 0.0, PI);
 
     vec4 eye_from_light = light_view * vec4(eye_position, 1);
     float light_depth = -eye_from_light.z;
-    vec3 light_from_eye = eye_position - light_depth * light_direction;
+    vec3 light_from_eye = -light_depth * light_direction;
 
     float dprod = dot(normalize(light_from_eye), eye_to_surface_dir);    
     float gamma = clamp(acos(dprod), 0.0, HALF_PI);
