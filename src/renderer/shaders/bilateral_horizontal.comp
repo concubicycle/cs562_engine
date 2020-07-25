@@ -1,0 +1,210 @@
+#version 430 core
+
+#define KERNEL_SIZE 15
+#define PADDING_SIZE 14
+#define HALF_KERNEL_FLOOR 7
+#define INVOCATION_COUNT 100
+
+#define PI 3.1415926535897932384626433832795028841971693993751
+#define TWO_PI 6.2831853071795864769252867665590057683943387987502
+
+// kernel size is the full blur width. 15 by default
+//
+// shared memory:
+//	a shared memory section as big as work group size, 
+//	plus half a kernel (rounded down), for texels outside the work 
+//	group texture section. 
+//
+// kernel of size 15 requires 7 texel padding. so:
+//	|| 7 |  ... 128 ... | 7 ||		=> 46 texels
+// this way, a texel on the edge of the work group can 
+// still look up texels in neighboring groups
+//
+
+// Variable					Type	Meaning
+// ------------------------------------------
+// gl_WorkGroupSize			uvec3	The number of invocations per work group in each dimension�the same
+//									as what is defined in the layout specifier.
+// gl_NumWorkGroups			uvec3	The total number of work groups in each dimension.
+// gl_WorkGroupID			uvec3	The index of the current work group for this shader invocation.
+// gl_LocalInvocationID		uvec3	The index of the current invocation within the current work group.
+// gl_GlobalInvocationID	uvec3	The index of the current invocation within the global compute space.
+
+// horizontal
+layout (local_size_x = INVOCATION_COUNT, local_size_y = 1) in;
+
+// images
+layout(binding=0, rgba32f) uniform image2D gPosition;
+layout(binding=1, rgba32f) uniform image2D gNormal;
+layout(binding=2, rgba32f) uniform image2D input_image;
+layout(binding=3, rgba32f) uniform image2D output_image;
+
+uniform float Weights[HALF_KERNEL_FLOOR+1] = float[] (
+	0.11769579668317869,
+	0.11298860523228081,
+	0.09996678645646614,
+	0.08151249837066141,
+	0.0612547916273883,
+	0.04242318964171051,
+	0.027077836350026748,
+	0.01592839397987677
+);
+
+uniform float ao_gaussian_variance = 0.01;
+uniform float ao_range_of_influence = 3.0;
+
+// a "cache" for the work group, that it can quickly access,
+// at the price of having to fill it up before the blur.
+shared vec4 local_data[gl_WorkGroupSize.x + (2 * HALF_KERNEL_FLOOR)];
+shared vec4 local_data_position[gl_WorkGroupSize.x + (2 * HALF_KERNEL_FLOOR)];
+shared vec4 local_data_normal[gl_WorkGroupSize.x + (2 * HALF_KERNEL_FLOOR)];
+
+
+void storeToLocalData()
+{
+	uvec2 gSize = gl_WorkGroupSize.xy * gl_NumWorkGroups.xy;
+
+	vec4 texel = imageLoad(input_image, ivec2(gl_GlobalInvocationID.xy));
+	vec4 texel_position = imageLoad(gPosition, ivec2(gl_GlobalInvocationID.xy));
+	vec4 texel_normal = imageLoad(gNormal, ivec2(gl_GlobalInvocationID.xy));
+
+	local_data[gl_LocalInvocationID.x + HALF_KERNEL_FLOOR] = texel;
+	local_data_position[gl_LocalInvocationID.x + HALF_KERNEL_FLOOR] = texel_position;
+	local_data_normal[gl_LocalInvocationID.x + HALF_KERNEL_FLOOR] = texel_normal;
+
+	// is local blur area out of bounds (left)?
+	if (gl_LocalInvocationID.x < HALF_KERNEL_FLOOR)
+	{		
+		uint local_data_index = gl_LocalInvocationID.x;
+
+		// is global blur area out of bounds?
+		if (gl_GlobalInvocationID.x < HALF_KERNEL_FLOOR)
+		{
+			// just mirror the texels on the edges
+			local_data[local_data_index] = texel;
+			local_data_position[local_data_index] = texel_position;
+			local_data_normal[local_data_index] = texel_normal;
+		}
+		else
+		{
+			// get a texel from another work group's area
+			ivec2 outer_texel_coords = ivec2(gl_GlobalInvocationID.xy) - ivec2(HALF_KERNEL_FLOOR, 0);
+			local_data[local_data_index] = imageLoad(input_image, ivec2(outer_texel_coords.xy));
+			local_data_position[local_data_index] = imageLoad(gPosition, ivec2(outer_texel_coords.xy));
+			local_data_normal[local_data_index] = imageLoad(gNormal, ivec2(outer_texel_coords.xy));
+		}
+	}
+
+	// is local blur area out of bounds (right)?
+	if ((INVOCATION_COUNT - gl_LocalInvocationID.x) <= HALF_KERNEL_FLOOR)
+	{
+		uint local_data_index = gl_LocalInvocationID.x + 2*HALF_KERNEL_FLOOR;
+		uint overflow_index_global = gl_GlobalInvocationID.x + HALF_KERNEL_FLOOR;
+
+		if (overflow_index_global > gSize.x)
+		{
+			local_data[local_data_index] = texel;
+			local_data_position[local_data_index] = texel_position;
+			local_data_normal[local_data_index] = texel_normal;
+		}
+		else
+		{
+			ivec2 outer_texel_coords = ivec2(gl_GlobalInvocationID.xy) + ivec2(HALF_KERNEL_FLOOR, 0);
+			local_data[local_data_index] = imageLoad(input_image, outer_texel_coords);		
+			local_data_position[local_data_index] = imageLoad(gPosition, outer_texel_coords);
+			local_data_normal[local_data_index] = imageLoad(gNormal, outer_texel_coords);
+		}
+	}
+}
+
+float weight_S(
+	const in vec3 x,
+	const in vec3 x_i)
+{
+	float dist = length(x - x_i);
+	float dist_normalized = dist / ao_range_of_influence;
+	int weight_index = int(dist_normalized * HALF_KERNEL_FLOOR);
+	float weight = Weights[weight_index];
+	return weight;
+}
+
+float weight_R(
+	const in vec4 x_normal_texel,
+	const in vec4 x_i_normal_texel)
+{
+	float d_diff = x_i_normal_texel.w - x_normal_texel.w;
+	float d_diff_sq = d_diff * d_diff;
+	float e_term = exp(-1.0 * d_diff_sq / (2 * ao_gaussian_variance));
+	float n_dot = max(0, dot(x_i_normal_texel.xyz, x_normal_texel.xyz));
+	return n_dot * e_term / sqrt(TWO_PI * ao_gaussian_variance);
+}
+
+float weight(
+	const in vec3 x, 
+	const in vec3 x_i, 
+	const in vec4 x_normal_texel,
+	const in vec4 x_i_normal_texel)
+{
+	return 
+		weight_S(x, x_i) * 
+		weight_R(x_normal_texel, x_i_normal_texel);
+}
+
+bool not_a_surface(const in vec4 gNormal_texel)
+{
+	return 
+		gNormal_texel.x == 0 &&
+		gNormal_texel.y == 0 &&
+		gNormal_texel.z == 0 &&
+		gNormal_texel.w == -1;
+
+}
+
+void applyFilterHorizontal()
+{
+	uint target_texel_index = gl_LocalInvocationID.x + HALF_KERNEL_FLOOR;
+
+	vec4 color =local_data[target_texel_index];
+	vec4 normal =local_data_normal[target_texel_index];
+	vec4 position =local_data_position[target_texel_index];
+    
+	if (not_a_surface(normal))
+	{
+		imageStore(output_image, ivec2(gl_GlobalInvocationID.xy), vec4(1, 1, 1, 1));
+		return;
+	}
+
+	float weight_sum = weight(position.xyz, position.xyz, normal, normal);
+	vec4 numerator_sum = weight(position.xyz, position.xyz, normal, normal) * color;
+
+	for(int i = 1; i < HALF_KERNEL_FLOOR; ++i)
+    {
+		vec4 color_i_min = local_data[target_texel_index - i];
+		vec4 normal_i_min = local_data_normal[target_texel_index - i];
+		vec4 position_i_min = local_data_position[target_texel_index - i];
+
+		vec4 color_i_max = local_data[target_texel_index + i];
+		vec4 normal_i_max = local_data_normal[target_texel_index + i];
+		vec4 position_i_max = local_data_position[target_texel_index + i];
+
+		float weight_min = weight(position.xyz, position_i_min.xyz, normal, normal_i_min);
+		float weight_max = weight(position.xyz, position_i_max.xyz, normal, normal_i_max);
+
+		weight_sum += weight_min;
+		weight_sum += weight_max;
+
+		numerator_sum += weight_min * color_i_min;
+		numerator_sum += weight_max * color_i_max;
+    }
+
+	vec4 result = numerator_sum / weight_sum;
+
+	imageStore(output_image, ivec2(gl_GlobalInvocationID.xy), result);
+}
+
+void main()
+{
+	storeToLocalData();
+	barrier();
+	applyFilterHorizontal();
+}

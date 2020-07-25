@@ -1,11 +1,35 @@
 #include <iostream>
 #include <renderer/projections.hpp>
-
+#include <renderer/gaussian_weights.hpp>
 #include <renderer/render_pass_opengl_state.hpp>
 
+
+void gaussian_weights_test();
+void perspectives_test();
 void test_ogl_state_transition();
 
+
+
 int main(int argc, char** argv)
+{
+	gaussian_weights_test();
+	perspectives_test();
+	test_ogl_state_transition();
+}
+
+
+void gaussian_weights_test()
+{
+	renderer::gaussian_weights weights(7);
+	std::cout << weights << "------" << std::endl << weights.weight_sum() << std::endl;
+	const auto& half = weights.weights_one_side();
+
+	for (auto w : half)
+		std::cout << w << std::endl;
+}
+
+
+void perspectives_test()
 {
 	float fov = 0.785000026f;
 	float aspect = 1.77777779;
@@ -22,8 +46,6 @@ int main(int argc, char** argv)
 		std::cout << data[i] << " ";
 	}
 	std::cout << std::endl;
-
-	test_ogl_state_transition();
 }
 
 

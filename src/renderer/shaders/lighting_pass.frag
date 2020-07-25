@@ -7,6 +7,7 @@ out vec4 FragColor;
 #define SHADOW_BIAS 0.00000001
 #define SHADOW_BIAS_DIRECTIONAL 0.0001
 #define PI 3.1415926535897932384626433832795
+#define TWO_PI 6.2831853071795864769252867665590057683943387987502
 #define DOT_CLAMP 0.00001
 #define MAX_POINT_LIGHTS 8
 #define MAX_DIRECTIONAL_LIGHTS 4
@@ -19,6 +20,8 @@ layout(binding = 0) uniform sampler2D gPosition;
 layout(binding = 1) uniform sampler2D gNormal;
 layout(binding = 2) uniform sampler2D gBaseColor;
 layout(binding = 3) uniform sampler2D gFresnelColorRoughness;
+
+layout(binding = 4) uniform sampler2D ao_map;
 
 in vec2 TexCoords;
 
@@ -64,6 +67,7 @@ uniform vec2 skydome_size;
 
 // camera uniforms
 uniform vec3 camera_position;
+uniform mat4 view;
 
 // random number sequence
 uniform HammersleyBlock {
@@ -397,6 +401,10 @@ vec3 linearToSrgb(vec3 linear)
 
 
 
+
+
+
+
 //////////////////////////////////////
 /////////////// MAIN ////////////////
 void main()
@@ -465,10 +473,12 @@ void main()
 
     if (use_skydome_light)
     {
-        I += iblSpecular(N, V, F0, roughness);
+        vec3 a = texture(ao_map, TexCoords).rgb;
+
+        I += iblSpecular(N, V, F0, roughness) * a;
 
         if (!metalness)
-            I += iblDiffuse(Kd, N);
+            I += iblDiffuse(Kd, N) * a;
     }
 
     FragColor = vec4(linearToSrgb(I), 1);

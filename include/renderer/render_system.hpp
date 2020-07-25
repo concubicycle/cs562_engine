@@ -20,6 +20,7 @@
 #include <renderer/sphere.hpp>
 #include <renderer/punctual_light.hpp>
 #include <renderer/directional_light.hpp>
+#include <renderer/gaussian_weights.hpp>
 #include <transforms/transform.hpp>
 #include <util/string_table.hpp>
 
@@ -49,33 +50,34 @@ namespace renderer
 		core::startup_config& _config;
 		full_screen_quad _fsq;
 
-		sphere _sphere{4, 4};
-		sphere skydome_mesh{ 64, 128};
+		sphere _sphere{ 4, 4 };
+		sphere skydome_mesh{ 64, 128 };
 		opengl_hammersley_block<40> _hammersley_block{};
 		gl::GLuint _fuv_table_texture;
 		Eigen::Vector2f _fuv_table_dimensions;
 
-		shader_program _default{ 
+
+		shader_program _default{
 			_assets.get_text("assets/shaders/default.vert"),
 			_assets.get_text("assets/shaders/default.frag") };
-		
-		shader_program _skybox{ 
+
+		shader_program _skybox{
 			_assets.get_text("assets/shaders/skybox.vert"),
 			_assets.get_text("assets/shaders/skybox.frag") };
 
 		shader_program _skydome{
 			_assets.get_text("assets/shaders/skydome.vert"),
 			_assets.get_text("assets/shaders/skydome.frag") };
-		
+
 		shader_program _geometry_pass{
 			_assets.get_text("assets/shaders/geometry_pass.vert"),
 			_assets.get_text("assets/shaders/geometry_pass.frag") };
-		
-		shader_program _lighting_pass{ 
+
+		shader_program _lighting_pass{
 			_assets.get_text("assets/shaders/lighting_pass.vert"),
 			_assets.get_text("assets/shaders/lighting_pass.frag") };
 
-		shader_program _local_light_pass{ 
+		shader_program _local_light_pass{
 			_assets.get_text("assets/shaders/local_light_pass.vert"),
 			_assets.get_text("assets/shaders/local_light_pass.frag") };
 
@@ -83,7 +85,7 @@ namespace renderer
 			_assets.get_text("assets/shaders/airlight.vert"),
 			_assets.get_text("assets/shaders/airlight.frag") };
 
-		shader_program _dual_paraboloid_shadow{ 
+		shader_program _dual_paraboloid_shadow{
 			_assets.get_text("assets/shaders/dual_paraboloid_shadow.vert"),
 			_assets.get_text("assets/shaders/dual_paraboloid_shadow.frag") };
 
@@ -95,17 +97,27 @@ namespace renderer
 			_assets.get_text("assets/shaders/draw_texture.vert"),
 			_assets.get_text("assets/shaders/draw_texture.frag") };
 
-		compute_shader_program _gaussian_horizontal{ 
+		shader_program _ao{
+			_assets.get_text("assets/shaders/ambient_occlusion.vert"),
+			_assets.get_text("assets/shaders/ambient_occlusion.frag") };
+
+		compute_shader_program _gaussian_horizontal{
 			_assets.get_text("assets/shaders/gaussian_horizontal.comp") };
 
-		compute_shader_program _gaussian_vertical{ 
+		compute_shader_program _gaussian_vertical{
 			_assets.get_text("assets/shaders/gaussian_vertical.comp") };
 
-		
-		
+		compute_shader_program _bilateral_horizontal{
+			_assets.get_text("assets/shaders/bilateral_horizontal.comp") };
+
+		compute_shader_program _bilateral_vertical{
+			_assets.get_text("assets/shaders/bilateral_vertical.comp") };
+
+
+
 		framebuffer<4> _gbuffer{
-		    (float)_glfw.width(),
-		    (float)_glfw.height(),
+			(float)_glfw.width(),
+			(float)_glfw.height(),
 			texture_description(
 				gl::GLenum::GL_COLOR_ATTACHMENT0,
 				_glfw.width(),
@@ -135,6 +147,24 @@ namespace renderer
 				gl::GLenum::GL_RGBA,
 				gl::GLenum::GL_FLOAT) };
 
+		framebuffer<1> _ao_buffer{
+			(float)_glfw.width(),
+			(float)_glfw.height(),
+			texture_description(
+				gl::GLenum::GL_COLOR_ATTACHMENT0,
+				_glfw.width(),
+				_glfw.height(),
+				gl::GLenum::GL_RGBA32F,
+				gl::GLenum::GL_RGBA,
+				gl::GLenum::GL_FLOAT) };
+
+		opengl_texture _ao_intermediate_texture{
+			gl::GL_TEXTURE0,
+			_glfw.width(),
+			_glfw.height(),
+			gl::GLenum::GL_RGBA32F,
+			gl::GLenum::GL_RGBA, 
+			false };
 
 		framebuffer<1> _post_process_buffer{
 			(float)_glfw.width(),
@@ -148,14 +178,14 @@ namespace renderer
 				gl::GLenum::GL_FLOAT) };
 
 		void set_light_uniforms(
-			ecs::state& state, 
-			const renderer::shader_program& shader, 
+			ecs::state& state,
+			const renderer::shader_program& shader,
 			renderer::camera& cam);
 
 		void handle_cam_background(const camera& cam);
 
 		void draw_scene(
-			ecs::state& state, 
+			ecs::state& state,
 			const shader_program& program);
 
 		void draw_scene_shadowmap(
@@ -163,19 +193,19 @@ namespace renderer
 			shader_program& shader);
 
 		void draw_mesh(
-			const transforms::transform& transform, 
+			const transforms::transform& transform,
 			const opengl_mesh& mesh,
 			const shader_program& program);
 
 		void bind_material(
-			const opengl_material& material, 
-			const shader_program& program);		
-		
+			const opengl_material& material,
+			const shader_program& program);
+
 		void bind_texture(
 			const opengl_texture& texture);
 
 		void bind_camera_uniforms(
-			const shader_program& shader, 
+			const shader_program& shader,
 			const transforms::transform& transform,
 			const camera& cam);
 
@@ -193,14 +223,16 @@ namespace renderer
 			const camera& cam);
 
 		void render_shadowmap(
-			ecs::state& state, 
-			transforms::transform& t, 
+			ecs::state& state,
+			transforms::transform& t,
 			punctual_light& pl);
 
 		void render_shadowmap_directional(
 			ecs::state& state,
 			transforms::transform& t,
 			directional_light& dl);
+
+		void render_ao_map(ecs::state& state);
 
 		opengl_mesh load_icosphere();
 	};

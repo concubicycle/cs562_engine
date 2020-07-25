@@ -49,6 +49,8 @@ namespace renderer
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
 
+		gl::GLuint id() { return *texture_id; }
+
 		gl::GLenum texture_index;
 		std::optional<gl::GLuint> texture_id;
 	};

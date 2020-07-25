@@ -75,13 +75,23 @@ void renderer::render_system::update(ecs::state& state)
         bind_camera_uniforms(_geometry_pass, t, c);
         draw_scene(state, _geometry_pass);
         _gbuffer.unbind();
-                
+
+
+        render_ao_map(state);
+
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         _lighting_pass.bind();
-        _gbuffer.bind_textures();
+
+        // uniforms
         _lighting_pass.set_uniform("camera_position", t.world_position());
         set_light_uniforms(state, _lighting_pass, c);
+
+        // textures
+        _gbuffer.bind_textures();
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, _ao_buffer.texture(0));        
 
         _fsq.draw();
 
@@ -105,7 +115,7 @@ void renderer::render_system::set_light_uniforms(
     using namespace gl;
 
     GLint light_count = 0;
-    GLint shadowmap_texture_unit = 4;
+    GLint shadowmap_texture_unit = 5;
     state.each<transform, punctual_light>([&](transform& t, punctual_light& pl) {
         std::string point_light_str = "point_lights[" + std::to_string(light_count) + "]";
 
@@ -624,6 +634,62 @@ void renderer::render_system::draw_scene_shadowmap(ecs::state& state, shader_pro
     glCullFace(GL_BACK);
 }
 
+void renderer::render_system::render_ao_map(ecs::state& state)
+{
+    using namespace gl;
+    
+    float white[4] = { 1, 1, 1, 1 };
+    glClearTexImage(_ao_intermediate_texture.id(), 0, GL_RGBA, GL_FLOAT, white);
+
+
+    _ao_buffer.bind();
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    _ao.bind();    
+    _gbuffer.bind_textures();
+    _fsq.draw();
+    _ao_buffer.unbind();
+
+    
+
+    // apply blur
+     // horizontal
+    _bilateral_horizontal.bind();
+    auto pos_img_loc = _bilateral_horizontal.uniform_location("gPosition");
+    auto nrm_img_loc = _bilateral_horizontal.uniform_location("gNormal");
+    auto src_img_loc = _bilateral_horizontal.uniform_location("input_image");
+    auto dst_img_loc = _bilateral_horizontal.uniform_location("output_image");    
+    glBindImageTexture(0, _gbuffer.texture(0), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, _gbuffer.texture(1), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(2, _ao_buffer.texture(0), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(3, _ao_intermediate_texture.id(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glUniform1i(pos_img_loc, 0);
+    glUniform1i(nrm_img_loc, 1);
+    glUniform1i(src_img_loc, 2);
+    glUniform1i(dst_img_loc, 3);
+    glDispatchCompute(_glfw.width() / 100, _glfw.height(), 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    _bilateral_horizontal.unbind();
+
+    // vertical
+    _bilateral_vertical.bind();
+    pos_img_loc = _bilateral_vertical.uniform_location("gPosition");
+    nrm_img_loc = _bilateral_vertical.uniform_location("gNormal");
+    src_img_loc = _bilateral_vertical.uniform_location("input_image");
+    dst_img_loc = _bilateral_vertical.uniform_location("output_image");
+    glBindImageTexture(0, _gbuffer.texture(0), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, _gbuffer.texture(1), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(2, _ao_intermediate_texture.id(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(3, _ao_buffer.texture(0), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glUniform1i(pos_img_loc, 0);
+    glUniform1i(nrm_img_loc, 1);
+    glUniform1i(src_img_loc, 2);
+    glUniform1i(dst_img_loc, 3);
+    glDispatchCompute(_glfw.width(), _glfw.height() / 100, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    _bilateral_vertical.unbind();
+}
 
 renderer::opengl_mesh renderer::render_system::load_icosphere()
 {

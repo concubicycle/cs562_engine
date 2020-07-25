@@ -55,6 +55,7 @@ void storeToLocalData()
 	uvec2 gSize = gl_WorkGroupSize.xy * gl_NumWorkGroups.xy;
 
 	vec4 texel = imageLoad(input_image, ivec2(gl_GlobalInvocationID.xy));
+
 	local_data[gl_LocalInvocationID.y + HALF_KERNEL_FLOOR] = texel;
 
 	// is local blur area out of bounds (left)?
