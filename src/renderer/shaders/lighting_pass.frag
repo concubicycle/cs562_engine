@@ -1,7 +1,7 @@
 #version 430 core
 out vec4 FragColor;
 
-#define DEBUG
+//#define DEBUG
 
 #define PHONG_ALPHA_CUTOFF 0.0001
 #define EPSILON 0.000000001
@@ -379,7 +379,7 @@ vec3 iblSpecular(
 
         vec3 H = normalize(omega_k + V);
         float D = phongNdf(N, H, phong_roughness);
-        float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D);
+        float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D/4);
         level = max(level, 0);
         vec3 incoming_light_color = textureLod(skydome_light, uv, level).rgb;
 

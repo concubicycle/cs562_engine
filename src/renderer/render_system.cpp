@@ -660,12 +660,9 @@ void renderer::render_system::render_ao_map(ecs::state& state)
     _ao.set_uniform("ao_range_of_influence", ao_settings.ambient_occlusion.range_of_influence);
     _ao.set_uniform("ao_sigma", ao_settings.ambient_occlusion.sigma);
 
-
     _gbuffer.bind_textures();
     _fsq.draw();
     _ao_buffer.unbind();
-
-    
 
     // apply blur
      // horizontal
@@ -682,7 +679,7 @@ void renderer::render_system::render_ao_map(ecs::state& state)
     glUniform1i(nrm_img_loc, 1);
     glUniform1i(src_img_loc, 2);
     glUniform1i(dst_img_loc, 3);
-    glDispatchCompute(_glfw.width() / 100, _glfw.height(), 1);
+    glDispatchCompute(_glfw.width() / 256, _glfw.height(), 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     _bilateral_horizontal.unbind();
 
@@ -700,7 +697,7 @@ void renderer::render_system::render_ao_map(ecs::state& state)
     glUniform1i(nrm_img_loc, 1);
     glUniform1i(src_img_loc, 2);
     glUniform1i(dst_img_loc, 3);
-    glDispatchCompute(_glfw.width(), _glfw.height() / 100, 1);
+    glDispatchCompute(_glfw.width(), _glfw.height() / 256, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     _bilateral_vertical.unbind();
 }

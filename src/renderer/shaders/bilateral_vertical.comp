@@ -3,7 +3,7 @@
 #define KERNEL_SIZE 15
 #define PADDING_SIZE 14
 #define HALF_KERNEL_FLOOR 7
-#define INVOCATION_COUNT 128
+#define INVOCATION_COUNT 256
 
 #define PI 3.1415926535897932384626433832795028841971693993751
 #define TWO_PI 6.2831853071795864769252867665590057683943387987502
@@ -173,7 +173,7 @@ bool not_a_surface(const in vec4 gNormal_texel)
 
 }
 
-void applyFilterHorizontal()
+void applyFilter()
 {
 	uint target_texel_index = gl_LocalInvocationID.y + HALF_KERNEL_FLOOR;
 
@@ -221,5 +221,5 @@ void main()
 {
 	storeToLocalData();
 	barrier();
-	applyFilterHorizontal();
+	applyFilter();
 }

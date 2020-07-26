@@ -15,7 +15,7 @@ namespace renderer
 	{
 		Eigen::Array3f color;
 		float reference_distance;
-		std::uint32_t shadow_map_resolution{ 2048 };
+		std::uint32_t shadow_map_resolution{ 1024 };
 		Eigen::Matrix4f light_view;
 		Eigen::Matrix4f light_view_back;
 

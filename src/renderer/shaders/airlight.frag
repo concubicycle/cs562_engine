@@ -39,10 +39,10 @@ float F_lookup(float u, float v)
     return texture(F_table, vec2(u, v)).r;
 }
 
-vec3 LaFinite(float Dsv, float Dvp, float gamma, vec3 color)
+vec3 LaFinite(float Dsv, float Dvp, float gamma, const in vec3 color)
 {
 
-float cos_gamma = cos(gamma);
+    float cos_gamma = cos(gamma);
     float sin_gamma = sin(gamma);
     float Tsv = beta * Dsv;
     float Tvp = beta * Dvp;
@@ -63,21 +63,24 @@ float cos_gamma = cos(gamma);
     float v2 = gamma / 2.0;
 
 	vec3 result = A0_eval * (F_lookup(u1, v1) - F_lookup(u2, v2));
-
+       
+#ifdef DEBUG
     if (Tsv > 10) return vec3(-1, 0, 0);
     if (u1 > F_table_range || u2 > F_table_range) return vec3(-1, 0, 0);
     if (v1 > (HALF_PI) || v2 > (HALF_PI)) return vec3(0, -1, 0);
     if (v1 < 0 || v2 < 0) return vec3(0, 0, -1);
     if (u1 < 0 || u2 < 0) return vec3(0, 0, -1);    
     if (isnan(result.x) ||isnan(result.y) ||isnan(result.z))
-    {
         return vec3(-1, 0, -1);    
-    }
+#endif
 
      return result;
 }
 
-vec3 LaInfinite(float Dsv, float gamma, vec3 color)
+vec3 LaInfinite(
+    float Dsv, 
+    float gamma, 
+    const in vec3 color)
 {
     float cos_gamma = cos(gamma);
     float sin_gamma = sin(gamma);
@@ -115,13 +118,9 @@ void main()
     vec4 gPosition_texel = texture(gPosition, TexCoords);
 
     float backwall_depth = gNormal_texel.w;
-
-    vec3 eye_to_light = light_position - eye_position;
-    vec3 eye_to_surface = fs_in.fragment_position.xyz - eye_position;
-    vec3 eye_to_light_dir = normalize(eye_to_light);
-    vec3 eye_to_surface_dir = normalize(eye_to_surface);
         
-    //float gamma = clamp(acos(dprod), 0.0, PI);
+    vec3 eye_to_surface = fs_in.fragment_position.xyz - eye_position;    
+    vec3 eye_to_surface_dir = normalize(eye_to_surface);
 
     vec4 eye_from_light = light_view * vec4(eye_position, 1);
     float light_depth = -eye_from_light.z;
@@ -150,6 +149,7 @@ void main()
  
     float s0 = gl_FrontFacing ? 1 : -1 - darken_bias;
 
+#ifdef DEBUG
     if (color.x < 0)
         FragColor = vec4(1, 0, 0, 1);
     else if (color.y < 0)
@@ -158,4 +158,8 @@ void main()
         FragColor = vec4(0, 0, 1, 1);
     else
         FragColor = vec4(s0 * color, 1);
+#else
+    FragColor = vec4(s0 * color, 1);
+#endif
+        
 }

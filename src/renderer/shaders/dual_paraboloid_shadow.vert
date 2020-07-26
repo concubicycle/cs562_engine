@@ -31,11 +31,11 @@ void main()
 
     vs_out.depth = -incident.z;
     vec3 paraboloid_direction = vec3(0, 0, -1);
-    vec3 normal = paraboloid_direction + incident_direction;
+    vec3 normal = incident_direction;    
     
     // find the xy coords underneath the paraboloid intersection, 
     // which is where the pixel would go on the texture. 
-    vs_out.xy = normal.xy / abs(normal.z);
+    vs_out.xy = normal.xy / abs(normal.z - 1);
 
     vs_out.depth /= 200;
 

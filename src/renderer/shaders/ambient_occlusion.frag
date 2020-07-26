@@ -45,7 +45,11 @@ float ao_heaviside_step(float value)
 }
 
 
-vec2 ao_choose_point_texcoords(int i, vec3 P, vec3 N, float d)
+vec2 ao_choose_point_texcoords(
+    int i, 
+    const in vec3 P, 
+    const in vec3 N, 
+    float d)
 {
     ivec2 xy_prime = ivec2(gl_FragCoord.x, gl_FragCoord.y);
     vec2 xy = TexCoords;
@@ -72,8 +76,8 @@ float ao_sum_term(
 }
 
 float ao_sum(
-    vec3 P,
-    vec3 normal, 
+    const in vec3 P,
+    const in vec3 normal, 
     float d)
 {
     float c = ao_c_coefficient * ao_range_of_influence;
@@ -97,7 +101,10 @@ float ao_sum(
     return sum;
 }
 
-vec4 ao_main(vec3 P, vec3 N, float d)
+vec4 ao_main(
+    const in vec3 P,
+    const in vec3 N,
+    const in float d)
 {
     float sum = ao_sum(P, N, d);
 
