@@ -123,8 +123,20 @@ float weight_S(
 {
 	float dist = length(x - x_i);
 	float dist_normalized = dist / ao_range_of_influence;
-	int weight_index = int(dist_normalized * HALF_KERNEL_FLOOR);
-	float weight = Weights[weight_index];
+	float index_f = dist_normalized * HALF_KERNEL_FLOOR;
+	float index_integer_part;
+	float index_decimal_part = modf(index_f, index_integer_part);
+	int index = int(index_integer_part);
+
+	float weight = Weights[index];
+
+	if (index < HALF_KERNEL_FLOOR)
+	{
+		float next_weight = Weights[index+1];
+		float diff = weight - next_weight;
+		weight += diff * index_decimal_part;
+	}
+
 	return weight;
 }
 
@@ -134,7 +146,7 @@ float weight_R(
 {
 	float d_diff = x_i_normal_texel.w - x_normal_texel.w;
 	float d_diff_sq = d_diff * d_diff;
-	float e_term = exp(-1.0 * d_diff_sq / (2 * ao_gaussian_variance));
+	float e_term = exp(-d_diff_sq / (2.0 * ao_gaussian_variance));
 	float n_dot = max(0, dot(x_i_normal_texel.xyz, x_normal_texel.xyz));
 	return n_dot * e_term / sqrt(TWO_PI * ao_gaussian_variance);
 }
@@ -174,8 +186,8 @@ void applyFilterHorizontal()
 		return;
 	}
 
-	float weight_sum = weight(position.xyz, position.xyz, normal, normal);
-	vec4 numerator_sum = weight(position.xyz, position.xyz, normal, normal) * color;
+	float weight_sum = 0; //weight(position.xyz, position.xyz, normal, normal);
+	vec4 numerator_sum = vec4(0); // weight(position.xyz, position.xyz, normal, normal) * color;
 
 	for(int i = 1; i < HALF_KERNEL_FLOOR; ++i)
     {

@@ -26,12 +26,9 @@ engineui::imgui_overlay::imgui_overlay
 
 void engineui::imgui_overlay::update()
 {
-
 	bool visible_next = _visible;
 	if (_input.was_key_pressed(GLFW_KEY_GRAVE_ACCENT))
 	{
-		_input.skip_frame();
-
 		visible_next = !_visible;
 
 		if (visible_next)
@@ -44,6 +41,9 @@ void engineui::imgui_overlay::update()
 
 	if (_visible && _visible == visible_next)
 		render_views();
+
+	if (_visible && _visible != visible_next)
+		_input.skip_frame();
 
 	_visible = visible_next;
 	_input.set_mouse_disabled(_visible);

@@ -24,7 +24,7 @@ set (RENDERER_SOURCE_FILES
     "compute_shader_program.cpp"  
     "directional_light.cpp" 
     "directional_light_loader.cpp"
-    projections.cpp  "airlight_mesh.cpp" "participating_medium.cpp" "gaussian_weights.cpp")
+    projections.cpp  "airlight_mesh.cpp" "scene_settings.cpp" "gaussian_weights.cpp")
 
 add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)

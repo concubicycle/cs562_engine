@@ -44,8 +44,10 @@ void core::input_manager::update()
     {
         _skip_frame = false;
         memcpy(_last_key_states, _current_key_states, sizeof(std::uint8_t) * GLFW_KEY_LAST);
-        memcpy(_last_mouse_button_states, _current_mouse_button_states, sizeof(std::uint8_t) * (GLFW_MOUSE_BUTTON_8 + 1));
-
+        memcpy(_last_mouse_button_states, _current_mouse_button_states, 
+            sizeof(std::uint8_t) * (GLFW_MOUSE_BUTTON_8 + 1));
+        
+        glfwGetCursorPos(_window, &_last_x, &_last_y);        
         return;
     }
 
@@ -73,7 +75,6 @@ void core::input_manager::update()
 
     double x, y;
     glfwGetCursorPos(_window, &x, &y);
-
     _mouse_delta.update(Eigen::Vector2f(x - _last_x, y - _last_y));
     _last_x = x;
     _last_y = y;

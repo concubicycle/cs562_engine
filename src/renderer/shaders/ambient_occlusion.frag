@@ -30,8 +30,8 @@ uniform float ao_range_of_influence = 3.0;
 uniform float ao_c_coefficient = 0.1;
 uniform float ao_n = 20.0;
 uniform float ao_sigma = 0.001;
-uniform float ao_s = 1;
-uniform float ao_k = 1;
+uniform float ao_scale = 1;
+uniform float ao_contrast = 1;
 
 
 uniform mat4 view;
@@ -100,8 +100,10 @@ float ao_sum(
 vec4 ao_main(vec3 P, vec3 N, float d)
 {
     float sum = ao_sum(P, N, d);
-    float A = pow(1 - ao_s * sum, ao_k);
+
+    float A = pow(1 - ao_scale * sum, ao_contrast);
     A = A < 0 ? 0 : A;
+    if (isnan(A)) A = 0;
     return vec4(vec3(A), 1);
 }
 
@@ -123,8 +125,10 @@ void main()
     }
 
     vec3 P = gPosition_texel.xyz;
-    vec4 P_view = view * vec4(P, 1);
     vec3 N = gNormal_texel.xyz;
     float d = gNormal_texel.w;
     FragColor = ao_main(P, N, d);
+
+    if (isnan(FragColor.r))
+        FragColor = vec4(1, 0, 0, 1);
 }

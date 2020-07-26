@@ -27,7 +27,7 @@ void run_app()
 	ecs::register_component<renderer::ambient_light>("ambient_light");
 	ecs::register_component<renderer::directional_light>("directional_light");
 	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
-	ecs::register_component<renderer::participating_medium, 2>("participating_medium");
+	ecs::register_component<renderer::scene_settings, 2>("scene_settings");
 	ecs::register_component<firefly>("firefly");
 	
 
@@ -48,7 +48,8 @@ void run_app()
 		&freefly,
 		&transform_system,		
 		&camera_updater,
-		&render_system
+		&render_system,
+		& firefly_system
 	});
 
 	ecs::world world(systems, state);
@@ -73,7 +74,7 @@ void run_app()
 	
 	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
 	engineui::fps_display fps(glfw, timer);
-	engineui::participating_medium_display pm_display(glfw, state);
+	engineui::scene_settings_display pm_display(glfw, state);
 
 	overlay.register_views(		
 		&fps,

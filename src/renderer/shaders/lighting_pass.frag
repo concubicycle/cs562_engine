@@ -1,10 +1,12 @@
 #version 430 core
 out vec4 FragColor;
 
+#define DEBUG
+
 #define PHONG_ALPHA_CUTOFF 0.0001
 #define EPSILON 0.000000001
 #define EDGE_EPSILON 0.5
-#define SHADOW_BIAS 0.00000001
+#define SHADOW_BIAS 0.0000001
 #define SHADOW_BIAS_DIRECTIONAL 0.0001
 #define PI 3.1415926535897932384626433832795
 #define TWO_PI 6.2831853071795864769252867665590057683943387987502
@@ -58,6 +60,7 @@ uniform int directional_light_count;
 // ambient light(s)
 uniform vec3 ambient_light;// Ia
 uniform bool use_ambient_light;
+uniform bool draw_only_ao;
 
 // skydome light
 uniform sampler2D skydome_light;
@@ -154,7 +157,7 @@ float edgeness(
 	float edge_proximity = 1 - xy.x*xy.x - xy.y*xy.y;
 	if (edge_proximity > EDGE_EPSILON) return 1;
 
-    return 0.04 * edge_proximity + 0.98;
+    return 0.08 * edge_proximity + 0.96;
 }
 
 float shadowIntensityG(
@@ -244,6 +247,21 @@ float ggxNdf(
     denominator *= PI;
     return numerator / denominator;
 }
+
+float phongNdf(
+	const in vec3 N, // macrosurface normal 
+    const in vec3 M, // microsurface normal (usually the halfway vector)
+	float alpha) // 0 - smooth, 1 - rough
+{
+    float n_dot_m = dot(N, M);
+    float characteristic = positiveCharacteristic(n_dot_m);
+    float n_dot_m_pow_a = pow(n_dot_m, alpha);
+    return 
+        characteristic *
+        ((alpha + 2) / TWO_PI) *
+        n_dot_m_pow_a;
+}
+
 
 vec3 ggxSpecular(
     const in vec3 F,
@@ -360,7 +378,7 @@ vec3 iblSpecular(
         vec2 uv = directionToUv(omega_k);
 
         vec3 H = normalize(omega_k + V);
-        float D = ggxNdf(N, H, roughness * roughness);
+        float D = phongNdf(N, H, phong_roughness);
         float level = 0.5 * log2(skydome_size.x * skydome_size.y / hammersley_block.N) - 0.5 * log2(D);
         level = max(level, 0);
         vec3 incoming_light_color = textureLod(skydome_light, uv, level).rgb;
@@ -397,10 +415,6 @@ vec3 linearToSrgb(vec3 linear)
     linear = linear / (linear + vec3(1.0));
     return pow(linear, vec3(1.0/2.2));  
 }
-
-
-
-
 
 
 
@@ -481,6 +495,12 @@ void main()
             I += iblDiffuse(Kd, N) * a;
     }
 
+
+#ifdef DEBUG
+    vec3 a = texture(ao_map, TexCoords).rgb;
+    FragColor = draw_only_ao ? vec4(linearToSrgb(a), 1) : vec4(linearToSrgb(I), 1);
+#else
     FragColor = vec4(linearToSrgb(I), 1);
     //FragColor = vec4(I, 1);
+#endif
 }

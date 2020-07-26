@@ -34,14 +34,14 @@
 #include <renderer/local_punctual_light.hpp>
 #include <renderer/local_punctual_light_loader.hpp>
 #include <renderer/directional_light_loader.hpp>
-#include <renderer/participating_medium.hpp>
+#include <renderer/scene_settings.hpp>
 
 #include "app_event.hpp"
 
 // Overlays
 #include <engine-ui/imgui_overlay.hpp>
 #include <engine-ui/fps_display.hpp>
-#include <engine-ui/participating_medium_display.hpp>
+#include <engine-ui/scene_settings_display.hpp>
 
 
 #include "firefly_ai.hpp"

@@ -9,10 +9,10 @@
 namespace engineui
 {
 
-	class participating_medium_display : public view
+	class scene_settings_display : public view
 	{
 	public:
-		participating_medium_display(core::glfw_context& glfw, ecs::state& state);
+		scene_settings_display(core::glfw_context& glfw, ecs::state& state);
 
 		void draw();
 

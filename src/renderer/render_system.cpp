@@ -6,7 +6,7 @@
 #include <renderer/ambient_light.hpp>
 #include <renderer/projections.hpp>
 #include <renderer/lookat.hpp>
-#include <renderer/participating_medium.hpp>
+#include <renderer/scene_settings.hpp>
 #include <transforms/transform.hpp>
 
 
@@ -76,9 +76,7 @@ void renderer::render_system::update(ecs::state& state)
         draw_scene(state, _geometry_pass);
         _gbuffer.unbind();
 
-
         render_ao_map(state);
-
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -180,6 +178,13 @@ void renderer::render_system::set_light_uniforms(
             shader.bind_uniform_block("HammersleyBlock", _hammersley_block.bindpoint());
         }
     });
+    
+
+    auto* pm = state.first<scene_settings>();
+    if (!pm) return;
+
+    auto& settings = pm->get_component<scene_settings>();
+    shader.set_uniform("draw_only_ao", settings.ambient_occlusion.draw_only_ao);
 }
 
 
@@ -408,21 +413,21 @@ void renderer::render_system::draw_airlight(
     using namespace transforms;
     using namespace gl;
 
-    auto* pm = state.first<participating_medium>();
+    auto* pm = state.first<scene_settings>();
     if (!pm) return;
 
-    auto& participating_medium_component = pm->get_component<participating_medium>();
+    auto& settings = pm->get_component<scene_settings>();
 
-    if (participating_medium_component.beta == 0)
+    if (settings.participating_medium.beta == 0)
         return;
 
     _airlight.bind();
 
-    _airlight.set_uniform("beta", participating_medium_component.beta);
-    _airlight.set_uniform("initial_intensity", participating_medium_component.initial_intensity);
-    _airlight.set_uniform("use_single_scattering", participating_medium_component.use_single_scattering);    
-    _airlight.set_uniform("F_table_range", participating_medium_component.f_lookup_range);
-    _airlight.set_uniform("light_depth_scale", participating_medium_component.light_depth_scale);
+    _airlight.set_uniform("beta", settings.participating_medium.beta);
+    _airlight.set_uniform("initial_intensity", settings.participating_medium.initial_intensity);
+    _airlight.set_uniform("use_single_scattering", settings.participating_medium.use_single_scattering);
+    _airlight.set_uniform("F_table_range", settings.participating_medium.f_lookup_range);
+    _airlight.set_uniform("light_depth_scale", settings.participating_medium.light_depth_scale);
 
     _airlight.set_uniform("projection", cam.projection);
     _airlight.set_uniform("view", cam.view.matrix());
@@ -641,12 +646,21 @@ void renderer::render_system::render_ao_map(ecs::state& state)
     float white[4] = { 1, 1, 1, 1 };
     glClearTexImage(_ao_intermediate_texture.id(), 0, GL_RGBA, GL_FLOAT, white);
 
+    auto* settings = state.first<renderer::scene_settings>();
+    auto& ao_settings = settings->get_component<renderer::scene_settings>();
 
     _ao_buffer.bind();
     glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    _ao.bind();    
+    _ao.bind();        
+    _ao.set_uniform("ao_scale", ao_settings.ambient_occlusion.scale);
+    _ao.set_uniform("ao_contrast", ao_settings.ambient_occlusion.contrast);
+    _ao.set_uniform("ao_c_coefficient", ao_settings.ambient_occlusion.c_coefficient);
+    _ao.set_uniform("ao_range_of_influence", ao_settings.ambient_occlusion.range_of_influence);
+    _ao.set_uniform("ao_sigma", ao_settings.ambient_occlusion.sigma);
+
+
     _gbuffer.bind_textures();
     _fsq.draw();
     _ao_buffer.unbind();

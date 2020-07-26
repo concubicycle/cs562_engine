@@ -124,8 +124,20 @@ float weight_S(
 {
 	float dist = length(x - x_i);
 	float dist_normalized = dist / ao_range_of_influence;
-	int weight_index = int(dist_normalized * HALF_KERNEL_FLOOR);
-	float weight = Weights[weight_index];
+	float index_f = dist_normalized * HALF_KERNEL_FLOOR;
+	float index_integer_part;
+	float index_decimal_part = modf(index_f, index_integer_part);
+	int index = int(index_integer_part);
+
+	float weight = Weights[index];
+
+	if (index < HALF_KERNEL_FLOOR)
+	{
+		float next_weight = Weights[index+1];
+		float diff = weight - next_weight;
+		weight += diff * index_decimal_part;
+	}
+
 	return weight;
 }
 
@@ -198,7 +210,9 @@ void applyFilterHorizontal()
 		numerator_sum += weight_max * color_i_max;
     }
 
-	vec4 result = numerator_sum / weight_sum;
+	vec4 result = weight_sum <= 0 
+		? vec4(0)
+		: numerator_sum / weight_sum;
 
 	imageStore(output_image, ivec2(gl_GlobalInvocationID.xy), result);
 }

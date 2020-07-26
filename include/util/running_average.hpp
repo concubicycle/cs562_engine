@@ -33,6 +33,14 @@ namespace util
 
         T average() { return _average; }
 
+        void reset_to(T value)
+        {
+            auto cursor = _num_ints_tracked;
+            _average = value;
+            while (!_past_values.empty()) _past_values.pop();
+            while (cursor-- > 0) _past_values.push(value);
+        }
+
     private:
         T _average;
         T _last_total;

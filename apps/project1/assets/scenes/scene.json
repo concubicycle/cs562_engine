@@ -2,7 +2,7 @@
   "entities": [
     {
       "components": [
-        { "type": "participating_medium" }
+        { "type": "scene_settings" }
       ]
     },
     {
@@ -28,8 +28,8 @@
             "back": "assets/skybox/zpos.png"
           },
           "skydome": {
-            "image": "assets/skydome/Summi_Pool_3k.hdr",
-            "irradiance_map": "assets/skydome/Summi_Pool_3k.irr.hdr"
+            "image": "assets/skydome/Tropical_Beach_3k.hdr",
+            "irradiance_map": "assets/skydome/Tropical_Beach_3k.irr.hdr"
           }
         },
         {
@@ -70,11 +70,36 @@
         {
           "type": "transform",
           "position": [ -10, 2, 0 ],
-          "rotation": [0, -1.57, 0]
+          "rotation": [ 0, -1.57, 0 ]
         },
         {
           "type": "model_instance",
           "model": "assets/models/room/room.gltf"
+        }
+      ]
+    },
+
+    {
+      "prototype": "assets/prototypes/punctual_light.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 5, 10 ]
+        }
+      ]
+    },
+
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 100, 130 ],
+          "rotation": [ -1, 0, 0 ]
+        },
+        {
+          "type": "directional_light",
+          "direction": [ 0, -0.78087, -0.62469 ],
+          "color": [ 0.1, 0.1, 0.1 ]
         }
       ]
     },
@@ -232,7 +257,7 @@
           "materials": {
             "definitions": [
               {
-                "roughness": 0.1,
+                "roughness": 0.9,
                 "metalness": true,
                 "fresnel_color": [ 0.972, 0.960, 0.915 ]
               }

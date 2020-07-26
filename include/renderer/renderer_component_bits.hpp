@@ -11,7 +11,7 @@ namespace renderer
 		ambient_light = 7,
 		local_punctual_light = 8,
 		directional_light = 9,
-		participating_medium = 10
+		scene_settings = 10
 	};
 }
 
