@@ -9,43 +9,42 @@ using json = nlohmann::json;
 
 namespace core
 {
-class startup_config
-{   
-
-public:
-    const static constexpr float DefaultVolume = 0.5f;
-
-    startup_config()
+    class startup_config
     {
-        load();
-    }
+    public:
+        const static constexpr float DefaultVolume = 0.5f;
 
-    bool fullscreen() const;
-    std::uint32_t height() const;
-	std::uint32_t width() const;
-    float fov() const;
-    bool backface_culling() const;
-    bool free_mouse() const;
-    std::string window_title() const;
-    
+        startup_config()
+        {
+            load();
+        }
 
-    float music_volume() const;
-    float sfx_volume() const;
+        bool fullscreen() const;
+        std::uint32_t height() const;
+        std::uint32_t width() const;
+        float fov() const;
+        bool backface_culling() const;
+        bool free_mouse() const;
+        std::string window_title() const;
 
-    template <typename T>
-    void set(const std::string& option, T value)
-    {
-        config_json[option] = value;
-        save();
-    }
 
-private:
-    json config_json;
+        float music_volume() const;
+        float sfx_volume() const;
 
-    json make_default() const;
-    void load();
-    void save();
-};
+        template <typename T>
+        void set(const std::string& option, T value)
+        {
+            config_json[option] = value;
+            save();
+        }
+
+    private:
+        json config_json;
+
+        json make_default() const;
+        void load();
+        void save();
+    };
 } // namespace core
 
 #endif

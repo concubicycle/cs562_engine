@@ -24,3 +24,9 @@ target_compile_features(events_tests PUBLIC cxx_std_17)
 
 # renderer
 add_subdirectory(renderer)
+
+# math
+add_executable(math_tests math/math_tests.cpp)
+target_link_libraries(math_tests core)
+target_include_directories(math_tests PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(math_tests PUBLIC cxx_std_17)

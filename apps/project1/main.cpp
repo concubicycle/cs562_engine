@@ -15,6 +15,7 @@ int main(int argc, char** argv)
 	}
 	catch (const std::exception& e) {		
 		spdlog::error("exception: {}", e.what());
+		return 1;
 	}
 	catch (...) {
 		 spdlog::error("Unknown Exception");

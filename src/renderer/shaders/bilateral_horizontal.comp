@@ -169,7 +169,6 @@ bool not_a_surface(const in vec4 gNormal_texel)
 		gNormal_texel.y == 0 &&
 		gNormal_texel.z == 0 &&
 		gNormal_texel.w == -1;
-
 }
 
 void applyFilterHorizontal()
@@ -186,8 +185,8 @@ void applyFilterHorizontal()
 		return;
 	}
 
-	float weight_sum = 0; //weight(position.xyz, position.xyz, normal, normal);
-	vec4 numerator_sum = vec4(0); // weight(position.xyz, position.xyz, normal, normal) * color;
+	float weight_sum = weight(position.xyz, position.xyz, normal, normal);
+	vec4 numerator_sum = weight(position.xyz, position.xyz, normal, normal) * color;
 
 	for(int i = 1; i < HALF_KERNEL_FLOOR; ++i)
     {

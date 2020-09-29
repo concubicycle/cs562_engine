@@ -58,7 +58,7 @@ uniform float ao_range_of_influence = 3.0;
 // at the price of having to fill it up before the blur.
 shared vec4 local_data[gl_WorkGroupSize.y + (2 * HALF_KERNEL_FLOOR)];
 shared vec4 local_data_position[gl_WorkGroupSize.y + (2 * HALF_KERNEL_FLOOR)];
-shared vec4 local_data_normal[gl_WorkGroupSize.y+ (2 * HALF_KERNEL_FLOOR)];
+shared vec4 local_data_normal[gl_WorkGroupSize.y + (2 * HALF_KERNEL_FLOOR)];
 
 void storeToLocalData()
 {

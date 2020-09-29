@@ -85,16 +85,14 @@ void renderer::render_system::update(ecs::state& state)
         // uniforms
         _lighting_pass.set_uniform("camera_position", t.world_position());
         set_light_uniforms(state, _lighting_pass, c);
-
-        // textures
         _gbuffer.bind_textures();
+        
         glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, _ao_buffer.texture(0));        
+        glBindTexture(GL_TEXTURE_2D, _ao_buffer.texture(0));
 
         _fsq.draw();
 
         draw_local_lights(state, t, c);
-        
         draw_airlight(state, t, c);
 
         glDisable(GL_BLEND);
