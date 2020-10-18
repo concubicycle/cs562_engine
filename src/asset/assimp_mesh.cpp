@@ -1,8 +1,8 @@
 #include <asset/assimp_mesh.hpp>
 
-asset::assimp_mesh::assimp_mesh(aiMesh* mesh)
+asset::assimp_mesh::assimp_mesh(const aiScene* assimp_scene_asset, aiMesh* assimp_mesh)
 {
-    build_vertices(mesh);
+    build_vertices(assimp_mesh);
 }
 
 void asset::assimp_mesh::build_vertices(aiMesh* mesh)

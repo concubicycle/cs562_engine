@@ -56,7 +56,6 @@ namespace renderer
 		gl::GLuint _fuv_table_texture;
 		Eigen::Vector2f _fuv_table_dimensions;
 
-
 		shader_program _default{
 			_assets.get_text("assets/shaders/default.vert"),
 			_assets.get_text("assets/shaders/default.frag") };
@@ -72,6 +71,10 @@ namespace renderer
 		shader_program _geometry_pass{
 			_assets.get_text("assets/shaders/geometry_pass.vert"),
 			_assets.get_text("assets/shaders/geometry_pass.frag") };
+
+		shader_program _rigged_geometry_pass{
+			_assets.get_text("assets/shaders/rigged_geometry_pass.vert"),
+			_assets.get_text("assets/shaders/rigged_geometry_pass.frag") };
 
 		shader_program _lighting_pass{
 			_assets.get_text("assets/shaders/lighting_pass.vert"),
@@ -185,6 +188,10 @@ namespace renderer
 		void handle_cam_background(const camera& cam);
 
 		void draw_scene(
+			ecs::state& state,
+			const shader_program& program);
+
+		void draw_rigged_models(
 			ecs::state& state,
 			const shader_program& program);
 

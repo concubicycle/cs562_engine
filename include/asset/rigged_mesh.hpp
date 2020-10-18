@@ -12,23 +12,44 @@
 
 namespace asset
 {
-	class rigged_mesh
-	{
-	public:
-		explicit rigged_mesh(const aiScene* assimp_scene_asset, aiMesh* assimp_mesh);
+  class rigged_mesh
+  {
+  public:
+    explicit rigged_mesh(const aiScene* assimp_scene_asset, aiMesh* assimp_mesh);
 
-        std::vector<rigged_vertex>& vertices();
-        std::vector<std::uint32_t>& indices();
+    std::vector<rigged_vertex>& vertices();
+    std::vector<std::uint32_t>& indices();
 
-	private:
-		std::vector<rigged_vertex> _vertices;
-		std::vector<std::uint32_t> _indices;
-        std::uint32_t _num_indices {0};
+    size_t index_count() const;
 
-        std::vector<std::string> _bones_buffer;
+    std::uint32_t vertex_data_bytes() const
+    {
+      return _vertices.size() * sizeof(rigged_vertex);
+    }
 
-        void build_vertices(aiMesh* mesh, asset::bone_flattener<std::string>& flattener);
-        void set_bone_weights(aiMesh* mesh, asset::bone_flattener<std::string>& flattener);
-	};
+    const rigged_vertex* vertex_data() const
+    {
+      return _vertices.data();
+    }
+
+    std::uint32_t index_data_bytes() const
+    {
+      return _indices.size() * sizeof(std::uint32_t);
+    }
+
+    const std::uint32_t* index_data() const
+    {
+      return _indices.data();
+    }
+
+  private:
+    std::vector<rigged_vertex> _vertices;
+    std::vector<std::uint32_t> _indices;
+    std::uint32_t _num_indices{ 0 };
+    std::vector<std::string> _bones_buffer;
+
+    void build_vertices(aiMesh* mesh, asset::bone_flattener<std::string>& flattener);
+    void set_bone_weights(aiMesh* mesh, asset::bone_flattener<std::string>& flattener);
+  };
 }
 #endif

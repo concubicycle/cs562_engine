@@ -1,0 +1,82 @@
+{
+  "entities": [
+    {
+      "components": [
+        { "type": "scene_settings" }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 3, 3 ],
+          "rotation": [ -0.2, 0, 0 ]
+        },
+        {
+          "type": "camera",
+          "fov": 0.6,
+          "near_distance": 0.1,
+          "far_distance": 10000,
+          "background": 3,
+          "clear_color": [ 0.23, 0.2, 0.4, 1.0 ],
+          "skybox": {
+            "left": "assets/skybox/xneg.png",
+            "top": "assets/skybox/ypos.png",
+            "front": "assets/skybox/zneg.png",
+            "bottom": "assets/skybox/yneg.png",
+            "right": "assets/skybox/xpos.png",
+            "back": "assets/skybox/zpos.png"
+          },
+          "skydome": {
+            "image": "assets/skydome/Tropical_Beach_3k.hdr",
+            "irradiance_map": "assets/skydome/Tropical_Beach_3k.irr.hdr"
+          }
+        },
+        {
+          "type": "ambient_light",
+          "color": [ 0.2, 0.2, 0.2 ]
+        },
+        {
+          "type": "freefly_component"
+        }
+      ]
+    },    
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 100, 130 ],
+          "rotation": [ -1, 0, 0 ]
+        },
+        {
+          "type": "directional_light",
+          "direction": [ 0, -0.78087, -0.62469 ],
+          "color": [ 0.1, 0.1, 0.1 ]
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, 0 ],
+          "scale": [ 1, 1, 1 ]
+        },
+        {
+          "type": "rigged_model_instance",
+          "model": "assets/models/gh_sample_animation.fbx",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.7,
+                "metalness": false,
+                "fresnel_color": [ 0.056, 0.056, 0.056 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
+        }
+      ]
+    }
+  ]
+}

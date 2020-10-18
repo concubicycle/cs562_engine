@@ -19,7 +19,8 @@ target_link_libraries(asset PUBLIC
     ecs 
     stb_image
     assimp 
-    fmod)
+    fmod
+    imgui)
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

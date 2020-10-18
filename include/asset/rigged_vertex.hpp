@@ -14,14 +14,15 @@ namespace asset
 {
     struct rigged_vertex
     {
-        Eigen::Vector3f position = Eigen::Vector3f(0);
-        Eigen::Vector3f normal = Eigen::Vector3f(0);
-        Eigen::Vector2f tex_coord = Eigen::Vector2f(0);
-        Eigen::Vector3f tangent = Eigen::Vector3f(0);
-        Eigen::Vector3f bitangent = Eigen::Vector3f(0);
-
-        Eigen::Vector4i bone_ids = Eigen::Vector4i(0);
-        Eigen::Vector4f weights = Eigen::Vector4f(0);
+        Eigen::Vector3f position = Eigen::Vector3f::Zero();
+        Eigen::Vector3f normal = Eigen::Vector3f::Zero();
+        Eigen::Vector2f tex_coord = Eigen::Vector2f::Zero();
+        Eigen::Vector3f tangent = Eigen::Vector3f::Zero();
+        Eigen::Vector3f bitangent = Eigen::Vector3f::Zero();
+        Eigen::Array3f color = Eigen::Vector3f::Zero();
+        Eigen::Array2f texture_coords = Eigen::Array2f::Zero();
+        Eigen::Vector4i bone_ids = Eigen::Vector4i::Zero();
+        Eigen::Vector4f weights = Eigen::Vector4f::Zero();
 
         void add_weight(std::uint32_t bone_index, float weight)
         {
@@ -41,13 +42,13 @@ namespace asset
         void replace_smallest_weight(std::uint32_t bone_index, float weight)
         {
             std::uint8_t min_ind {0};
-            float min = std::numeric_limits<float>::max();
+            float min = 9999999999999999999.f;// std::numeric_limits<float>::max(); borked?
 
             for (std::uint8_t i = 0; i < 4; ++i)
             {
                 if (weights[i] < min)
                 {
-                    min_ind = i;
+                    min_ind = i;    
                     min = weights[i];
                 }
             }

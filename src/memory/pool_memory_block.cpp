@@ -2,14 +2,15 @@
 // Created by sava on 10/6/19.
 //
 
-#include <cassert>
+#include <assert.h>
+
 #include <memory/pool_memory_block.hpp>
 #include <memory/alignment.hpp>
 
 
 allocators::pool_memory_block::pool_memory_block(
-    std::uint32_t chunk_size,
-    std::uint32_t chunk_count,
+    size_t chunk_size,
+    size_t chunk_count,
     uintptr_t alignment) :
     _chunk_size(chunk_size),
     _chunk_count(chunk_count),
@@ -89,7 +90,7 @@ void allocators::pool_memory_block::prepare_memory(std::uint8_t *mem)
  */
 std::uint8_t *allocators::pool_memory_block::last_chunk_ptr()
 {
-    std::uint32_t last_chunk_offset = (_chunk_count - 1) * _chunk_size;
+    std::uintptr_t last_chunk_offset = (_chunk_count - 1) * _chunk_size;
     return _aligned_pointer + last_chunk_offset;
 }
 

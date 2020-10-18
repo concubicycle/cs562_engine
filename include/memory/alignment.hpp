@@ -4,7 +4,6 @@
 #ifndef __ALIGNMENT_HPP_
 #define __ALIGNMENT_HPP_
 
-#include <cstdint>
 #include <stddef.h>
 
 namespace memory

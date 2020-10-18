@@ -1,8 +1,8 @@
 #include <memory/pool_allocator.hpp>
 
 allocators::pool_allocator::pool_allocator(
-    std::uint32_t chunk_size,
-    std::uint32_t chunk_count,
+    size_t chunk_size,
+    size_t chunk_count,
     uintptr_t alignment) :
     _chunk_size(chunk_size > sizeof(void *) ? chunk_size : sizeof(void *)),
     _next_expand(chunk_count * ExpandGrowFactor),
@@ -25,7 +25,7 @@ allocators::pool_allocator::pool_allocator(
 }
 
 
-void allocators::pool_allocator::linked_expand(std::uint32_t chunk_count)
+void allocators::pool_allocator::linked_expand(size_t chunk_count)
 {
     _memory_blocks.emplace_back(_chunk_size, chunk_count, _alignment);
     link_last_two_mem_blocks();

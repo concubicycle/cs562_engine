@@ -17,7 +17,7 @@ asset::rigged_mesh::rigged_mesh(const aiScene* assimp_scene_asset, aiMesh* assim
             [&] (
                 const aiNode* ai_node,
                 std::string* node,
-                std::string* parent,
+                std::string* parent,                
                 bone_flattener<std::string>& flattener) {
 
             });
@@ -71,9 +71,10 @@ void asset::rigged_mesh::set_bone_weights(aiMesh *mesh, asset::bone_flattener<st
 {
     for (std::uint32_t bone_index = 0; bone_index < mesh->mNumBones; ++bone_index)
     {
-        auto& bone = mesh->mBones[bone_index];
-        std::string bone_name = bone->mName.data;
-        auto bone_id = flattener.find_node_index(bone_name);
+        auto* bone = mesh->mBones[bone_index];
+        auto& nodes = flattener.find_nodes(bone->mName.C_Str());
+        auto node = nodes[nodes.size() - 1];
+        auto bone_id = flattener.find_node_index(node);
 
         for (std::uint32_t weight_index = 0; weight_index < bone->mNumWeights; ++weight_index)
         {
@@ -92,4 +93,9 @@ std::vector<asset::rigged_vertex> &asset::rigged_mesh::vertices()
 std::vector<std::uint32_t > &asset::rigged_mesh::indices()
 {
     return _indices;
+}
+
+size_t asset::rigged_mesh::index_count() const
+{
+  return _indices.size();
 }

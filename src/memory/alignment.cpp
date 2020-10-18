@@ -1,6 +1,6 @@
 #include <memory/alignment.hpp>
-
 #include <cassert>
+#include <cstdint>
 
 // Shift the given address upwards if/as necessary to  // ensure it is aligned to the given number of bytes.  
 uintptr_t memory::align_address(uintptr_t addr, size_t align)

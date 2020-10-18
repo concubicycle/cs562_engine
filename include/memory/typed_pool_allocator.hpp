@@ -1,8 +1,6 @@
 #ifndef __TYPED_POOL_ALLOCATOR_H_
 #define __TYPED_POOL_ALLOCATOR_H_
 
-#include <cstdint>
-#include <vector>
 #include "pool_allocator.hpp"
 #include "pool_memory_block.hpp"
 

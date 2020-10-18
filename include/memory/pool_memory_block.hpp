@@ -5,9 +5,8 @@
 #ifndef ECS_ATTEMPT2_POOL_MEMORY_BLOCK_HPP
 #define ECS_ATTEMPT2_POOL_MEMORY_BLOCK_HPP
 
-
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 
 namespace allocators
 {
@@ -19,7 +18,7 @@ namespace allocators
     class pool_memory_block
     {
     public:
-        pool_memory_block(std::uint32_t chunk_size, std::uint32_t chunk_count, uintptr_t alignment);
+        pool_memory_block(size_t chunk_size, size_t chunk_count, uintptr_t alignment);
 
         pool_memory_block(pool_memory_block &&other) noexcept;
 
@@ -46,8 +45,8 @@ namespace allocators
         std::uint8_t *_aligned_pointer = nullptr;
         std::uint8_t *_last_addr_written;
         size_t _malloc_size;
-        std::uint32_t _chunk_count;
-        std::uint32_t _chunk_size;
+        size_t _chunk_count;
+        size_t _chunk_size;
 
         void prepare_memory(std::uint8_t *mem);
 

@@ -13,7 +13,7 @@ namespace asset
 	class assimp_mesh
 	{
 	public:
-		assimp_mesh(aiMesh* mesh);
+		assimp_mesh(const aiScene* assimp_scene_asset, aiMesh* assimp_mesh);
 
 		std::uint32_t vertex_data_bytes() const
 		{

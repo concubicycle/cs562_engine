@@ -11,7 +11,8 @@ namespace renderer
 		ambient_light = 7,
 		local_punctual_light = 8,
 		directional_light = 9,
-		scene_settings = 10
+		scene_settings = 10,
+		rigged_model_instance = 11
 	};
 }
 

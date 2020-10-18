@@ -1,9 +1,10 @@
 set(ENGINEUI_SOURCE_LIST
     fps_display.cpp
     imgui_overlay.cpp
-     scene_settings_display.cpp)
+    scene_settings_display.cpp
+    assimp_model_display.cpp)
 
 add_library(engineui ${ENGINEUI_SOURCE_LIST})
 target_include_directories(engineui PRIVATE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(engineui imgui core ecs glfw renderer)
+target_link_libraries(engineui imgui core ecs glfw renderer assimp)
 target_compile_features(engineui PUBLIC cxx_std_17)

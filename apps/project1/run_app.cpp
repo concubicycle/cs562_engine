@@ -1,5 +1,9 @@
 #include "run_app.hpp"
 #include <random>
+#include <renderer/rigged_model_instance.hpp>
+#include <renderer/rigged_model_loader.hpp>
+#include <renderer/animator.hpp>
+#include <engine-ui/assimp_model_display.hpp>
 
 void generate_lights(asset::scene_hydrater& hydrater);
 
@@ -28,10 +32,10 @@ void run_app()
 	ecs::register_component<renderer::directional_light>("directional_light");
 	ecs::register_component<renderer::local_punctual_light>("local_punctual_light");
 	ecs::register_component<renderer::scene_settings, 2>("scene_settings");
+	ecs::register_component<renderer::rigged_model_instance>("rigged_model_instance");
 	ecs::register_component<firefly>("firefly");
-	
 
-	asset::scene_tracker scene_tracker("assets/scenes/scene.json");
+	asset::scene_tracker scene_tracker("assets/scenes/scene_anim.json");
 	asset::asset_loader loader;
 	asset::scene_hydrater hydrater(state);
 
@@ -43,13 +47,15 @@ void run_app()
 	renderer::render_system render_system(strings, loader, vram_loader, glfw, config);
 	renderer::camera_update_system camera_updater(glfw);
 	firefly_ai firefly_system(timer);
+	renderer::animator animator(timer);
 
 	ecs::systems systems({
 		&freefly,
 		&transform_system,		
 		&camera_updater,
 		&render_system,
-		& firefly_system
+		&firefly_system,
+		&animator
 	});
 
 	ecs::world world(systems, state);
@@ -62,6 +68,8 @@ void run_app()
 	renderer::directional_light_loader directional_light_loader;
 	renderer::camera_loader camera_loader(loader, vram_loader);
 	renderer::ambient_light_loader ambient_light_loader;
+	renderer::rigged_model_loader rigged_model_loader(strings, loader, vram_loader);
+	
 
 	hydrater.register_loaders(
 		&transform_loader,
@@ -70,15 +78,18 @@ void run_app()
 		&local_punctual_light_loader,
 		&directional_light_loader,
 		&camera_loader, 
-		&ambient_light_loader);
+		&ambient_light_loader,
+		&rigged_model_loader);
 	
 	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
 	engineui::fps_display fps(glfw, timer);
 	engineui::scene_settings_display pm_display(glfw, state);
+	engineui::assimp_model_display model_display(glfw, state);
 
 	overlay.register_views(		
 		&fps,
-		&pm_display
+		&pm_display,
+		&model_display
 	);
 
 
