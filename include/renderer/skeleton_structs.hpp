@@ -15,12 +15,14 @@
 namespace renderer
 {
   struct joint
-  {
+  {    
     size_t index;
+    std::string name;
 
     Eigen::Matrix4f bind_pose;
     Eigen::Matrix4f inverse_bind_pose;
-    std::string name;
+    Eigen::Matrix4f assimp_offset;
+    
     std::optional<size_t> parent_index;
   };
 
@@ -86,7 +88,19 @@ namespace renderer
       auto& key1 = prop.keyframes[idx];
 
       auto blend_factor = (clip_time - key0.time) / (key1.time - key0.time);
-      return key0.value + (float)blend_factor * (key1.value - key0.value);
+      return interpolate(key0.value, key1.value, blend_factor);
+    }
+
+    template <typename T>
+    T interpolate(const T& a, const T& b, float blend_factor)
+    {
+      return a + blend_factor * (b - a);
+    }
+
+    template <>
+    math::quat<float> interpolate(const math::quat<float>& a, const math::quat<float>& b, float blend_factor)
+    {
+      return a.slerp(b, blend_factor);
     }
   };
 
@@ -104,6 +118,8 @@ namespace renderer
 
   struct animation_data
   {
+    Eigen::Matrix4f global_inverse;
+
     // clips and skeleton joints are index aligned
     skeleton skeleton;    
     std::vector<skeleton_animation_clip> clips;

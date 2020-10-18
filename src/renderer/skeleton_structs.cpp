@@ -18,14 +18,18 @@ renderer::animation_data::animation_data(const aiScene* scene)
     joint* node,
     joint* parent,
     asset::bone_flattener<joint>& flattener) {
-      float* mPtr = (float*)(&(ai_node->mTransformation.a1));
       // assimp is row-major. eigen/opengl are col-major. transpose the matrix
-      node->bind_pose = Eigen::Map<Eigen::Matrix4f>(mPtr).transpose().matrix();
+      float* mPtr = (float*)(&(ai_node->mTransformation.a1));      
+      node->bind_pose = Eigen::Map<Eigen::Matrix4f>(mPtr).transpose().eval();
       node->inverse_bind_pose = node->bind_pose.inverse();
       node->index = flattener.find_node_index(ai_node);
       node->name = std::string(ai_node->mName.data);
+      node->assimp_offset = flattener.find_offset_for_node(ai_node);
+
       if (parent)
         node->parent_index.emplace(parent->index);
+      else
+        global_inverse = node->bind_pose.inverse();
   };
 
   asset::bone_flattener<joint> flattener(scene, skeleton.joints.data(), joint_count, flatten_func);
@@ -125,7 +129,8 @@ void renderer::skeleton_pose::compute_global_pose_buffer()
     
     if (joint.parent_index)
     {
-      global_pose_buffer[i] = global_pose_buffer[*joint.parent_index] * joint.bind_pose; //global_pose_buffer[*joint.parent_index] * local_poses[i].matrix();
+      global_pose_buffer[i] = 
+        global_pose_buffer[*joint.parent_index] * local_poses[i].matrix() * skeleton->joints[i].assimp_offset;
     }
   }
 }

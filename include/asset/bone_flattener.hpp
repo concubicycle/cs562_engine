@@ -109,7 +109,7 @@ namespace asset
       auto& source = _node_to_mesh_bone.at(node)->mOffsetMatrix;
       float* fptr = (float*)(&source.a1);
       Eigen::Map<Eigen::Matrix4f> mat(fptr);      
-      return mat.transpose();
+      return mat.eval().transpose();
     }
 
 
