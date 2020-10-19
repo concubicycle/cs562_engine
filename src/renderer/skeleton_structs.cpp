@@ -8,10 +8,15 @@ renderer::animation_data::animation_data(const aiScene* scene)
 {
   size_t joint_count = 0;
   asset::bone_flattener<joint>::count_nodes(scene->mRootNode, joint_count);  
+
   skeleton.joints.resize(joint_count);
-  pose_buffer.local_poses.resize(joint_count);
-  pose_buffer.global_pose_buffer.resize(joint_count);  
-  for (auto& m : pose_buffer.global_pose_buffer) m.setIdentity();
+
+  pose_buffer.joint_poses.resize(joint_count);
+  pose_buffer.global_joint_poses.resize(joint_count);  
+  for (auto& m : pose_buffer.global_joint_poses) m.setIdentity();
+
+  float* mPtr = (float*)(&(scene->mRootNode->mTransformation.a1));
+  skeleton.global_inverse = Eigen::Map<Eigen::Matrix4f>(mPtr).transpose().eval().inverse().eval();
 
   auto flatten_func = [&](
     aiNode* ai_node,
@@ -22,14 +27,13 @@ renderer::animation_data::animation_data(const aiScene* scene)
       float* mPtr = (float*)(&(ai_node->mTransformation.a1));      
       node->bind_pose = Eigen::Map<Eigen::Matrix4f>(mPtr).transpose().eval();
       node->inverse_bind_pose = node->bind_pose.inverse();
+
       node->index = flattener.find_node_index(ai_node);
       node->name = std::string(ai_node->mName.data);
       node->assimp_offset = flattener.find_offset_for_node(ai_node);
 
       if (parent)
-        node->parent_index.emplace(parent->index);
-      else
-        global_inverse = node->bind_pose.inverse();
+        node->parent_index.emplace(parent->index);  
   };
 
   asset::bone_flattener<joint> flattener(scene, skeleton.joints.data(), joint_count, flatten_func);
@@ -50,7 +54,11 @@ void renderer::animation_data::set_pose_buffer_to(size_t animation_index, animat
   {
     auto& joint = skeleton.joints.at(joint_idx);
     auto& joint_clip = animation.joint_clips.at(joint_idx);
-    pose_buffer.local_poses[joint_idx] = joint_clip.pose_at(clip_time);
+
+    if (joint_clip.is_empty())
+      pose_buffer.joint_poses[joint_idx] = joint.bind_pose;
+    else
+      pose_buffer.joint_poses[joint_idx] = joint_clip.pose_at(clip_time).matrix();
   }
 }
 
@@ -95,6 +103,8 @@ renderer::skeleton_animation_clip::skeleton_animation_clip(
       clip.rotation.keyframes.emplace_back(
         animation_time(rot_key.mTime / animation->mTicksPerSecond),
         math::quat<float>(rot_key.mValue.w, rot_key.mValue.x, rot_key.mValue.y, rot_key.mValue.z));
+
+      clip.rotation.keyframes.back().value.normalize();
     }
 
     for (size_t scl_i = 0; scl_i < ai_node_animation->mNumScalingKeys; ++scl_i)
@@ -117,7 +127,7 @@ renderer::skeleton_animation_clip::skeleton_animation_clip(
 ///
 renderer::skeleton_pose::skeleton_pose(renderer::skeleton* s) : skeleton(s)
 {
-  local_poses.resize(skeleton->joints.size());
+  joint_poses.resize(skeleton->joints.size());
 }
 
 void renderer::skeleton_pose::compute_global_pose_buffer()
@@ -125,13 +135,22 @@ void renderer::skeleton_pose::compute_global_pose_buffer()
   // assumes children are stored after parents, so calc parents first
   for (size_t i = 0; i < skeleton->joints.size(); ++i)
   {
-    auto& joint = skeleton->joints[i];
-    
+    auto& joint = skeleton->joints[i];    
     if (joint.parent_index)
     {
-      global_pose_buffer[i] = 
-        global_pose_buffer[*joint.parent_index] * local_poses[i].matrix() * skeleton->joints[i].assimp_offset;
+      auto parent_index = *(joint.parent_index);
+      global_joint_poses[i] =
+        global_joint_poses[parent_index] *
+        joint_poses[i];
     }
+  }
+
+  for (size_t i = 0; i < skeleton->joints.size(); ++i)
+  {
+    global_joint_poses[i] = 
+      skeleton->global_inverse * 
+      global_joint_poses[i] * 
+      skeleton->joints[i].assimp_offset;
   }
 }
 
@@ -142,7 +161,7 @@ Eigen::Matrix4f renderer::joint_pose::matrix() const
   using namespace Eigen;
   Eigen::Matrix4f t = Eigen::Affine3f(Translation3f(translation)).matrix();
   Eigen::Matrix4f r = rotation.matrix();
-  Eigen::Matrix4f s = Eigen::Affine3f(Scaling(scale)).matrix();
-  return t * r * s;
+  //Eigen::Matrix4f s = Eigen::Affine3f(Scaling(scale)).matrix();
+  return t * r;// *s;
 }
 #endif

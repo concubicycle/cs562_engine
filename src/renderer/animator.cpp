@@ -16,6 +16,8 @@ void renderer::animator::update(ecs::state& state)
 		if (component.t > anim_duration)
 			component.t = component.t - anim_duration;
 
+		//component.t = animation_time(0.01);
+
 		component.animation_structures->set_pose_buffer_to(component.animation_index, component.t);
 		component.animation_structures->pose_buffer.compute_global_pose_buffer();
 	});

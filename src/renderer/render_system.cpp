@@ -217,12 +217,30 @@ void renderer::render_system::draw_rigged_models(
   using namespace transforms;
 
   state.each<transform, rigged_model_instance>([&](transform& t, rigged_model_instance& model) {
-    program.set_mat4_array(45, model.animation_structures->pose_buffer.global_pose_buffer);
+    program.set_mat4_array(45, model.animation_structures->pose_buffer.global_joint_poses);
 
     for (size_t i = 0; i < model.model.mesh_count; ++i)
     {      
       draw_mesh(t, model.model.meshes[i], program);
     }
+
+    //_geometry_pass.bind();
+
+    //bind_material(model.model.meshes[0].material, _geometry_pass);
+    //auto* cam = state.first<camera>();
+    //auto& cam_t = cam->get_component<transform>();
+    //auto& cam_cam = cam->get_component<camera>();
+    //bind_camera_uniforms(_geometry_pass, cam_t, cam_cam);
+
+    //for (Eigen::Matrix4f& global_pose_mat : model.animation_structures->pose_buffer.global_joint_poses)
+    //{
+    //  _geometry_pass.set_uniform("model", global_pose_mat);
+    //  _geometry_pass.set_uniform("adjoint_transpose", global_pose_mat.adjoint().transpose().eval());
+    //  glBindVertexArray(_sphere.get_vao());      
+    //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
+    //  glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
+    //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //}
   });
 }
 
