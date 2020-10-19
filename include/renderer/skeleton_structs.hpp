@@ -110,15 +110,7 @@ namespace renderer
     template <>
     math::quat<float> interpolate(const math::quat<float>& a, const math::quat<float>& b, float blend_factor)
     {
-      Eigen::Quaternionf q0(a.s(), a.v()[0], a.v()[1], a.v()[2]);
-      Eigen::Quaternionf q1(b.s(), b.v()[0], b.v()[1], b.v()[2]);
-      Eigen::Quaternionf res = q0.slerp(blend_factor, q1);
-      res.normalize();
-
-      return math::quat<float>(res.w(), res.x(), res.y(), res.z());
-
-
-      //return a.slerp(b, blend_factor);
+      return a.slerp(b, blend_factor);
     }
   };
 
