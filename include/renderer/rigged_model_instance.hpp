@@ -37,7 +37,6 @@ namespace renderer
     animation_time current_clip_time() const;
     animation_time current_clip_duration() const;
     void increment_global_time(animation_time inc);
-
     animation_timelines get_timelines();
 
 

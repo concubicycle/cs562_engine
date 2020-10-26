@@ -65,9 +65,9 @@ void engineui::assimp_model_display::draw()
       rmi.increment_global_time(renderer::animation_time(diff));
     }
 
-    ImGui::SliderFloat("global playback rate", &rmi.animation_structures->global_timeline.playback_rate, 0, 2);       
+    ImGui::SliderFloat("global playback rate", &timelines.global.playback_rate, 0, 2);       
     
-    const char* current = clips[rmi.animation_index()].name.c_str();
+    const char* current = rmi.current_clip().name.c_str();
 
     if (ImGui::BeginCombo("Animations", current))
     {
