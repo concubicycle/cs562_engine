@@ -13,6 +13,8 @@ namespace renderer
 		explicit animator(core::frame_timer& timer);
 		void update(ecs::state& state) override;
 
+		void play_animation(size_t index, animation_time time = animation_time(0));
+
 	private:
 		core::frame_timer& _timer;
 	};

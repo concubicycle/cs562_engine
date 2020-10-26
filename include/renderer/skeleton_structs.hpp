@@ -13,6 +13,8 @@
 #include <renderer/animation_time.hpp>
 #include <renderer/skeletal_animation_frame.hpp>
 
+#include <renderer/timeline.hpp>
+
 namespace renderer
 {
   struct joint
@@ -46,13 +48,13 @@ namespace renderer
   {
     skeleton* skeleton;
     std::vector<Eigen::Matrix4f> joint_poses;
-    std::vector<Eigen::Matrix4f> global_joint_poses;
+    std::vector<Eigen::Matrix4f> global_joint_poses;    
 
-    skeleton_pose(renderer::skeleton* s);
+    skeleton_pose(renderer::skeleton* s, size_t node_count);
     void compute_global_pose_buffer();
 
   private:
-    Eigen::Matrix4f traverse_up(const joint& j) const;
+    std::vector<Eigen::Matrix4f> _bone_transform_buffer;
   };
 
 
@@ -88,11 +90,12 @@ namespace renderer
       if (clip_time > prop.end_time())
         return prop.end_value();
 
-      size_t idx = 0;
+      if (prop.keyframes.size() == 1)
+        return prop.keyframes.front().value;
+
+      size_t idx = 1;
       while (prop.keyframes.at(idx).time < clip_time && idx < prop.keyframes.size())
         idx++;
-
-      if (idx == 0) return prop.keyframes[idx].value;
 
       auto& key0 = prop.keyframes[idx - 1];
       auto& key1 = prop.keyframes[idx];
@@ -116,26 +119,38 @@ namespace renderer
 
   struct skeleton_animation_clip
   {
-    std::string name;
-    animation_time duration;
+    std::string name;    
+        
+    local_timeline timeline;
 
     // index aligned
     skeleton* clip_skeleton;
     std::vector<joint_animation_clip> joint_clips;
 
-    skeleton_animation_clip(skeleton* skel, aiAnimation* animation, asset::bone_flattener<joint>& flattener);
+    bool is_looping{ true };
+
+    skeleton_animation_clip(
+      skeleton* skel, 
+      aiAnimation* animation, 
+      asset::bone_flattener<joint>& flattener);
   };
 
   struct animation_data
   {
-    // clips and skeleton joints are index aligned
-    skeleton skeleton;    
-    std::vector<skeleton_animation_clip> clips;
+    // index aligned
+    skeleton skeleton{};
+    std::vector<skeleton_animation_clip> clips{};
+    timeline global_timeline{};
 
-    skeleton_pose pose_buffer{ &skeleton };
-
+    size_t joint_count;
+    skeleton_pose pose_buffer;
+    
     animation_data(const aiScene* scene);
-    void set_pose_buffer_to(size_t animation_index, animation_time clip_time);    
+    void set_pose_buffer_to(size_t animation_index, animation_time clip_time);
+    skeleton_animation_clip& current_clip();
+
+  private:
+    size_t find_joint_count(const aiScene* scene);
   };
 }
 

@@ -74,9 +74,9 @@ void renderer::render_system::update(ecs::state& state)
     _gbuffer.bind();
     handle_cam_background(c);
 
-    /*_geometry_pass.bind();
+    _geometry_pass.bind();
     bind_camera_uniforms(_geometry_pass, t, c);
-    draw_scene(state, _geometry_pass);*/
+    draw_scene(state, _geometry_pass);
 
     _rigged_geometry_pass.bind();
     bind_camera_uniforms(_rigged_geometry_pass, t, c);
@@ -101,7 +101,7 @@ void renderer::render_system::update(ecs::state& state)
     _fsq.draw();
 
     draw_local_lights(state, t, c);
-    //draw_airlight(state, t, c);
+    draw_airlight(state, t, c);
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -191,6 +191,7 @@ void renderer::render_system::set_light_uniforms(
 
   auto& settings = pm->get_component<scene_settings>();
   shader.set_uniform("draw_only_ao", settings.ambient_occlusion.draw_only_ao);
+  shader.set_uniform("use_skydome_light", settings.light.ibl);
 }
 
 
@@ -202,15 +203,15 @@ void renderer::render_system::draw_scene(
   using namespace transforms;
 
   state.each<transform, model_instance>([&](transform& t, model_instance& mi) {
-      for (size_t i = 0; i < mi.model.mesh_count; ++i)
-      {
-        draw_mesh(t, mi.model.meshes[i], program);
-      }
-  });
+    for (size_t i = 0; i < mi.model.mesh_count; ++i)
+    {
+      draw_mesh(t, mi.model.meshes[i], program);
+    }
+    });
 }
 
 void renderer::render_system::draw_rigged_models(
-  ecs::state& state, 
+  ecs::state& state,
   const shader_program& program)
 {
   using namespace gl;
@@ -220,28 +221,37 @@ void renderer::render_system::draw_rigged_models(
     program.set_mat4_array(45, model.animation_structures->pose_buffer.global_joint_poses);
 
     for (size_t i = 0; i < model.model.mesh_count; ++i)
-    {      
+    {
       draw_mesh(t, model.model.meshes[i], program);
     }
 
-    //_geometry_pass.bind();
+    auto* pm = state.first<scene_settings>();
+    if (!pm) return;
 
-    //bind_material(model.model.meshes[0].material, _geometry_pass);
-    //auto* cam = state.first<camera>();
-    //auto& cam_t = cam->get_component<transform>();
-    //auto& cam_cam = cam->get_component<camera>();
-    //bind_camera_uniforms(_geometry_pass, cam_t, cam_cam);
+    auto& settings = pm->get_component<scene_settings>();
 
-    //for (Eigen::Matrix4f& global_pose_mat : model.animation_structures->pose_buffer.global_joint_poses)
-    //{
-    //  _geometry_pass.set_uniform("model", global_pose_mat);
-    //  _geometry_pass.set_uniform("adjoint_transpose", global_pose_mat.adjoint().transpose().eval());
-    //  glBindVertexArray(_sphere.get_vao());      
-    //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
-    //  glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
-    //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //}
-  });
+    if (!settings.animation.draw_bones) return;
+
+    _geometry_pass.bind();
+
+    bind_material(model.model.meshes[0].material, _geometry_pass);
+    auto* cam = state.first<camera>();
+    auto& cam_t = cam->get_component<transform>();
+    auto& cam_cam = cam->get_component<camera>();
+
+    bind_camera_uniforms(_geometry_pass, cam_t, cam_cam);
+
+    for (Eigen::Matrix4f& global_pose_mat : model.animation_structures->pose_buffer.global_joint_poses)
+    {
+      Eigen::Matrix4f model = Eigen::Affine3f(Eigen::Scaling(t.scale())).matrix() * global_pose_mat;
+      _geometry_pass.set_uniform("model", model);
+      _geometry_pass.set_uniform("adjoint_transpose", global_pose_mat.adjoint().transpose().eval());
+      glBindVertexArray(_sphere.get_vao());
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
+      glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+    });
 }
 
 void renderer::render_system::handle_cam_background(
@@ -608,22 +618,33 @@ void renderer::render_system::render_shadowmap_directional(
   using namespace transforms;
 
   dl.shadowmap_framebuffer.bind();
-  _directional_shadow.bind();
 
-  glClearColor(1, 1, 1, 1);
+  glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   glViewport(0, 0, dl.shadow_map_resolution, dl.shadow_map_resolution);
+
   Eigen::Vector3f position = t.world_position();
   Eigen::Vector3f center = position + dl.direction;
 
   dl.light_view = lookat(position, center, Eigen::Vector3f(0, 0, -1));
 
+  _directional_shadow.bind();
   _directional_shadow.set_uniform("view", dl.light_view);
   _directional_shadow.set_uniform("projection", dl.light_projection);
   draw_scene_shadowmap(state, _directional_shadow);
 
-  _directional_shadow.unbind();
+  _directional_shadow_rigged.bind();
+  _directional_shadow_rigged.set_uniform("view", dl.light_view);
+  _directional_shadow_rigged.set_uniform("projection", dl.light_projection);
+
+  state.each<transform, rigged_model_instance>([&](transform& t, rigged_model_instance& mi)
+    {
+      _directional_shadow_rigged.set_mat4_array(45, mi.animation_structures->pose_buffer.global_joint_poses);
+      for (size_t i = 0; i < mi.model.mesh_count; ++i)
+        draw_mesh(t, mi.model.meshes[i], _directional_shadow_rigged);
+    });
+
+  _directional_shadow_rigged.unbind();
   dl.shadowmap_framebuffer.unbind();
 
   // gaussian blur

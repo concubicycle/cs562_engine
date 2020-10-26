@@ -50,7 +50,7 @@ namespace renderer
 		core::startup_config& _config;
 		full_screen_quad _fsq;
 
-		sphere _sphere{ 4, 4 };
+		sphere _sphere{ 8, 16 };
 		sphere skydome_mesh{ 64, 128 };
 		opengl_hammersley_block<20> _hammersley_block{};
 		gl::GLuint _fuv_table_texture;
@@ -94,6 +94,10 @@ namespace renderer
 
 		shader_program _directional_shadow{
 			_assets.get_text("assets/shaders/directional_shadow.vert"),
+			_assets.get_text("assets/shaders/directional_shadow.frag") };
+
+		shader_program _directional_shadow_rigged {
+			_assets.get_text("assets/shaders/directional_shadow_rigged.vert"),
 			_assets.get_text("assets/shaders/directional_shadow.frag") };
 
 		shader_program _draw_texture{

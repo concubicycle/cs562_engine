@@ -70,9 +70,8 @@ namespace math
       auto m20 = rotation[0][2];
       auto m10 = rotation[0][1];
       auto m01 = rotation[1][0];
-      auto s = _sxyz[0];
 
-      _sxyz[0] = 0.5 * std::sqrt(m00 + m11 + m22 + 1);
+      auto s = _sxyz[0] = 0.5 * std::sqrt(m00 + m11 + m22 + 1);
       _sxyz[1] = (m21 - m12) / (4 * s);
       _sxyz[2] = (m02 - m20) / (4 * s);
       _sxyz[3] = (m10 - m10) / (4 * s);
@@ -164,9 +163,6 @@ namespace math
 
     Eigen::Matrix<T, 4, 4> matrix() const
     {
-      Eigen::Quaternionf q(_sxyz[0], _sxyz[1], _sxyz[2], _sxyz[3]);
-      return Eigen::Affine3f(q).matrix();
-
       auto s = _sxyz[0];
       auto x = _sxyz[1];
       auto y = _sxyz[2];

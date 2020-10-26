@@ -9,16 +9,13 @@ renderer::animator::animator(core::frame_timer& timer) : _timer(timer)
 void renderer::animator::update(ecs::state& state)
 {
 	state.each<rigged_model_instance>([&](rigged_model_instance& component) {
-		auto anim_duration = component.current_animation_duration();
+		auto& current_animation = component.current_clip();
+		auto timelines = component.get_timelines();
+		
+		timelines.global.update(_timer.smoothed_delta());
+		timelines.local.update_local_time(timelines.global, current_animation.is_looping);
 
-		component.t += _timer.smoothed_delta();
-
-		if (component.t > anim_duration)
-			component.t = component.t - anim_duration;
-
-		//component.t = animation_time(0.01);
-
-		component.animation_structures->set_pose_buffer_to(component.animation_index, component.t);
+		component.animation_structures->set_pose_buffer_to(component.animation_index(), current_animation.timeline.t);
 		component.animation_structures->pose_buffer.compute_global_pose_buffer();
 	});
 }

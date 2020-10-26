@@ -31,11 +31,7 @@
             "image": "assets/skydome/Tropical_Beach_3k.hdr",
             "irradiance_map": "assets/skydome/Tropical_Beach_3k.irr.hdr"
           }
-        },
-        {
-          "type": "ambient_light",
-          "color": [ 0.2, 0.2, 0.2 ]
-        },
+        },        
         {
           "type": "freefly_component"
         }
@@ -58,17 +54,39 @@
     {
       "components": [
         {
-          "type": "transform"
+          "type": "transform",
+          "scale": [ 0.01, 0.01, 0.01 ]
         },
         {
           "type": "rigged_model_instance",
-          "model": "assets/models/gh_sample_animation.fbx",
+          "model": "assets/models/character.fbx",
           "materials": {
             "definitions": [
               {
                 "roughness": 0.7,
                 "metalness": false,
                 "fresnel_color": [ 0.056, 0.056, 0.056 ]
+              }
+            ],
+            "mesh_definition_indices": [ 0 ]
+          }
+        }
+      ]
+    },
+    {
+      "components": [
+        {
+          "type": "transform"
+        },
+        {
+          "type": "model_instance",
+          "model": "assets/models/floor/floor.gltf",
+          "materials": {
+            "definitions": [
+              {
+                "roughness": 0.999,
+                "metalness": false,
+                "fresnel_color": [ 0, 0, 0 ]
               }
             ],
             "mesh_definition_indices": [ 0 ]

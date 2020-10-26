@@ -12,12 +12,15 @@ in VS_OUT {
 } fs_in;
 
 
-
 void main()
 {
-    FragColor = vec4(
-        fs_in.depth, 
-        fs_in.depth * fs_in.depth,
-        fs_in.depth * fs_in.depth * fs_in.depth, 
-        fs_in.depth * fs_in.depth * fs_in.depth * fs_in.depth);
+    float depth = fs_in.depth;
+	float sq = depth * depth;
+	float cube = sq * depth;
+
+	FragColor = vec4(
+		depth,
+		sq,
+		cube,
+		cube * depth);
 }

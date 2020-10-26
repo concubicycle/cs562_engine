@@ -27,11 +27,22 @@ namespace renderer
 		bool draw_only_ao { false };
 	};
 
+	struct animation_settings
+	{
+		bool draw_bones{ false };
+	};
+
+	struct lighting_settings
+	{
+		bool ibl{ false };
+	};
 
 	struct scene_settings : public ecs::component<scene_settings>
 	{
 		participating_medium_settings participating_medium;
 		ambient_occlusion_settings ambient_occlusion;
+		animation_settings animation;
+		lighting_settings light;
 	};
 }
 

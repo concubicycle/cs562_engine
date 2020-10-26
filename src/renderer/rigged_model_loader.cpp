@@ -22,13 +22,11 @@ void renderer::rigged_model_loader::load(asset::asset_loader_node& ecs_node)
   auto& component = entity->get_component<renderer::rigged_model_instance>();
   auto& path = json["model"].get<std::string>();
   auto& proto_model = _asset_loader.get_assimp_scene(path);
-
-  component.animation_index = 0;
+    
   component.animation_structures.emplace(proto_model.aiscene);
   component.is_paused = false;
   component.model = _vram_loader.load_rigged_model(proto_model);
   component.model_filename_hash = _strings.hash_and_store(path);
-  component.t = animation_time(0);
   component.aiscene = proto_model.aiscene;
 }
 

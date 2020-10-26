@@ -1,6 +1,7 @@
 #ifndef __ASSIMP_MODEL_HPP_
 #define __ASSIMP_MODEL_HPP_
 
+#include <stdlib.h> 
 #include <string>
 #include <vector>
 
@@ -141,9 +142,19 @@ namespace asset
 
       aiString str;
       mat->GetTexture(type, 0, &str);
-      std::string full_path = "assets/textures/" + std::string(str.C_Str());
-      auto& texture_ref = _loader.get_texture(full_path);
-      material_textures.insert(std::make_pair(type, &texture_ref));
+
+      if (str.data[0] == '*')
+      {
+        // embedded texture
+        throw std::runtime_error("Embedded model textuers unsupported for now.");
+      }
+      else
+      {
+        // external texture
+        std::string full_path = "assets/textures/" + std::string(str.C_Str());
+        auto& texture_ref = _loader.get_texture(full_path);
+        material_textures.insert(std::make_pair(type, &texture_ref));
+      }
     }
   };
 }

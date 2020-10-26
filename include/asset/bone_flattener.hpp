@@ -85,12 +85,8 @@ namespace asset
         }
       }
     }
-
-    const std::unordered_map<std::string, T*>& name_to_node() const { return _name_to_node; }
-
         
     size_t find_node_index(aiNode* node) { return _node_to_index.at(node); }
-    aiNode* find_node(aiMesh* mesh) { return _mesh_to_node.at(mesh); }
     const std::vector<aiNode*> find_nodes(std::string name)
     { 
       return _nodes_by_name.at(name);

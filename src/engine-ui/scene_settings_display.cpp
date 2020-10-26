@@ -42,6 +42,18 @@ void engineui::scene_settings_display::draw()
 			ImGui::TreePop();
 		}
 
+		if (ImGui::TreeNode("Settings"))
+		{			
+			ImGui::Checkbox("Draw Bones", &settings.animation.draw_bones);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Light"))
+		{
+			ImGui::Checkbox("IBL", &settings.light.ibl);
+			ImGui::TreePop();
+		}
+
 		ImGui::End();
 	});
 }
