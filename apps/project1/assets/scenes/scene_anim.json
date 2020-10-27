@@ -93,6 +93,9 @@
           }
         }
       ]
+    },
+    {
+      "prototype": "assets/prototypes/curve_path.json"
     }
   ]
 }

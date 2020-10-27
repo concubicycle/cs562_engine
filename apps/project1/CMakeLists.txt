@@ -1,4 +1,4 @@
-add_executable(project1 main.cpp run_app.cpp firefly_ai.cpp)
+add_executable(project1 main.cpp run_app.cpp firefly_ai.cpp "curve_walker.cpp" "curve_walker_system.cpp")
 
 target_link_libraries(project1 PRIVATE
 	core

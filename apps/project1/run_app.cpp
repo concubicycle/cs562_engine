@@ -4,6 +4,8 @@
 #include <renderer/rigged_model_loader.hpp>
 #include <renderer/animator.hpp>
 #include <engine-ui/assimp_model_display.hpp>
+#include "curve_walker.hpp"
+#include "curve_walker_system.hpp"
 
 void generate_lights(asset::scene_hydrater& hydrater);
 
@@ -34,6 +36,8 @@ void run_app()
 	ecs::register_component<renderer::scene_settings, 2>("scene_settings");
 	ecs::register_component<renderer::rigged_model_instance>("rigged_model_instance");
 	ecs::register_component<firefly>("firefly");
+	ecs::register_component<curve_walker>("curve_walker");
+	ecs::register_component<control_point>("control_point");
 
 	asset::scene_tracker scene_tracker("assets/scenes/scene_anim.json");
 	asset::asset_loader loader;
@@ -46,16 +50,18 @@ void run_app()
 	transforms::freefly_system freefly(input, timer);
 	renderer::render_system render_system(strings, loader, vram_loader, glfw, config);
 	renderer::camera_update_system camera_updater(glfw);
-	firefly_ai firefly_system(timer);
 	renderer::animator animator(timer);
-
+	firefly_ai firefly_system(timer);
+	curve_walker_system curve_walker_system(timer);
+	
 	ecs::systems systems({
 		&freefly,
 		&transform_system,		
 		&camera_updater,
 		&render_system,
 		&firefly_system,
-		&animator
+		&animator,
+		&curve_walker_system
 	});
 
 	ecs::world world(systems, state);
@@ -69,7 +75,7 @@ void run_app()
 	renderer::camera_loader camera_loader(loader, vram_loader);
 	renderer::ambient_light_loader ambient_light_loader;
 	renderer::rigged_model_loader rigged_model_loader(strings, loader, vram_loader);
-	
+	curve_walker_loader curve_walker_loader;
 
 	hydrater.register_loaders(
 		&transform_loader,
@@ -79,7 +85,8 @@ void run_app()
 		&directional_light_loader,
 		&camera_loader, 
 		&ambient_light_loader,
-		&rigged_model_loader);
+		&rigged_model_loader,
+		&curve_walker_loader);
 	
 	engineui::imgui_overlay overlay(glfw.window(), input, cursor);
 	engineui::fps_display fps(glfw, timer);

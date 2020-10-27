@@ -86,7 +86,7 @@ void engineui::assimp_model_display::draw()
     }
 
     ImGui::End();
-    });
+  });
 }
 
 void engineui::assimp_model_display::print_nodes_recurse(display_node* node, size_t animation_index)

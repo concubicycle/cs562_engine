@@ -2,5 +2,8 @@
 
 enum class app_component_bits 
 {
-	firefly = 32
+	firefly = 32,
+	curve_walker = 33,
+	control_point = 34
+
 };
