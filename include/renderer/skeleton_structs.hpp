@@ -24,7 +24,7 @@ namespace renderer
 
     Eigen::Matrix4f bind_pose;
     Eigen::Matrix4f inverse_bind_pose;
-    Eigen::Matrix4f assimp_offset;
+    Eigen::Matrix4f mesh_to_bone_space;
     
     std::optional<size_t> parent_index;
   };
@@ -42,19 +42,26 @@ namespace renderer
     Eigen::Vector3f scale;
 
     Eigen::Matrix4f matrix() const;
+
+    joint_pose();
+    explicit joint_pose(const Eigen::Matrix4f& mat);
+    joint_pose(math::quat<float> r, Eigen::Vector3f t, Eigen::Vector3f s);
+
+    joint_pose interpolate(const joint_pose& other, float blend_factor);
   };
 
-  struct skeleton_pose
+  joint_pose operator* (const Eigen::Matrix4f& m, const joint_pose& jp);
+
+  class skeleton_pose
   {
+  public:
     skeleton* skeleton;
-    std::vector<Eigen::Matrix4f> joint_poses;
-    std::vector<Eigen::Matrix4f> global_joint_poses;    
+    std::vector<joint_pose> joint_poses;
+    std::vector<Eigen::Matrix4f> global_model_space_poses;
+    std::vector<Eigen::Matrix4f> global_bone_space_poses;
 
-    skeleton_pose(renderer::skeleton* s, size_t node_count);
-    void compute_global_pose_buffer();
-
-  private:
-    std::vector<Eigen::Matrix4f> _bone_transform_buffer;
+    skeleton_pose(renderer::skeleton* s, size_t node_count);    
+    void compute_global_pose_buffer(size_t start_idx = 0);
   };
 
 
@@ -119,20 +126,21 @@ namespace renderer
 
   struct skeleton_animation_clip
   {
-    std::string name;    
-        
-    local_timeline timeline;
+    std::string name;
 
     // index aligned
     skeleton* clip_skeleton;
     std::vector<joint_animation_clip> joint_clips;
 
+    local_timeline timeline;
+
     bool is_looping{ true };
 
     skeleton_animation_clip(
-      skeleton* skel, 
-      aiAnimation* animation, 
+      skeleton* skel,
+      aiAnimation* animation,
       asset::bone_flattener<joint>& flattener);
+
   };
 
   struct animation_data
@@ -144,13 +152,19 @@ namespace renderer
 
     size_t joint_count;
     skeleton_pose pose_buffer;
-    
+
+    skeleton_pose bind_pose;
+
     animation_data(const aiScene* scene);
-    void set_pose_buffer_to(size_t animation_index, animation_time clip_time);
-    skeleton_animation_clip& current_clip();
+    void set_pose_buffer_to(size_t animation_index);
+    void set_pose_buffer_to_blend(
+      size_t animation_index_a,
+      size_t animation_index_b,
+      float blend_factor);
 
   private:
     size_t find_joint_count(const aiScene* scene);
+
   };
 }
 

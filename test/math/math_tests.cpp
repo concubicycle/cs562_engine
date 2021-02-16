@@ -12,5 +12,6 @@ int main()
     rotate_vector();
 
     test_b_spline();
+    test_to_from_mat();
     return 0;
 }

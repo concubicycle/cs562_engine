@@ -13,7 +13,7 @@ transforms::freefly_system::freefly_system(core::input_manager& input, core::fra
 void transforms::freefly_system::update(ecs::state& state)
 {
     state.each<transform, freefly_component>([&](transform& t, freefly_component& fc) {
-        auto frame_time = _timer.smoothed_delta_secs();
+        auto frame_time = _timer.smoothed_delta_seconds_f();
         auto speed = fc.walk_speed;
         auto mouse_delta = _input.mouse_delta();
 

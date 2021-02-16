@@ -87,7 +87,7 @@ namespace asset
     }
         
     size_t find_node_index(aiNode* node) { return _node_to_index.at(node); }
-    const std::vector<aiNode*> find_nodes(std::string name)
+    const std::vector<aiNode*>& find_nodes(std::string name)
     { 
       return _nodes_by_name.at(name);
     }

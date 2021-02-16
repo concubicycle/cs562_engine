@@ -1,0 +1,24 @@
+{
+  "root": {
+    "components": [
+      {
+        "type": "transform",
+        "position": [ 0, 5, 0 ]
+      },
+      {
+        "type": "model_instance",
+        "model": "assets/models/marble_cube/cube.gltf",
+        "materials": {
+          "definitions": [
+            {
+              "roughness": 0.999,
+              "metalness": false,
+              "fresnel_color": [ 0, 0, 0 ]
+            }
+          ],
+          "mesh_definition_indices": [ 0 ]
+        }
+      }
+    ]
+  }
+}

@@ -25,7 +25,6 @@ namespace math
       : _sxyz{ other._sxyz[0], other._sxyz[1], other._sxyz[2], other._sxyz[3] }
       , _v(_sxyz + 1) 
     {
-      int i = 0;
     }
 
     quat& operator= (const quat& other)
@@ -47,34 +46,26 @@ namespace math
     }
 
     quat(const Eigen::Matrix<T, 4, 4>& rotation)
-    {
-      /*
-      Eigen is column major:
-      If the storage order is not specified, then Eigen defaults to
-      storing the entry in column - major.This is also the case if
-      one of the convenience typedefs(Matrix3f, ArrayXXd, etc.) is used.
+      : _sxyz{ 1, 0, 0, 0 }
+      , _v(_sxyz + 1)
+    {      
+      auto m00 = rotation.coeff(0, 0);
+      auto m11 = rotation.coeff(1, 1);
+      auto m22 = rotation.coeff(2, 2);
+      auto m21 = rotation.coeff(2, 1);
+      auto m12 = rotation.coeff(1, 2);
+      auto m02 = rotation.coeff(0, 2);
+      auto m20 = rotation.coeff(2, 0);
+      auto m10 = rotation.coeff(1, 0);
+      auto m01 = rotation.coeff(0, 1);
 
-      Math notation is usually row-major. Here it is in row-major:
-      s = 0.5*sqrt(m00+m11+m22+1)
-      x = (m21−m12) / (4 * s)
-      y = (m02−m20) / (4 * s)
-      z = (m10−m01) / (4 * s)
-      */
+      auto s = 0.5f * std::sqrt(m00 + m11 + m22 + 1.0f);
+      auto four_s = s * 4;
 
-      auto m00 = rotation[0][0];
-      auto m11 = rotation[1][1];
-      auto m22 = rotation[2][2];
-      auto m21 = rotation[1][2];
-      auto m12 = rotation[2][1];
-      auto m02 = rotation[2][0];
-      auto m20 = rotation[0][2];
-      auto m10 = rotation[0][1];
-      auto m01 = rotation[1][0];
-
-      auto s = _sxyz[0] = 0.5 * std::sqrt(m00 + m11 + m22 + 1);
-      _sxyz[1] = (m21 - m12) / (4 * s);
-      _sxyz[2] = (m02 - m20) / (4 * s);
-      _sxyz[3] = (m10 - m10) / (4 * s);
+      _sxyz[0] = s;
+      _sxyz[1] = (m21 - m12) / four_s;
+      _sxyz[2] = (m02 - m20) / four_s;
+      _sxyz[3] = (m10 - m01) / four_s;
     }
 
     static quat z_to_v(VectorT v)
@@ -90,7 +81,7 @@ namespace math
     quat operator* (const quat& other) const
     {
       return quat(
-        s() * other.s(),
+        s() * other.s() - _v.dot(other._v),
         s() * other.v() + other.s() * v() + v().cross(other.v()));
     }
 

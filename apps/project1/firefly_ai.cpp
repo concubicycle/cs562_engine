@@ -40,7 +40,7 @@ void firefly_ai::update(ecs::state& state)
 		Eigen::Vector3f to_target = f.target - t.world_position();
 		Eigen::Vector3f to_target_norm = to_target.normalized();
 		auto& translation = t.position();
-		Eigen::Vector3f displacement = to_target.normalized() * f.speed * _time.smoothed_delta_secs();
+		Eigen::Vector3f displacement = to_target.normalized() * f.speed * _time.smoothed_delta_seconds_f();
 		translation = translation * Eigen::Translation3f(displacement);
 
 		if (to_target.squaredNorm() < Epsilon)

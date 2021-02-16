@@ -9,7 +9,8 @@ namespace ecs
 	class system_base
 	{
 	public:
-        virtual void initialize(ecs::state& state) {};
+    virtual ~system_base() = default;
+    virtual void initialize(ecs::state& state) {};
 		virtual void cleanup(ecs::state& state) {};
 		virtual void update(ecs::state& state) = 0;
 	};

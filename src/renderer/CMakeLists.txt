@@ -32,7 +32,7 @@ set (RENDERER_SOURCE_FILES
     "skeletal_animation.cpp" 
     rigged_model_instance.cpp
     "rigged_model_loader.cpp"
-    "animator.cpp" "skeleton_structs.cpp" "timeline.cpp")
+    "animator.cpp" "skeleton_structs.cpp" "timeline.cpp" "ik.cpp")
 
 add_library(renderer ${RENDERER_SOURCE_FILES})
 target_include_directories(renderer PRIVATE ${PROJECT_SOURCE_DIR}/include)

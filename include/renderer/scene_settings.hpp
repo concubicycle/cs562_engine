@@ -9,7 +9,7 @@ namespace renderer
 {
 	struct participating_medium_settings
 	{
-		float beta{ 0.04f };
+		float beta{ 0.0f };
 		float f_lookup_range{ 10.f };
 		Eigen::Vector3f initial_intensity{ 50000.f, 50000.f, 50000.f };
 		bool use_single_scattering{ false };
@@ -30,6 +30,7 @@ namespace renderer
 	struct animation_settings
 	{
 		bool draw_bones{ false };
+		float bone_scale{ 1.f };
 	};
 
 	struct lighting_settings

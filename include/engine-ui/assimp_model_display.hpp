@@ -21,7 +21,7 @@ namespace engineui
   private:
     ecs::state& _state;
 
-    void print_nodes_recurse(display_node* node, size_t anim_count);
+    void print_nodes_recurse(display_node* node);
   };
 }
 

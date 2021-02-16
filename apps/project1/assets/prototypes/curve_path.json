@@ -1,138 +1,113 @@
 {
-	"root": {
-		"components":[	
-			{
-				"type": "transform"
-			},		
-			{
-				"type": "curve_walker"
-			}
-		]
-	},
-	"children": [
-		{
-			"components":[
-				{
-					"type": "transform"
-				},
-				{
-					"type": "control_point"
-				},
-				{
-					"type": "model_instance",
-					"model": "assets/models/marker_big.glb",
-					"materials": {
-						"definitions": [
-							{
-								"roughness": 0.999,
-								"metalness": false,
-								"fresnel_color": [ 0, 0, 0 ]
-							}
-						],
-						"mesh_definition_indices": [ 0 ]
-					}
-				}
-			]
-		},
-		{
-			"components":[
-				{
-					"type": "transform",
-					"position": [0, 0, -20]
-				},
-				{
-					"type": "control_point"
-				},
-				{
-					"type": "model_instance",
-					"model": "assets/models/marker_big.glb",
-					"materials": {
-						"definitions": [
-							{
-								"roughness": 0.999,
-								"metalness": false,
-								"fresnel_color": [ 0, 0, 0 ]
-							}
-						],
-						"mesh_definition_indices": [ 0 ]
-					}
-				}
-			]
-		},
-		{
-			"components":[
-				{
-					"type": "transform",
-					"position": [-20, 0, -20]
-				},
-				{
-					"type": "control_point"
-				},
-				{
-					"type": "model_instance",
-					"model": "assets/models/marker_big.glb",
-					"materials": {
-						"definitions": [
-							{
-								"roughness": 0.999,
-								"metalness": false,
-								"fresnel_color": [ 0, 0, 0 ]
-							}
-						],
-						"mesh_definition_indices": [ 0 ]
-					}
-				}
-			]
-		},
-		{
-			"components":[
-				{
-					"type": "transform",
-					"position": [-20, 0, 0]
-				},
-				{
-					"type": "control_point"
-				},
-				{
-					"type": "model_instance",
-					"model": "assets/models/marker_big.glb",
-					"materials": {
-						"definitions": [
-							{
-								"roughness": 0.999,
-								"metalness": false,
-								"fresnel_color": [ 0, 0, 0 ]
-							}
-						],
-						"mesh_definition_indices": [ 0 ]
-					}
-				}
-			]
-		},
-		{
-			"components":[
-				{
-					"type": "transform",
-					"position": [10, 0, 10]
-				},
-				{
-					"type": "control_point"
-				},
-				{
-					"type": "model_instance",
-					"model": "assets/models/marker_big.glb",
-					"materials": {
-						"definitions": [
-							{
-								"roughness": 0.999,
-								"metalness": false,
-								"fresnel_color": [ 0, 0, 0 ]
-							}
-						],
-						"mesh_definition_indices": [ 0 ]
-					}
-				}
-			]
-		}
-	]
+  "root": {
+    "components": [
+      {
+        "type": "transform"
+      },
+      {
+        "type": "curve_walker"
+      }
+    ]
+  },
+  "children": [
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -12, 0, 0 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -6, 0, -6 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, 0 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 6, 0, 6 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 12, 0, 0 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 12, 0, 12 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, 30 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -6, 0, 9 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -12, 0, 0 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ -6, 0, -6 ]
+        }
+      ]
+    },
+    {
+      "prototype": "assets/prototypes/control_point_marker.json",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, 0 ]
+        }
+      ]
+    }
+  ]
 }

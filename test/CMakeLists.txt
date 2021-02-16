@@ -30,3 +30,10 @@ add_executable(math_tests math/math_tests.cpp "math/curve_tests.cpp" "math/quat_
 target_link_libraries(math_tests eigen)
 target_include_directories(math_tests PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(math_tests PUBLIC cxx_std_17)
+
+# physics
+add_executable(physics_tests physics/physics_test.cpp physics/point.cpp)
+target_link_libraries(physics_tests eigen physics)
+target_include_directories(physics_tests PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(physics_tests PUBLIC cxx_std_17)
+

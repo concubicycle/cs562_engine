@@ -29,6 +29,20 @@ void curve_walker_loader::load(asset::asset_loader_node& ecs_node)
 			component.control_points.push_back(e);
 		}
 	}
+
+	std::vector<Eigen::Vector2f> points;
+	for (auto* point : component.control_points)
+	{
+		auto& trns = point->get_component<transforms::transform>();
+		auto pos = trns.position();
+		points.emplace_back(pos.x(), pos.z());
+	}
+
+	component.curve.emplace(points[0], points[1], points[2], points[3]);
+	for (size_t i = 4; i < points.size(); ++i)
+		component.curve->add_piece(points[i]);
+
+	component.ark_lengths.emplace(*component.curve);
 }
 
 component_bitset curve_walker_loader::components_to_load()

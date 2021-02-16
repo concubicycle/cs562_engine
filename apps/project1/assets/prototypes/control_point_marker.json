@@ -1,0 +1,26 @@
+{
+  "root": {
+    "components": [
+      {
+        "type": "transform"
+      },
+      {
+        "type": "control_point"
+      },
+      {
+        "type": "model_instance",
+        "model": "assets/models/marker_big.glb",
+        "materials": {
+          "definitions": [
+            {
+              "roughness": 0.001,
+              "metalness": true,
+              "fresnel_color": [ 1, 0.782, 0.344 ]
+            }
+          ],
+          "mesh_definition_indices": [ 0 ]
+        }
+      }
+    ]
+  }
+}

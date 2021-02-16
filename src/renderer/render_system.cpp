@@ -218,7 +218,15 @@ void renderer::render_system::draw_rigged_models(
   using namespace transforms;
 
   state.each<transform, rigged_model_instance>([&](transform& t, rigged_model_instance& model) {
-    program.set_mat4_array(45, model.animation_structures->pose_buffer.global_joint_poses);
+
+    model.ik_solver->result_pose().compute_global_pose_buffer();
+
+    if (model.has_animations())
+      program.set_mat4_array(45, model.animation_structures->pose_buffer.global_model_space_poses);
+    else if (model.ik_solver)
+      program.set_mat4_array(45, model.ik_solver->result_pose().global_model_space_poses);
+    else
+      program.set_mat4_array(45, model.animation_structures->bind_pose.global_model_space_poses);
 
     for (size_t i = 0; i < model.model.mesh_count; ++i)
     {
@@ -232,25 +240,53 @@ void renderer::render_system::draw_rigged_models(
 
     if (!settings.animation.draw_bones) return;
 
-    _geometry_pass.bind();
-
-    bind_material(model.model.meshes[0].material, _geometry_pass);
+    auto bone_scale = settings.animation.bone_scale;
     auto* cam = state.first<camera>();
     auto& cam_t = cam->get_component<transform>();
     auto& cam_cam = cam->get_component<camera>();
 
+    _geometry_pass.bind();
+    bind_material(model.model.meshes[0].material, _geometry_pass);
     bind_camera_uniforms(_geometry_pass, cam_t, cam_cam);
 
-    for (Eigen::Matrix4f& global_pose_mat : model.animation_structures->pose_buffer.global_joint_poses)
+    for (size_t joint_i = 1; joint_i < model.animation_structures->joint_count; joint_i++)
     {
-      Eigen::Matrix4f model = Eigen::Affine3f(Eigen::Scaling(t.scale())).matrix() * global_pose_mat;
-      _geometry_pass.set_uniform("model", model);
-      _geometry_pass.set_uniform("adjoint_transpose", global_pose_mat.adjoint().transpose().eval());
+      auto& joint = model.animation_structures->skeleton.joints[joint_i];
+      
+      Eigen::Matrix4f world_offset = t.local_to_world().matrix();
+      Eigen::Matrix4f animation_transform = model.has_animations()
+        ? model.animation_structures->pose_buffer.global_bone_space_poses[joint_i]
+        : model.ik_solver
+          ? model.ik_solver->result_pose().global_bone_space_poses[joint_i]
+          : Eigen::Matrix4f::Identity();
+
+      Eigen::Matrix4f modelmat =
+        world_offset
+        * animation_transform        
+        * Eigen::Affine3f(Eigen::Scaling(bone_scale)).matrix()
+        * Eigen::Affine3f(Eigen::Scaling(t.scale().cwiseInverse())).matrix();
+
+      _geometry_pass.set_uniform("model", modelmat);
+      _geometry_pass.set_uniform("adjoint_transpose", modelmat.adjoint().transpose().eval());
       glBindVertexArray(_sphere.get_vao());
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
       glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
+
+    if (model.ik_solver)
+    {
+      //// draw ik target
+      Eigen::Matrix4f modelmat = Eigen::Affine3f(Eigen::Translation3f(model.ik_solver->get_target())).matrix();
+
+      _geometry_pass.set_uniform("model", modelmat);
+      _geometry_pass.set_uniform("adjoint_transpose", modelmat.adjoint().transpose().eval());
+      glBindVertexArray(_sphere.get_vao());
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere.get_ebo());
+      glDrawElements(GL_TRIANGLES, _sphere.get_index_count(), GL_UNSIGNED_INT, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+
     });
 }
 
@@ -319,6 +355,17 @@ void renderer::render_system::bind_material(
   program.set_uniform("fresnel_color", material.fresnel_color);
   program.set_uniform("roughness", material.roughness);
   program.set_uniform("metalness", material.metalness);
+
+  const bool has_diffuse_texture = material.diffuse_texture.texture_id.has_value();
+  if (!has_diffuse_texture)
+  {
+    program.set_uniform("has_diffuse_texture", false);
+    program.set_uniform("diffuse_color", material.diffuse_color);
+  }
+  else 
+  {
+    program.set_uniform("has_diffuse_texture", true);
+  }
 }
 
 void renderer::render_system::bind_texture(
@@ -639,7 +686,7 @@ void renderer::render_system::render_shadowmap_directional(
 
   state.each<transform, rigged_model_instance>([&](transform& t, rigged_model_instance& mi)
     {
-      _directional_shadow_rigged.set_mat4_array(45, mi.animation_structures->pose_buffer.global_joint_poses);
+      _directional_shadow_rigged.set_mat4_array(45, mi.animation_structures->pose_buffer.global_model_space_poses);
       for (size_t i = 0; i < mi.model.mesh_count; ++i)
         draw_mesh(t, mi.model.meshes[i], _directional_shadow_rigged);
     });

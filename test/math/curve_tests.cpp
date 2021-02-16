@@ -4,7 +4,7 @@
 
 void test_b_spline()
 {
-  math::cubic_b_spline spline({ 0.f, 0.f }, { 5.f, 10.f }, { 10.f, 10.f }, { 20.f, 0.f });
+  math::cubic_b_spline spline{ { 0.f, 0.f }, { 5.f, 10.f }, { 10.f, 10.f }, { 20.f, 0.f } };
   spline.add_piece({ 20.f, 10.f });
   spline.add_piece({ 10.f, 20.f });
 
@@ -15,5 +15,7 @@ void test_b_spline()
   Eigen::Vector2f two = spline.eval(2);
   Eigen::Vector2f three = spline.eval(3);
 
+  Eigen::Vector2f start_tan = spline.eval_tangent(0);
 
+  std::cout << "b spline tests done" << std::endl;
 }

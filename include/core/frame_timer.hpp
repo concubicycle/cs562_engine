@@ -7,40 +7,42 @@
 
 #include <util/running_average.hpp>
 
-using precision = std::chrono::nanoseconds;
-
 namespace core
 {
-class frame_timer
-{
-private:
+  using clock_units = std::chrono::high_resolution_clock::duration;
+  using float_seconds = std::chrono::duration<float>;
+
+  class frame_timer
+  {
+  private:
     util::running_average<std::chrono::nanoseconds> _frame_average;
     std::chrono::high_resolution_clock _high_res_timer;
     std::chrono::time_point<std::chrono::high_resolution_clock> _start, _end, _begin_total;
+        
+    clock_units _smoothed_delta;
+    clock_units _delta;
 
-    std::chrono::nanoseconds _delta;
-    std::chrono::nanoseconds _smoothed_delta;
+  public:
+    frame_timer() :
+      _frame_average(10, clock_units(0)),
+      _smoothed_delta(clock_units(0)),
+      _delta(clock_units(0))
+    {}
 
-
-public:
-    frame_timer() : 
-		_frame_average(10, precision(0)),
-		_smoothed_delta(precision(0)),
-		_delta(precision(0))
-	{}
-
-	void begin_total();
+    void begin_total();
 
     void start();
     void end();
 
-    [[nodiscard]] std::chrono::nanoseconds delta() const;
-    [[nodiscard]] std::chrono::nanoseconds smoothed_delta() const;
-    [[nodiscard]] float smoothed_delta_secs() const;
-    [[nodiscard]] float delta_secs() const;
-	[[nodiscard]] std::chrono::nanoseconds current_frame_time() const;	
-	[[nodiscard]] std::string frame_info() const;	
-};
+    [[nodiscard]] clock_units delta() const;
+    [[nodiscard]] clock_units smoothed_delta() const;
+    [[nodiscard]] float_seconds smoothed_delta_seconds() const;
+    [[nodiscard]] float_seconds delta_seconds() const;
+    [[nodiscard]] float smoothed_delta_seconds_f() const;
+    [[nodiscard]] float delta_seconds_f() const;
+    [[nodiscard]] std::chrono::nanoseconds current_frame_time() const;
+    [[nodiscard]] std::string frame_info() const;
+  };
 } // namespace core
 
 #endif

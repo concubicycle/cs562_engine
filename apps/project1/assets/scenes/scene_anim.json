@@ -54,18 +54,17 @@
     {
       "components": [
         {
-          "type": "transform",
-          "scale": [ 0.01, 0.01, 0.01 ]
+          "type": "transform"
         },
         {
           "type": "rigged_model_instance",
-          "model": "assets/models/character.fbx",
+          "model": "assets/models/robot_arm/robot_arm.gltf",
           "materials": {
             "definitions": [
               {
-                "roughness": 0.7,
-                "metalness": false,
-                "fresnel_color": [ 0.056, 0.056, 0.056 ]
+                "roughness": 0.3,
+                "metalness": true,
+                "fresnel_color": [ 0.5, 0.5, 0.5 ]
               }
             ],
             "mesh_definition_indices": [ 0 ]
@@ -93,9 +92,6 @@
           }
         }
       ]
-    },
-    {
-      "prototype": "assets/prototypes/curve_path.json"
     }
   ]
 }

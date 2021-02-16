@@ -3,7 +3,7 @@
 #include <renderer/skeleton_joint.hpp>
 #include <asset/bone_flattener.hpp>
 
-
+#include <util/constants.hpp>
 
 struct engineui::display_node
 {
@@ -48,8 +48,43 @@ void engineui::assimp_model_display::draw()
     asset::bone_flattener<display_node> flattener(rmi.aiscene, buffer.data(), joint_count, flatten_func);
 
     ImGui::Begin("Model");
-    print_nodes_recurse(root, rmi.animation_index());
+    print_nodes_recurse(root);
     ImGui::End();
+
+
+    ImGui::SliderFloat("Theta", &rmi.target_theta, 0, 2 * util::Pi_f);
+    ImGui::SliderFloat("Radius", &rmi.target_r, 0, 10);
+    ImGui::SliderFloat("Height", &rmi.target_height, 0, 10);
+
+    if (ImGui::Button("Step"))
+    {
+      rmi.ik_solver->step();
+    }
+
+    if (ImGui::Button("Toggle"))
+    {
+      rmi.ik_solver->toggle();
+    }
+
+    if (ImGui::Button("Reset"))
+    {
+      rmi.ik_solver->reset();
+    }
+
+    if (ImGui::Button("Front to Back"))
+    {
+      rmi.ik_solver->fill_link_sequence_ftb(0);
+    }
+
+    if (ImGui::Button("Back To Front"))
+    {
+      rmi.ik_solver->fill_link_sequence_btf(0);
+    }
+
+    ImGui::Checkbox("Smart Bounce", &rmi.ik_solver->_smart_bounce);
+
+    if (!rmi.has_animations()) return;
+
 
     float duration = (float)rmi.current_clip_duration().count();
     auto timelines = rmi.get_timelines();
@@ -57,6 +92,7 @@ void engineui::assimp_model_display::draw()
     
     static float t = 0;
     t = (float)rmi.current_clip_time().count();
+
 
     ImGui::Begin("Animator");
     if (ImGui::SliderFloat("time", &t, 0.f, duration))
@@ -89,14 +125,14 @@ void engineui::assimp_model_display::draw()
   });
 }
 
-void engineui::assimp_model_display::print_nodes_recurse(display_node* node, size_t animation_index)
+void engineui::assimp_model_display::print_nodes_recurse(display_node* node)
 {
   renderer::joint* j = node->value;
 
   if (ImGui::TreeNode(j->name.c_str()))
   {
     for (auto* ptr : node->children)
-      print_nodes_recurse(ptr, animation_index);
+      print_nodes_recurse(ptr);
 
     ImGui::TreePop();
   }

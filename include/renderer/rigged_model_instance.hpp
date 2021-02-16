@@ -13,6 +13,7 @@
 #include <assimp/scene.h>
 #include <renderer/skeleton_structs.hpp>
 #include <renderer/timeline.hpp>
+#include <renderer/ik.hpp>
 
 namespace renderer
 {
@@ -27,12 +28,30 @@ namespace renderer
     opengl_model model;
     std::optional<animation_data> animation_structures {};
     
+
     bool is_paused{ 0 };
     size_t model_filename_hash{ 0 };
     const aiScene* aiscene{ nullptr };
 
+    animation_time current_transition_duration{ 0 };
+    animation_time current_transition_t{ 0 };
+    std::optional<size_t> next_index{};
+
+    // temporary bullshit
+    std::optional<ik_ccd> ik_solver;
+    float target_theta;
+    float target_r;
+    float target_height;
+
+    [[nodiscard]] Eigen::Vector3f build_target() const
+    {
+      return Eigen::Vector3f(std::cos(target_theta), 0, std::sin(target_theta)) * target_r + Eigen::Vector3f::UnitY()* target_height;
+    }
+    /// 
+
     void set_animation_index(size_t i);
     size_t animation_index() const;
+    bool has_animations() const;
     renderer::skeleton_animation_clip& current_clip();    
     animation_time current_clip_time() const;
     animation_time current_clip_duration() const;
@@ -41,7 +60,7 @@ namespace renderer
 
 
   private:
-    size_t _animation_index{ 0 };
+    std::optional<size_t> _animation_index{ };
   };
 }
 

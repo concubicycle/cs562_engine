@@ -77,6 +77,7 @@ renderer::opengl_material renderer::assimp_vram_loader::load_material(const asse
 
   result.roughness = material.roughness;
   result.metalness = material.metalness > 0.5f ? true : false;
+  result.diffuse_color = material.base_color;
   //result.fresnel_color = material.base_color.block<3, 1>(0, 0);
 
   auto has = [&](aiTextureType tt) { return material.material_textures.find(tt) != material.material_textures.end(); };

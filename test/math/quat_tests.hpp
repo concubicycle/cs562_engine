@@ -20,3 +20,5 @@ void conjugate();
 void compare_rotations();
 
 void rotate_vector();
+
+void test_to_from_mat();

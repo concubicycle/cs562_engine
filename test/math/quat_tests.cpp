@@ -113,7 +113,7 @@ void rotate_vector()
 
   if (!(result.isApprox(Eigen::Vector3f::UnitY())))
   {
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
   }
 
   quat about_x_90(0.70710678f, 0.70710678f, 0, 0);
@@ -122,13 +122,13 @@ void rotate_vector()
   Eigen::Vector3f z = about_x_90 * Eigen::Vector3f::UnitZ();
 
   if (!(x.isApprox(Eigen::Vector3f::UnitX())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(y.isApprox(Eigen::Vector3f::UnitZ())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(z.isApprox(-Eigen::Vector3f::UnitY())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   Eigen::Matrix4f m = about_x_90.matrix();
   std::cout << m << std::endl;
@@ -141,13 +141,13 @@ void rotate_vector()
   z = q_half * Eigen::Vector3f::UnitZ();
 
   if (!(x.isApprox(Eigen::Vector3f::UnitY())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(y.isApprox(Eigen::Vector3f::UnitZ())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(z.isApprox(Eigen::Vector3f::UnitX())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   m = q_half.matrix();
   std::cout << m << std::endl;
@@ -160,13 +160,13 @@ void rotate_vector()
   z = q_four_thirds * Eigen::Vector3f::UnitZ();
 
   if (!(x.isApprox(Eigen::Vector3f::UnitZ())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(y.isApprox(Eigen::Vector3f::UnitX())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(z.isApprox(Eigen::Vector3f::UnitY())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   m = q_four_thirds.matrix();
   std::cout << m << std::endl;
@@ -179,17 +179,29 @@ void rotate_vector()
   z = second_identity * Eigen::Vector3f::UnitZ();
 
   if (!(x.isApprox(Eigen::Vector3f::UnitX())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(y.isApprox(Eigen::Vector3f::UnitY())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   if (!(z.isApprox(Eigen::Vector3f::UnitZ())))
-    throw new std::runtime_error("rotation not working");
+    throw std::runtime_error("rotation not working");
 
   m = second_identity.matrix();
   std::cout << m << std::endl;
 
 
   std::cout << "rotation test done" << std::endl;
+}
+
+void test_to_from_mat()
+{
+  using namespace math;
+
+  quat<float> q_half(0.5, 0.5, 0.5, 0.5);
+  Eigen::Matrix4f m = q_half.matrix();
+  quat<float> q_hopefully_half(m);
+
+  if (q_hopefully_half != q_half)
+    throw std::runtime_error("from matrix bad");
 }

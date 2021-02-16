@@ -109,6 +109,18 @@ namespace asset
           mat.roughness = pbrmetallicroughness_roughness_factor;
         }
 
+        aiColor3D diffuse_color;
+        if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color))
+        {
+          mat.base_color = Eigen::Array4f(diffuse_color.r, diffuse_color.g, diffuse_color.b, 1);
+        }
+
+        float opacity;
+        if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity))
+        {
+          mat.base_color = opacity;
+        }
+
         load_material_texture(material, aiTextureType_DIFFUSE, mat.material_textures);
         load_material_texture(material, aiTextureType_SPECULAR, mat.material_textures);
         load_material_texture(material, aiTextureType_AMBIENT, mat.material_textures);

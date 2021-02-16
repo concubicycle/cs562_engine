@@ -4,6 +4,8 @@
 #include <renderer/render_pass_opengl_state.hpp>
 
 
+
+
 void gaussian_weights_test();
 void perspectives_test();
 void test_ogl_state_transition();

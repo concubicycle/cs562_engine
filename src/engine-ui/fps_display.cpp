@@ -16,7 +16,7 @@ void engineui::fps_display::draw()
     ImGui::SetNextWindowPos({ 0, 0 });
     ImGui::Begin("FPS", 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 
-    ImVec4 col = _frame_timer.smoothed_delta_secs() > 0.033f 
+    ImVec4 col = _frame_timer.smoothed_delta_seconds_f() > 0.033f 
         ? ImVec4 {1.f, 1.f, 0.f, 1.f}
         : ImVec4 {0.f, 1.f, 0.f, 1.f};
 

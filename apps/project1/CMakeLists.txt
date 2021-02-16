@@ -1,4 +1,5 @@
-add_executable(project1 main.cpp run_app.cpp firefly_ai.cpp "curve_walker.cpp" "curve_walker_system.cpp")
+add_executable(project1 main.cpp run_app.cpp firefly_ai.cpp 
+"curve_walker.cpp" "curve_walker_system.cpp" "robot_arm_system.hpp" "robot_arm_system.cpp" "linked_stick_system.cpp")
 
 target_link_libraries(project1 PRIVATE
 	core
@@ -6,7 +7,8 @@ target_link_libraries(project1 PRIVATE
 	asset
 	transforms	
 	renderer
-	engineui)
+	engineui
+	physics)
 
 target_compile_features(project1 PUBLIC cxx_std_17)
 

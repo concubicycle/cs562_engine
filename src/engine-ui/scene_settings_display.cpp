@@ -45,6 +45,7 @@ void engineui::scene_settings_display::draw()
 		if (ImGui::TreeNode("Settings"))
 		{			
 			ImGui::Checkbox("Draw Bones", &settings.animation.draw_bones);
+			ImGui::SliderFloat("Bone Scale", &settings.animation.bone_scale, 0.01f, 3.f);
 			ImGui::TreePop();
 		}
 
