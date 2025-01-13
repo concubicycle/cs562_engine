@@ -10,7 +10,7 @@ This project uses CMake, along with the following libraries:
 
 # Build Instructions
 
-Building this project requires an internet connection - it will download and build much of its dependencies. 
+Building this project requires an internet connection - it will download and build some of its dependencies. 
 
 ## Linux
 
